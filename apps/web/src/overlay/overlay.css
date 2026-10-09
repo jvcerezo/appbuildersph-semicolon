@@ -332,6 +332,9 @@ kbd {
 }
 
 .ov-pending {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -341,7 +344,17 @@ kbd {
   background: var(--bg);
   font-size: 1rem;
   color: var(--muted);
-  animation: linaw-pulse 1.6s ease-in-out infinite;
+}
+
+/* A shimmer sweeps behind the text (z-index -1 inside the isolated row), so the words never fade. */
+.ov-pending::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, transparent, var(--hover) 40%, var(--hover) 60%, transparent);
+  transform: translateX(-100%);
+  animation: linaw-shimmer 2.2s ease-in-out infinite;
 }
 
 .ov-waiting {

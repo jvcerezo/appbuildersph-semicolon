@@ -21,6 +21,8 @@
   --hover: #f2f2f2;
   --skeleton: #ededed;
   --skeleton-2: #f0f0f0;
+  /* The light band that sweeps across skeletons while a card is being written. */
+  --shimmer: rgba(255, 255, 255, 0.85);
   --scrim: rgba(10, 10, 10, 0.42);
   --stroke: 1.5px;
   --card-border: 1px;
@@ -55,6 +57,7 @@
   --hover: #262626;
   --skeleton: #333;
   --skeleton-2: #262626;
+  --shimmer: rgba(255, 255, 255, 0.14);
   --scrim: rgba(0, 0, 0, 0.7);
   --stroke: 2px;
   --card-border: 2px;
@@ -654,9 +657,20 @@ svg {
 }
 
 .skeleton {
+  position: relative;
+  overflow: hidden;
   background: var(--skeleton-2);
   border-radius: 0.375rem;
-  animation: linaw-pulse 1.6s ease-in-out infinite;
+}
+
+/* A soft band sweeps across while the card is written. Without motion the band rests off-screen. */
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--shimmer), transparent);
+  transform: translateX(-100%);
+  animation: linaw-shimmer 1.8s ease-in-out infinite;
 }
 
 .skeleton--title {
@@ -1012,6 +1026,53 @@ button.term:hover {
   color: var(--muted);
 }
 
+/* ---- thinking dots: three dots that rise and brighten in turn while the AI works */
+
+.dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 1.5rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.dots__dot {
+  width: 0.3125rem;
+  height: 0.3125rem;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  opacity: 0.35;
+  animation: linaw-dot 1.4s ease-in-out infinite;
+}
+
+.dots__dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dots__dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.dots--lg {
+  gap: 0.375rem;
+  width: 2.5rem;
+  height: 1.75rem;
+}
+
+.dots--lg .dots__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Still dots, clearly visible: the words beside them say what is happening. */
+  .dots__dot {
+    opacity: 0.7;
+  }
+}
+
 .help__body .help__loading {
   padding: 0;
 }
@@ -1120,6 +1181,21 @@ button.term:hover {
 .qa__answer {
   font-size: 1.125rem;
   line-height: 1.55;
+}
+
+.qa__reply {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+/* Inside the dark question bubble: same color as the bubble's text, so it keeps full contrast. */
+.qa__hearing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+  font-style: italic;
 }
 
 .ask-form {
@@ -1433,13 +1509,22 @@ button.term:hover {
   }
 }
 
-@keyframes linaw-pulse {
+@keyframes linaw-dot {
   0%,
+  70%,
   100% {
-    opacity: 1;
+    opacity: 0.35;
+    transform: translateY(0);
   }
-  50% {
-    opacity: 0.55;
+  35% {
+    opacity: 1;
+    transform: translateY(-0.1875rem);
+  }
+}
+
+@keyframes linaw-shimmer {
+  to {
+    transform: translateX(100%);
   }
 }
 

@@ -1,7 +1,8 @@
 import { forwardRef } from 'react';
-import { AudioLines, Bookmark, BookmarkCheck, Cpu, ShieldCheck, Text, Volume2 } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Cpu, ShieldCheck, Text, Volume2 } from 'lucide-react';
 import type { Card } from '@linaw/contract';
 import { formatClock } from '../lib/format';
+import { ThinkingDots } from './ThinkingDots';
 
 interface JargonCardProps {
   card: Card;
@@ -24,7 +25,13 @@ export const JargonCard = forwardRef<HTMLElement, JargonCardProps>(function Jarg
     .join(' ');
 
   return (
-    <article ref={ref} className={className} aria-labelledby={`${card.id}-term`} tabIndex={-1}>
+    <article
+      ref={ref}
+      className={className}
+      aria-labelledby={`${card.id}-term`}
+      aria-busy={simplifying || undefined}
+      tabIndex={-1}
+    >
       <header className="card__header">
         <h3 id={`${card.id}-term`} className="card__term">
           {card.term}
@@ -70,7 +77,7 @@ export const JargonCard = forwardRef<HTMLElement, JargonCardProps>(function Jarg
         </button>
         {onSimplify && (
           <button type="button" className="ghost-button" onClick={() => onSimplify(card)} disabled={simplifying}>
-            {simplifying ? <AudioLines size={20} aria-hidden="true" /> : <Text size={20} aria-hidden="true" />}
+            {simplifying ? <ThinkingDots /> : <Text size={20} aria-hidden="true" />}
             {simplifying ? 'Making it simpler…' : 'Simpler'}
           </button>
         )}
@@ -107,7 +114,7 @@ export function PendingCard({ term }: { term: string }) {
       <div className="card__pending-head">
         <div className="skeleton skeleton--title" aria-hidden="true" />
         <div className="card__pending-label">
-          <AudioLines size={18} aria-hidden="true" />
+          <ThinkingDots />
           Explaining “{term}”…
         </div>
       </div>

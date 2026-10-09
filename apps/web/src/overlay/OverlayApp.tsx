@@ -21,6 +21,7 @@ import { ActionBar } from '../components/ActionBar';
 import { HelpPanel } from '../components/HelpPanel';
 import { CardBasis, JargonCard } from '../components/JargonCard';
 import { ListeningAnimation } from '../components/ListeningAnimation';
+import { ThinkingDots } from '../components/ThinkingDots';
 import { SettingsDialog } from '../components/SettingsDialog';
 import { highlightTerms } from '../components/SegmentLine';
 import { TranscriptList } from '../components/TranscriptPanel';
@@ -283,7 +284,7 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
 
           {session.pending.map((p) => (
             <div key={p.id} className="ov-pending" aria-busy="true">
-              <AudioLines size={18} aria-hidden="true" />
+              <ThinkingDots />
               Explaining “{p.term}”…
             </div>
           ))}

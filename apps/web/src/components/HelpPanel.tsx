@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { AudioLines, Mic, Send, Square, X } from 'lucide-react';
+import { Mic, Send, Square, X } from 'lucide-react';
 import type { Language } from '@linaw/contract';
 import { formatClock } from '../lib/format';
 import { MAX_QUESTION_SEC, recordQuestion, type VoiceRecording } from '../lib/voice';
 import type { HelpKind, Segment, SessionState } from '../state/session';
 import { Sources } from './Sources';
+import { ThinkingDots } from './ThinkingDots';
 
 const TITLES: Record<HelpKind, string> = {
   what_said: 'What did they say?',
@@ -43,6 +44,7 @@ interface SourceProps {
 export function HelpPanel({ kind, session, language, onAsk, onAskAloud, onError, onShowSegment, onClose }: HelpPanelProps) {
   const segments = useMemo(() => new Map(session.segments.map((s) => [s.id, s])), [session.segments]);
   const shared = { session, language, segments, onShowSegment };
+  const announcement = useAnnouncement(busyLabel(kind, session), DONE_LABELS[kind]);
   return (
     <aside className="help" aria-labelledby="help-title">
       <div className="panel-header">
@@ -57,14 +59,57 @@ export function HelpPanel({ kind, session, language, onAsk, onAskAloud, onError,
       {kind === 'what_said' && <WhatSaid {...shared} />}
       {kind === 'summary' && <Summary {...shared} />}
       {kind === 'ask' && <Ask {...shared} onAsk={onAsk} onAskAloud={onAskAloud} onError={onError} />}
+      {/* One polite region for the whole panel: says once that the AI is working, and once that it's done. */}
+      <div className="visually-hidden" aria-live="polite">
+        {announcement}
+      </div>
     </aside>
   );
 }
 
+const DONE_LABELS: Record<HelpKind, string> = {
+  what_said: 'Ready: what they said.',
+  summary: 'Summary ready.',
+  ask: 'Answer ready.',
+};
+
+/** What the panel is waiting on, in words, or null when nothing is loading. */
+function busyLabel(kind: HelpKind, session: SessionState): string | null {
+  if (kind === 'what_said') return session.whatSaid.state === 'done' ? null : 'Looking back at what was said…';
+  if (kind === 'summary') return session.summary.state === 'done' ? null : 'Writing a summary…';
+  return session.questions.some((q) => q.answer === undefined) ? 'Thinking…' : null;
+}
+
+/**
+ * Text for the panel's live region. It changes only when loading starts or ends, so nothing is
+ * announced twice. The short delay lets the (just mounted) region exist before its text changes,
+ * which screen readers need in order to read it.
+ */
+function useAnnouncement(busy: string | null, done: string): string {
+  const [text, setText] = useState('');
+  const wasBusy = useRef(false);
+  useEffect(() => {
+    let next: string | null = null;
+    if (busy) {
+      wasBusy.current = true;
+      next = busy;
+    } else if (wasBusy.current) {
+      wasBusy.current = false;
+      next = done;
+    }
+    if (next === null) return;
+    const message = next;
+    const timer = window.setTimeout(() => setText(message), 150);
+    return () => window.clearTimeout(timer);
+  }, [busy, done]);
+  return text;
+}
+
+/** The visible "working on it" row. Screen readers hear it through the panel's live region. */
 function Loading({ label }: { label: string }) {
   return (
-    <div className="help__loading" role="status">
-      <AudioLines size={20} aria-hidden="true" />
+    <div className="help__loading">
+      <ThinkingDots />
       {label}
     </div>
   );
@@ -72,7 +117,13 @@ function Loading({ label }: { label: string }) {
 
 function WhatSaid({ session, language, segments, onShowSegment }: SourceProps) {
   const { whatSaid } = session;
-  if (whatSaid.state !== 'done') return <Loading label="Looking back at what was said…" />;
+  if (whatSaid.state !== 'done') {
+    return (
+      <div className="help__body" aria-busy="true">
+        <Loading label="Looking back at what was said…" />
+      </div>
+    );
+  }
   const minutes = Math.round(whatSaid.value.windowSec / 60);
   return (
     <div className="help__body">
@@ -89,7 +140,13 @@ function WhatSaid({ session, language, segments, onShowSegment }: SourceProps) {
 
 function Summary({ session, language, segments, onShowSegment }: SourceProps) {
   const { summary } = session;
-  if (summary.state !== 'done') return <Loading label="Writing a summary…" />;
+  if (summary.state !== 'done') {
+    return (
+      <div className="help__body" aria-busy="true">
+        <Loading label="Writing a summary…" />
+      </div>
+    );
+  }
   const { overview, events, openIssue } = summary.value;
   return (
     <div className="help__body">
@@ -163,33 +220,40 @@ function Ask({
             </div>
           </div>
         ) : (
-          session.questions.map((q) => (
-            <div key={q.requestId} className="qa">
-              <div className="qa__question">
-                {q.voice ? (
-                  q.question ? (
-                    <>
-                      <Mic size={16} aria-label="Asked out loud:" /> {q.question}
-                    </>
+          session.questions.map((q) => {
+            // A spoken question has no words yet: the bubble itself shows that Linaw is still listening.
+            const hearing = q.voice === true && !q.question;
+            return (
+              <div key={q.requestId} className="qa" aria-busy={q.answer === undefined}>
+                <div className="qa__question">
+                  {q.voice ? (
+                    q.question ? (
+                      <>
+                        <Mic size={16} aria-label="Asked out loud:" /> {q.question}
+                      </>
+                    ) : (
+                      <span className="qa__hearing">
+                        <ThinkingDots />
+                        Listening to your question…
+                      </span>
+                    )
                   ) : (
-                    <span className="muted">Listening to your question…</span>
-                  )
+                    q.question
+                  )}
+                </div>
+                {q.answer ? (
+                  <div className="qa__reply">
+                    <p className="qa__answer" lang={language}>
+                      {q.answer}
+                    </p>
+                    <Sources ids={q.sources} segments={segments} onShow={onShowSegment} preferTranslation />
+                  </div>
                 ) : (
-                  q.question
+                  !hearing && <Loading label="Thinking…" />
                 )}
               </div>
-              {q.answer ? (
-                <>
-                  <p className="qa__answer" lang={language}>
-                    {q.answer}
-                  </p>
-                  <Sources ids={q.sources} segments={segments} onShow={onShowSegment} preferTranslation />
-                </>
-              ) : (
-                <Loading label="Thinking…" />
-              )}
-            </div>
-          ))
+            );
+          })
         )}
         <div ref={endRef} />
       </div>

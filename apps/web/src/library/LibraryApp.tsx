@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AudioLines,
   BookmarkCheck,
   FileText,
   Headphones,
@@ -19,6 +18,7 @@ import {
 } from 'lucide-react';
 import { JargonCard } from '../components/JargonCard';
 import { SegmentLine } from '../components/SegmentLine';
+import { ThinkingDots } from '../components/ThinkingDots';
 import { SettingsDialog } from '../components/SettingsDialog';
 import { Sources } from '../components/Sources';
 import { desktop } from '../lib/desktop';
@@ -318,7 +318,7 @@ function SessionView({ record, linaw, onDeleted }: { record: SessionRecord; lina
         ))}
       </div>
 
-      <div className="lib-session__body" role="tabpanel">
+      <div className="lib-session__body" role="tabpanel" aria-busy={(tab === 'summary' && summaryPending) || undefined}>
         {tab === 'summary' &&
           (record.summary ? (
             <div className="lib-summary">
@@ -346,7 +346,7 @@ function SessionView({ record, linaw, onDeleted }: { record: SessionRecord; lina
             </div>
           ) : (
             <div className="lib-empty">
-              {summaryPending ? <AudioLines size={28} aria-hidden="true" /> : <FileText size={28} aria-hidden="true" />}
+              {summaryPending ? <ThinkingDots size="lg" /> : <FileText size={28} aria-hidden="true" />}
               <p>
                 {summaryPending
                   ? 'Writing the summary for this session…'
