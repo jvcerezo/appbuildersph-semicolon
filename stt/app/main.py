@@ -387,10 +387,13 @@ async def tts(request: Request):
         raise HTTPException(503, "STT_MODE=local_only: cloud TTS is disabled")
     if not settings.soniox_configured:
         raise HTTPException(503, "SONIOX_API_KEY is not set on the server")
+    t0 = time.perf_counter()
     try:
         audio, mime_type = await tts_synthesize(settings, text, language)
     except TtsUnavailable as e:
+        log.warning("Soniox TTS unavailable after %.1f s: %s", time.perf_counter() - t0, e)
         raise HTTPException(503, str(e))
+    log.info("Soniox TTS: %d bytes in %.1f s", len(audio), time.perf_counter() - t0)
     return Response(content=audio, media_type=mime_type)
 
 

@@ -12,6 +12,8 @@ export interface Settings {
   /** Show the translation under lines spoken in another language. */
   showTranslation: boolean;
   language: Language;
+  /** Ask a question: speak the answer automatically (text waits for the voice), not just show it. */
+  autoVoiceAnswers: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -22,6 +24,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showTranscript: true,
   showTranslation: true,
   language: 'tl',
+  autoVoiceAnswers: true,
 };
 
 /** "large" (A+) matches the design's sizes; 1rem = 16px there. */

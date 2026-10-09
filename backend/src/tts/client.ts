@@ -16,7 +16,12 @@ export async function synthesizeSpeech(sttUrl: string, text: string, language: L
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ text, language }),
-      signal: AbortSignal.timeout(15_000),
+      // Soniox itself typically answers in a few seconds, but the stt service has occasionally taken
+      // much longer to turn an already-successful Soniox response into this HTTP response (seen up to
+      // ~15 s past Soniox's own reply; root cause not yet pinned down - stt/app/main.py now logs the
+      // real duration on every call). Generous on purpose: a slow-but-real answer beats a needless
+      // fallback to the on-device voice.
+      signal: AbortSignal.timeout(30_000),
     });
   } catch (err) {
     throw new TtsUnavailableError(`the speech service isn't answering (${err instanceof Error ? err.message : String(err)})`);

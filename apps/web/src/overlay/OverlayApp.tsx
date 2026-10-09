@@ -181,6 +181,7 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
           onAskAloud={(clip, mimeType) => void linaw.askAloud(clip, mimeType)}
           onError={linaw.reportError}
           onShowSegment={linaw.showSegment}
+          preparingVoiceId={linaw.preparingVoiceId}
           onClose={() => linaw.openHelp(null)}
         />
       </div>

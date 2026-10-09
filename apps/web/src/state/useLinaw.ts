@@ -12,10 +12,14 @@ import { initialSession, sessionReducer, type HelpKind, type SessionState } from
 const WHAT_SAID_WINDOW_SEC = 120;
 const FOCUS_MS = 6000;
 const AUTOSAVE_MS = 800;
-// Soniox's non-streaming TTS call alone measures ~5-6 s for a card-length clip. Kept comfortably above
-// the backend's own 15 s fetch timeout (backend/src/tts/client.ts) so a `tts.failed` from a real backend
-// timeout is the common path, not a race with this one.
-const SPEAK_TIMEOUT_MS = 18000;
+// Soniox's non-streaming TTS call alone measures ~5-6 s for a card-length clip, though the speech
+// service has occasionally taken much longer to respond despite Soniox itself succeeding. Kept
+// comfortably above the backend's own 30 s fetch timeout (backend/src/tts/client.ts) so a `tts.failed`
+// from a real backend timeout is the common path, not a race with this one.
+const SPEAK_TIMEOUT_MS = 35000;
+// Generous backstop in case a playback promise never settles (a missed/unsupported browser event) —
+// mirrors the existing MAX_DUCK_MS safety net in apps/desktop/src/volume.cjs.
+const MAX_PLAYBACK_MS = 20000;
 
 /** What the library shows when no session is live. */
 export type LibraryView = { page: 'home' } | { page: 'session'; id: string };
@@ -39,22 +43,132 @@ export function useLinaw() {
   const focusTimer = useRef<number | undefined>(undefined);
   /** The final summary requested when a session is finished, to store when it arrives. */
   const pendingSummary = useRef<{ recordId: string; requestId: string } | null>(null);
-  /** The one in-flight cloud read-aloud request; resolved by its audio, rejected by `tts.failed` or a timeout. */
+  /** The one in-flight cloud read-aloud request for a card; resolved by its audio, rejected by `tts.failed` or a timeout. */
   const pendingSpeak = useRef<{ requestId: string; resolve: (blob: Blob) => void; reject: () => void } | null>(null);
   /** Card currently waiting on cloud read-aloud, so its button can show a loading state. */
   const [speakingCardId, setSpeakingCardId] = useState<string | null>(null);
+  /** The one in-flight auto-voice request for a QA answer; same shape as pendingSpeak. */
+  const pendingAnswerVoice = useRef<{ requestId: string; resolve: (blob: Blob) => void; reject: () => void } | null>(null);
+  /** The one in-flight auto-voice request for a "What did they say?" result; same shape as pendingSpeak. */
+  const pendingWhatSaidVoice = useRef<{ requestId: string; resolve: (blob: Blob) => void; reject: () => void } | null>(null);
+  /** Request (question or "what did they say?") whose voice is being prepared, so its bubble can say
+   * "Getting ready to speak…" instead of its usual loading label. */
+  const [preparingVoiceId, setPreparingVoiceId] = useState<string | null>(null);
   const [libraryView, setLibraryView] = useState<LibraryView>({ page: 'home' });
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+  const startedAtRef = useRef<number | null>(null);
+  startedAtRef.current = session.startedAt;
+  /** Closed/open windows, in the same "seconds since session start" basis as transcript.segment's `t`,
+   * during which Linaw's own voice (not the hearing) was audible. */
+  const suppressWindows = useRef<{ from: number; to: number }[]>([]);
+
+  function elapsedNow(): number | null {
+    const startedAt = startedAtRef.current;
+    return startedAt === null ? null : (Date.now() - startedAt) / 1000;
+  }
+
+  /** Brackets a playback promise with a suppression window, so any transcript segment that lands
+   * inside it is almost certainly Linaw's own voice, not the hearing. No-op when not listening. */
+  function markPlayback(promise: Promise<void>): void {
+    if (capture.current === null) return;
+    const from = elapsedNow();
+    if (from === null) return;
+    const win = { from, to: Infinity };
+    suppressWindows.current.push(win);
+    const close = () => {
+      if (win.to === Infinity) win.to = elapsedNow() ?? win.from;
+    };
+    const safety = window.setTimeout(close, MAX_PLAYBACK_MS);
+    void promise.finally(() => {
+      window.clearTimeout(safety);
+      close();
+      const cutoff = (elapsedNow() ?? 0) - 60;
+      suppressWindows.current = suppressWindows.current.filter((w) => w.to > cutoff);
+    });
+  }
+
+  function isSuppressed(t: number): boolean {
+    return suppressWindows.current.some((w) => t >= w.from && t <= w.to);
+  }
+
+  type PendingVoice = { requestId: string; resolve: (blob: Blob) => void; reject: () => void };
+  const pendingVoiceRefs = [pendingSpeak, pendingAnswerVoice, pendingWhatSaidVoice];
+
+  function resolvePendingVoice(requestId: string, blob: Blob): void {
+    for (const ref of pendingVoiceRefs) {
+      if (ref.current?.requestId === requestId) {
+        const pending = ref.current;
+        ref.current = null;
+        pending.resolve(blob);
+        return;
+      }
+    }
+  }
+
+  function rejectPendingVoice(requestId: string): void {
+    for (const ref of pendingVoiceRefs) {
+      if (ref.current?.requestId === requestId) {
+        const pending = ref.current;
+        ref.current = null;
+        pending.reject();
+        return;
+      }
+    }
+  }
+
+  /**
+   * Holds `reveal` back until Linaw's own voice is ready (cloud TTS, or the on-device fallback once
+   * that's decided) so text and voice arrive together, falling back on failure, "not connected", or a
+   * timeout. Shared by QA answers and "What did they say?" results.
+   */
+  function autoVoice(requestId: string, text: string, pendingRef: { current: PendingVoice | null }, reveal: () => void): void {
+    if (!settingsRef.current.autoVoiceAnswers) {
+      reveal();
+      return;
+    }
+    const rate = SPEECH_RATE[settingsRef.current.readSpeed];
+    const fallback = () => readAloud(text, settingsRef.current.language, rate);
+    if (!socket.current?.send({ type: 'tts.request', requestId, text, language: settingsRef.current.language })) {
+      reveal(); // not connected; reveal with the on-device voice right away
+      markPlayback(fallback());
+      return;
+    }
+    setPreparingVoiceId(requestId);
+    const timer = window.setTimeout(() => {
+      if (pendingRef.current?.requestId === requestId) {
+        pendingRef.current = null;
+        setPreparingVoiceId(null);
+        reveal();
+        markPlayback(fallback());
+      }
+    }, SPEAK_TIMEOUT_MS);
+    pendingRef.current = {
+      requestId,
+      resolve: (blob) => {
+        window.clearTimeout(timer);
+        setPreparingVoiceId(null);
+        reveal();
+        markPlayback(playCloudAudio(blob, rate).catch(fallback));
+      },
+      reject: () => {
+        window.clearTimeout(timer);
+        setPreparingVoiceId(null);
+        reveal();
+        markPlayback(fallback());
+      },
+    };
+  }
 
   // ---- backend connection
   useEffect(() => {
     const backend = new BackendSocket(
       (message) => {
-        const pendingTts = pendingSpeak.current;
-        if (pendingTts && message.type === 'tts.failed' && message.requestId === pendingTts.requestId) {
-          pendingSpeak.current = null;
-          pendingTts.reject();
+        if (message.type === 'transcript.segment' && isSuppressed(message.t)) {
+          return; // very likely Linaw's own voice, not the hearing
+        }
+        if (message.type === 'tts.failed') {
+          rejectPendingVoice(message.requestId);
           return;
         }
         const pending = pendingSummary.current;
@@ -64,6 +178,14 @@ export function useLinaw() {
             const { overview, events, openIssue } = message;
             void historyStore.update(pending.recordId, (r) => ({ ...r, summary: { overview, events, openIssue, at: Date.now() } }));
           }
+          return;
+        }
+        if (message.type === 'answer') {
+          autoVoice(message.requestId, message.text, pendingAnswerVoice, () => dispatch({ type: 'server', message }));
+          return;
+        }
+        if (message.type === 'what_said.result') {
+          autoVoice(message.requestId, message.points.join(' '), pendingWhatSaidVoice, () => dispatch({ type: 'server', message }));
           return;
         }
         dispatch({ type: 'server', message });
@@ -81,13 +203,7 @@ export function useLinaw() {
           });
         }
       },
-      (requestId, blob) => {
-        const pending = pendingSpeak.current;
-        if (pending?.requestId === requestId) {
-          pendingSpeak.current = null;
-          pending.resolve(blob);
-        }
-      },
+      (requestId, blob) => resolvePendingVoice(requestId, blob),
     );
     socket.current = backend;
     return () => {
@@ -270,7 +386,7 @@ export function useLinaw() {
     const fallback = () => readAloud(text, card.language, rate);
     const requestId = newRequestId();
     if (!socket.current?.send({ type: 'tts.request', requestId, text, language: card.language })) {
-      fallback(); // not connected at all; don't even wait, so there's nothing to show loading for
+      markPlayback(fallback()); // not connected at all; don't even wait, so there's nothing to show loading for
       return;
     }
     setSpeakingCardId(card.id);
@@ -278,7 +394,7 @@ export function useLinaw() {
       if (pendingSpeak.current?.requestId === requestId) {
         pendingSpeak.current = null;
         setSpeakingCardId(null);
-        fallback();
+        markPlayback(fallback());
       }
     }, SPEAK_TIMEOUT_MS);
     pendingSpeak.current = {
@@ -286,12 +402,12 @@ export function useLinaw() {
       resolve: (blob) => {
         window.clearTimeout(timer);
         setSpeakingCardId(null);
-        void playCloudAudio(blob, rate).catch(fallback);
+        markPlayback(playCloudAudio(blob, rate).catch(fallback));
       },
       reject: () => {
         window.clearTimeout(timer);
         setSpeakingCardId(null);
-        fallback();
+        markPlayback(fallback());
       },
     };
   };
@@ -316,6 +432,7 @@ export function useLinaw() {
     simplify,
     speak,
     speakingCardId,
+    preparingVoiceId,
     toggleSaved: (card: Card) => dispatch({ type: 'card.toggleSaved', cardId: card.id }),
     /** Close any help sheet and show this transcript line (used by source quotes). */
     showSegment: (segmentId: string | null) => {

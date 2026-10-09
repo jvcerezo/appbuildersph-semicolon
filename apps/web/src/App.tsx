@@ -62,6 +62,7 @@ function FullLive({ linaw }: { linaw: Linaw }) {
         onOpenHelp={linaw.openHelp}
         onAsk={linaw.ask}
         onAskAloud={(clip, mimeType) => void linaw.askAloud(clip, mimeType)}
+        preparingVoiceId={linaw.preparingVoiceId}
         onError={linaw.reportError}
         onShowSegment={linaw.showSegment}
         onReadAloud={linaw.speak}

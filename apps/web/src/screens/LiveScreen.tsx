@@ -22,6 +22,7 @@ interface LiveScreenProps {
   onOpenHelp: (kind: HelpKind | null) => void;
   onAsk: (question: string) => void;
   onAskAloud: (clip: Blob, mimeType: string) => void;
+  preparingVoiceId: string | null;
   onError: (message: string) => void;
   onShowSegment: (segmentId: string) => void;
   onReadAloud: (card: Card) => void;
@@ -84,6 +85,7 @@ export function LiveScreen(props: LiveScreenProps) {
       onAskAloud={props.onAskAloud}
       onError={props.onError}
       onShowSegment={props.onShowSegment}
+      preparingVoiceId={props.preparingVoiceId}
       onClose={() => props.onOpenHelp(null)}
     />
   ) : showTranscript ? (
