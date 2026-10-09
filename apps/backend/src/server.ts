@@ -13,6 +13,7 @@ import { parseClientMessage } from '@linaw/contract';
 import { loadConfig, type Config } from './config';
 import { checkHealth, printHealth } from './health';
 import { Session } from './session';
+import { WhisperClient } from './stt/whisper';
 import { encode, type Outgoing } from './wire';
 
 try {
@@ -22,6 +23,8 @@ try {
 }
 
 const config = loadConfigOrExit();
+// One local whisper-server, shared by every connection; it transcribes one clip at a time.
+const whisper = new WhisperClient(config.whisperUrl, config.whisperLanguage);
 const sessions = new Set<Session>();
 const wss = new WebSocketServer({ host: '127.0.0.1', port: config.port });
 
@@ -41,7 +44,7 @@ wss.on('error', (err) => {
 
 wss.on('connection', (socket) => {
   console.log('[backend] UI connected');
-  const session = new Session((message) => sendTo(socket, message));
+  const session = new Session({ config, whisper }, (message) => sendTo(socket, message));
   sessions.add(session);
 
   socket.on('message', (data, isBinary) => {
