@@ -9,6 +9,7 @@ Routes
   GET  /api/session/metrics      latest "metrics" message (cloud meter)
   WS   /ws/session               unified transcript/status/metrics bus (browser posts, everyone receives)
   WS   /ws/stt-local             PCM in, local engine segments out (via /ws/session)
+  WS   /ws/stream                for backends: PCM in, Soniox or local transcripts out, with fallback
 """
 
 from __future__ import annotations
@@ -34,6 +35,7 @@ from .config import ROOT_DIR, load_settings, load_stt_terms  # noqa: E402
 from .local_engine import LocalSTTEngine, TranscriptEvent, create_local_engine  # noqa: E402
 from .local_stt import ModelUnavailableError  # noqa: E402
 from .session import SessionHub  # noqa: E402
+from .stream import StreamSession  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("linaw")
@@ -335,3 +337,46 @@ async def ws_stt_local(ws: WebSocket):
     # Socket dropped without "stop": still transcribe what we have.
     if sid:
         await engine.end_session(sid, flush=True)
+
+
+@app.websocket("/ws/stream")
+async def ws_stream(ws: WebSocket):
+    """For backends: PCM in, transcripts out on this same socket. Soniox when
+    online, the local engine otherwise, with fallback mid-stream. Protocol in
+    app/stream.py."""
+    await ws.accept()
+
+    async def send(obj: dict) -> None:
+        try:
+            await ws.send_text(json.dumps(obj, ensure_ascii=False))
+        except Exception:
+            pass
+
+    async def online() -> bool:
+        return bool((await connectivity())["online"])
+
+    stream = StreamSession(settings, state["engine"], hub, online, send)
+    try:
+        while True:
+            m = await ws.receive()
+            if m["type"] == "websocket.disconnect":
+                break
+            if m.get("bytes") is not None:
+                await stream.push(m["bytes"])
+                continue
+            try:
+                ctl = json.loads(m.get("text") or "{}")
+            except json.JSONDecodeError:
+                continue
+            if ctl.get("type") == "start" and not stream.started:
+                await stream.start(float(ctl.get("offset_seconds", 0.0)))
+            elif ctl.get("type") == "simulate_offline":
+                await stream.simulate_offline(bool(ctl.get("on", True)))
+            elif ctl.get("type") == "stop":
+                await stream.stop(flush=True)
+                await send({"type": "done"})
+                await ws.close()
+                return
+    except WebSocketDisconnect:
+        pass
+    await stream.stop(flush=False)
