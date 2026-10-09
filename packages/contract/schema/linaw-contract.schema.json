@@ -1,0 +1,701 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://linaw.local/contract/v1.schema.json",
+  "title": "Linaw contract v1",
+  "description": "Messages between the Linaw UI and its local backend on ws://localhost:8765. Generated from packages/contract/src/index.ts — do not edit by hand. Validate backend -> UI messages against $defs/ServerMessage and UI -> backend messages against $defs/ClientMessage.",
+  "x-contract-version": 1,
+  "x-default-port": 8765,
+  "$defs": {
+    "ServerMessage": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "status"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "waiting",
+                "listening",
+                "stopped",
+                "offline"
+              ]
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "transcript.segment"
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "t": {
+              "type": "number",
+              "minimum": 0
+            },
+            "speaker": {
+              "type": "string",
+              "minLength": 1
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            },
+            "terms": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "cardId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "text"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "final": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "id",
+            "t",
+            "speaker",
+            "text",
+            "terms",
+            "final"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "card.pending"
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "term": {
+              "type": "string",
+              "minLength": 1
+            },
+            "t": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "id",
+            "term",
+            "t"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "card"
+            },
+            "card": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "term": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "checked",
+                    "ai"
+                  ]
+                },
+                "meaning": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "example": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "now": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "t": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "language": {
+                  "type": "string",
+                  "enum": [
+                    "tl",
+                    "en"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "term",
+                "kind",
+                "meaning",
+                "example",
+                "now",
+                "t",
+                "language"
+              ],
+              "additionalProperties": false
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "card"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "what_said.result"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "windowSec": {
+              "type": "number",
+              "exclusiveMinimum": true,
+              "minimum": 0
+            },
+            "points": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "requestId",
+            "windowSec",
+            "points"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "summary.result"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "overview": {
+              "type": "string",
+              "minLength": 1
+            },
+            "events": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "t": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "detail": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "t",
+                  "title",
+                  "detail"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "openIssue": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "requestId",
+            "overview",
+            "events"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "answer"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "question": {
+              "type": "string",
+              "minLength": 1
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "requestId",
+            "question",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "error"
+            },
+            "code": {
+              "type": "string",
+              "enum": [
+                "bad_request",
+                "unsupported_audio",
+                "model_unavailable",
+                "internal"
+              ]
+            },
+            "message": {
+              "type": "string"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "code",
+            "message"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ClientMessage": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "session.start"
+            },
+            "source": {
+              "type": "string",
+              "enum": [
+                "tab",
+                "file",
+                "system"
+              ]
+            },
+            "mimeType": {
+              "type": "string",
+              "minLength": 1
+            },
+            "preferences": {
+              "type": "object",
+              "properties": {
+                "level": {
+                  "type": "string",
+                  "enum": [
+                    "simple",
+                    "detailed"
+                  ]
+                },
+                "language": {
+                  "type": "string",
+                  "enum": [
+                    "tl",
+                    "en"
+                  ]
+                }
+              },
+              "required": [
+                "level",
+                "language"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "source",
+            "mimeType",
+            "preferences"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "session.stop"
+            }
+          },
+          "required": [
+            "v",
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "preferences.update"
+            },
+            "preferences": {
+              "type": "object",
+              "properties": {
+                "level": {
+                  "type": "string",
+                  "enum": [
+                    "simple",
+                    "detailed"
+                  ]
+                },
+                "language": {
+                  "type": "string",
+                  "enum": [
+                    "tl",
+                    "en"
+                  ]
+                }
+              },
+              "required": [
+                "level",
+                "language"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "preferences"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "what_said.request"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "windowSec": {
+              "type": "number",
+              "exclusiveMinimum": true,
+              "minimum": 0
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "requestId",
+            "windowSec"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "summary.request"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "requestId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "ask"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "question": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "requestId",
+            "question"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "card.simplify"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "cardId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "requestId",
+            "cardId"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Card": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "term": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "checked",
+            "ai"
+          ]
+        },
+        "meaning": {
+          "type": "string",
+          "minLength": 1
+        },
+        "example": {
+          "type": "string",
+          "minLength": 1
+        },
+        "now": {
+          "type": "string",
+          "minLength": 1
+        },
+        "t": {
+          "type": "number",
+          "minimum": 0
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "tl",
+            "en"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "term",
+        "kind",
+        "meaning",
+        "example",
+        "now",
+        "t",
+        "language"
+      ],
+      "additionalProperties": false
+    },
+    "Preferences": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "simple",
+            "detailed"
+          ]
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "tl",
+            "en"
+          ]
+        }
+      },
+      "required": [
+        "level",
+        "language"
+      ],
+      "additionalProperties": false
+    },
+    "Status": {
+      "type": "string",
+      "enum": [
+        "waiting",
+        "listening",
+        "stopped",
+        "offline"
+      ]
+    }
+  }
+}
