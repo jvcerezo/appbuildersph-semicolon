@@ -456,6 +456,8 @@ svg {
 }
 
 .cards-scroll {
+  /* New cards are inserted at the top; don't let scroll anchoring push them out of view. */
+  overflow-anchor: none;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
