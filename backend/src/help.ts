@@ -1,6 +1,6 @@
 import type { Language, SummaryEvent } from '@linaw/contract';
 import type { OllamaClient, Priority } from './llm/ollama';
-import { summaryEvent, summaryOverview, whatSaid } from './llm/prompts';
+import { ask, summaryEvent, summaryOverview, whatSaid } from './llm/prompts';
 import type { Line } from './session';
 
 const NOTHING_SAID: Record<Language, string> = {
@@ -85,6 +85,67 @@ export class Summarizer {
     }
     return job;
   }
+}
+
+const NO_ADVICE: Record<Language, string> = {
+  tl: 'Hindi makapagbibigay si Linaw ng legal na payo o hula. Para sa payo, kumonsulta sa abogado o sa PAO (Public Attorney’s Office).',
+  en: 'Linaw can’t give legal advice or predictions. For advice, talk to a lawyer or the PAO (Public Attorney’s Office).',
+};
+
+const OFF_TOPIC: Record<Language, string> = {
+  tl: 'Ang pagdinig na ito lang ang alam ni Linaw. Magtanong tungkol sa sinabi rito o sa isang legal na termino.',
+  en: 'Linaw only knows about this hearing. Ask about what was said here or about a legal term.',
+};
+
+/** Advice and predictions, in Tagalog and English. The refusal must not depend on a 4B model noticing. */
+const ADVICE =
+  /\b(dapat\s+(ba|ko|kong|akong|ba\s+akong)|ano\s+ang\s+(dapat|gagawin)\s+ko|kailangan\s+ko\s+bang|pwede\s+ba\s+akong|puwede\s+ba\s+akong|mananalo|matatalo|makukulong|maco-convict|ma-convict|magdemanda|kasuhan|should\s+(i|we)|do\s+i\s+need|can\s+i\s+(sue|file)|will\s+(he|she|they)\s+(be\s+)?(convicted|acquitted|jailed|win|lose|go\s+to\s+jail)|is\s+(he|she)\s+guilty|who\s+will\s+win)\b/i;
+
+const RECENT_LINES = 20;
+const RELATED_LINES = 8;
+const STOPWORDS = new Set(['what', 'when', 'where', 'which', 'that', 'this', 'with', 'from', 'have', 'they', 'were', 'ang', 'mga', 'nang', 'para', 'kung', 'bakit', 'paano', 'saan', 'sino', 'ano']);
+
+export interface Answer {
+  text: string;
+  sources: string[];
+}
+
+/** Ask, from the transcript and the glossary. Advice and off-topic questions get fixed lines (D11). */
+export async function answerQuestion(args: {
+  question: string;
+  lines: Line[];
+  meanings: { term: string; meaning: string }[];
+  language: Language;
+  ai: OllamaClient;
+}): Promise<Answer> {
+  const { question, meanings, language, ai } = args;
+  const advice = ADVICE.test(question);
+  const lines = relevantLines(question, args.lines);
+  const reply = await ai.json(
+    ask({ question, lines: lines.map((line) => line.text), meanings, advice, language }),
+    'user',
+  );
+  const sources = [...new Set(reply.lines.map((n) => lines[n - 1]?.id).filter((id): id is string => id !== undefined))];
+  if (!reply.onTopic) return { text: advice ? NO_ADVICE[language] : OFF_TOPIC[language], sources: [] };
+  return { text: advice ? `${NO_ADVICE[language]} ${reply.answer}` : reply.answer, sources };
+}
+
+/** The latest lines, plus older ones that share words with the question, in hearing order. */
+function relevantLines(question: string, lines: Line[]): Line[] {
+  const recent = lines.slice(-RECENT_LINES);
+  const words = new Set(keywords(question));
+  const related = lines
+    .slice(0, -RECENT_LINES)
+    .map((line) => ({ line, score: keywords(line.text).filter((word) => words.has(word)).length }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, RELATED_LINES)
+    .map(({ line }) => line);
+  return [...related, ...recent].sort((a, b) => a.t - b.t);
+}
+
+function keywords(text: string): string[] {
+  return (text.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []).filter((word) => word.length >= 4 && !STOPWORDS.has(word));
 }
 
 function longest(lines: Line[]): Line {

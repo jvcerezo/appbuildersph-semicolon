@@ -3,7 +3,9 @@
  * and prints every message the UI would receive. Tests the whole pipeline
  * (ffmpeg, pause cutter, whisper-server) without opening the UI.
  *
- *   pnpm --filter @linaw/backend replay <audio-or-video-file> [--speed 2]
+ *   pnpm --filter @linaw/backend replay <audio-or-video-file> [--speed 2] [--ask "question" ...]
+ *
+ * Afterwards it asks "What did they say?", Summary, and each --ask question.
  */
 import { spawn } from 'node:child_process';
 import { parseArgs } from 'node:util';
@@ -14,7 +16,7 @@ import { encode, type Outgoing } from '../src/wire';
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
-  options: { speed: { type: 'string', default: '1' } },
+  options: { speed: { type: 'string', default: '1' }, ask: { type: 'string', multiple: true } },
 });
 const file = positionals[0];
 if (!file) {
@@ -59,6 +61,10 @@ session.handle({ v: 1, type: 'what_said.request', requestId: 'replay-what-said',
 await session.drained();
 session.handle({ v: 1, type: 'summary.request', requestId: 'replay-summary' });
 await session.drained();
+for (const [i, question] of (values.ask ?? []).entries()) {
+  session.handle({ v: 1, type: 'ask', requestId: `replay-ask-${i}`, question });
+  await session.drained();
+}
 session.dispose();
 
 console.log(`\nDone in ${((Date.now() - startedAt) / 1000).toFixed(1)} s:`, Object.fromEntries(counts));
@@ -75,6 +81,9 @@ function print(message: Outgoing): void {
     }
     case 'status':
       console.log(`${at} status: ${message.status}${message.title ? `, title "${message.title}"` : ''}`);
+      break;
+    case 'answer':
+      console.log(`${at} Q: ${message.question}\n           A: ${message.text}\n           sources: ${(message.sources ?? []).join(', ')}`);
       break;
     case 'summary.result':
       console.log(`${at} summary: ${message.overview}\n${message.events.map((e) => `           @${e.t}s ${e.title}: ${e.detail}`).join('\n')}${message.openIssue ? `\n           still open: ${message.openIssue}` : ''}`);

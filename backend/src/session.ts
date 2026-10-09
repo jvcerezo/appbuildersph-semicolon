@@ -3,7 +3,7 @@ import { PauseCutter, type Utterance } from './audio/cutter';
 import { FfmpegDecoder, SAMPLE_RATE } from './audio/decoder';
 import { toWav } from './audio/wav';
 import { checkedCard, nowLine, simplerText } from './cards';
-import { LINES_PER_EVENT, Summarizer, whatWasSaid } from './help';
+import { answerQuestion, LINES_PER_EVENT, Summarizer, whatWasSaid } from './help';
 import { AiUnavailableError } from './llm/ollama';
 import type { Services } from './services';
 import type { Outgoing } from './wire';
@@ -99,7 +99,7 @@ export class Session {
         break;
 
       case 'ask':
-        this.notReady(message.requestId);
+        this.ask(message.requestId, message.question);
         break;
     }
   }
@@ -175,10 +175,6 @@ export class Session {
   private endStream(): void {
     this.stream?.decoder.end();
     this.stream = null;
-  }
-
-  private notReady(requestId: string): void {
-    this.send({ type: 'error', code: 'internal', message: 'This part of Linaw isn’t ready yet.', requestId });
   }
 
   private heard(utterance: Utterance, stream: Stream): void {
@@ -302,6 +298,25 @@ export class Session {
         console.log(`[backend] summary "${title ?? ''}" (${lines.length} lines, ${events.length} events, ${((Date.now() - startedAt) / 1000).toFixed(1)} s): ${overview}`);
       })
       .catch((err: unknown) => this.helpFailed(err, requestId, 'Linaw couldn’t write the summary. Try again.'));
+    this.track(job);
+  }
+
+  private ask(requestId: string, question: string): void {
+    const { language } = this.preferences;
+    const meanings = this.services.finder.find(question).flatMap(({ entryId }) => {
+      const entry = this.services.glossary.get(entryId);
+      if (!entry) return [];
+      return [{ term: entry.term, meaning: (language === 'en' ? entry.en : undefined)?.meaning ?? entry.tl.meaning }];
+    });
+    const startedAt = Date.now();
+    const job = answerQuestion({ question, lines: [...this.lines], meanings, language, ai: this.services.ai })
+      .then(({ text, sources }) => {
+        this.aiFailing = false;
+        if (this.disposed) return;
+        this.send({ type: 'answer', requestId, question, text, sources });
+        console.log(`[backend] ask "${question}" (${((Date.now() - startedAt) / 1000).toFixed(1)} s): ${text}`);
+      })
+      .catch((err: unknown) => this.helpFailed(err, requestId, 'Linaw couldn’t answer right now. Try again.'));
     this.track(job);
   }
 

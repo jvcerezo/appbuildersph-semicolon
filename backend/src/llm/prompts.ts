@@ -8,12 +8,14 @@ const RULES: Record<Language, string[]> = {
     'Sumulat sa simpleng Tagalog, gamit ang pang-araw-araw na salita.',
     'Gamitin LAMANG ang sinabi sa pagdinig. Huwag mag-imbento ng pangalan, petsa o detalye.',
     'Huwag kailanman magbigay ng legal na payo o sabihin kung ano ang dapat gawin ng tao.',
+    'Ang "Objection" ay pagtutol ng isang abogado, hindi desisyon. May desisyon lang kapag sinabi ito ng namumuno (hal. "Sustained", "Overruled", "Granted", "Denied"). Kung walang ganoon, hindi pa napagpapasyahan.',
   ],
   en: [
     'You are Linaw. You help ordinary Filipinos understand a hearing or trial.',
     'Write in plain, everyday English.',
     'Use ONLY what was said in the hearing. Never invent names, dates or details.',
     'Never give legal advice or tell anyone what they should do.',
+    '"Objection" is a lawyer protesting, not a decision. Something is decided only when the presiding officer says so (e.g. "Sustained", "Overruled", "Granted", "Denied"). Without that, it is not decided yet.',
   ],
 };
 
@@ -152,6 +154,67 @@ export function summaryOverview(args: { events: { title: string; detail: string 
     },
     schema: z.object({ overview: z.string().trim().min(10), openIssue: z.string().trim(), title: z.string().trim().min(3) }),
     maxTokens: 260,
+  };
+}
+
+export interface AskAnswer {
+  onTopic: boolean;
+  answer: string;
+  /** 1-based numbers of the hearing lines the answer is based on. */
+  lines: number[];
+}
+
+/** Ask: answers from the hearing lines and glossary meanings only. */
+export function ask(args: {
+  question: string;
+  lines: string[];
+  meanings: { term: string; meaning: string }[];
+  advice: boolean;
+  language: Language;
+}): JsonRequest<AskAnswer> {
+  const { question, lines, meanings, advice, language } = args;
+  const tl = language === 'tl';
+  const task = tl
+    ? [
+        'Sagutin ang tanong gamit LAMANG ang mga linya ng pagdinig at ang mga kahulugan sa ibaba. Isulat:',
+        '- "onTopic": true kung tungkol ang tanong sa pagdinig, sa mga tao rito, o sa isang legal na termino o proseso; false kung hindi.',
+        '- "answer": 1 hanggang 3 maiikling pangungusap. Kung wala sa mga linya ang sagot, sabihing hindi pa ito nabanggit sa pagdinig.',
+        '- "lines": ang numero ng mga linyang pinagbatayan ng sagot.',
+      ]
+    : [
+        'Answer the question using ONLY the hearing lines and the meanings below. Write:',
+        '- "onTopic": true if the question is about the hearing, its people, or a legal term or procedure; false if not.',
+        '- "answer": 1 to 3 short sentences. If the lines do not say, say it has not come up in the hearing yet.',
+        '- "lines": the numbers of the lines the answer is based on.',
+      ];
+  if (advice) {
+    task.push(
+      tl
+        ? 'Humihingi ang tanong ng payo o hula. HUWAG magpayo o manghula kung ano ang mangyayari. Ipaliwanag lang ang kaugnay na termino o hakbang ng proseso.'
+        : 'The question asks for advice or a prediction. Do NOT advise or predict what will happen. Only explain the related term or step of the procedure.',
+    );
+  }
+  const heard = lines.map((text, i) => `[${i + 1}] ${text}`).join('\n') || (tl ? '(wala pa)' : '(none yet)');
+  const known = meanings.map((m) => `- ${m.term}: ${m.meaning}`).join('\n');
+  const content = tl
+    ? `Mga linya ng pagdinig:\n${heard}${known ? `\n\nMga kahulugan:\n${known}` : ''}\n\nTanong: ${question}`
+    : `Hearing lines:\n${heard}${known ? `\n\nMeanings:\n${known}` : ''}\n\nQuestion: ${question}`;
+  return {
+    messages: [
+      { role: 'system', content: [...RULES[language], ...task].join('\n') },
+      { role: 'user', content },
+    ],
+    format: {
+      type: 'object',
+      properties: {
+        onTopic: { type: 'boolean' },
+        answer: { type: 'string', minLength: 5, maxLength: 500 },
+        lines: { type: 'array', items: { type: 'integer' } },
+      },
+      required: ['onTopic', 'answer', 'lines'],
+    },
+    schema: z.object({ onTopic: z.boolean(), answer: z.string().trim().min(5), lines: z.array(z.number().int()) }),
+    maxTokens: 220,
   };
 }
 

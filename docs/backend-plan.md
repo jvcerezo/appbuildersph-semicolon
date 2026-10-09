@@ -30,14 +30,14 @@ Order follows the team's task list: "What did they say?" matters most for the de
 | 4 | Instant cards: the glossary card shows at once, "Right now" fills in a moment later | cards with no wait | must | done |
 | 5 | What did they say? | help panel answers | must | done (~6 s; up to 3 points, one AI call each) |
 | 6 | Summary, including the final one saved after Stop | Summary panel, library | must | done (~5 s; events for every 6 lines are written in the background) |
-| 7 | Ask, with RAG over the rules | Ask panel answers | should | next; needs the rules text |
-| 8 | Fuzzy term matching | terms found even when misheard | should | after the real clips |
+| 7 | Ask, with RAG over the rules | Ask panel answers | should | done from the transcript and glossary; rules search waits for the rules text |
+| 8 | Fuzzy term matching | terms found even when misheard | should | next (best tuned on the real clips) |
 | 9 | AI-explained cards for terms not in the glossary | more cards | could | later |
 | 10 | Demo prep: real clips, D7 test, glossary from the clips, disclosures, two clean rehearsals, backup video | ready to present | must | |
 
-`pnpm conformance --audio ../../backend/fixtures/mock-hearing-tts.webm --fast`: 13 passed, 0 failed; the warning is Ask, not built yet.
+`pnpm conformance --audio ../../backend/fixtures/mock-hearing-tts.webm --fast`: 14 passed, 0 failed, 0 warnings.
 
-Known weakness of gemma3:4b: it sometimes invents rulings (reads "Objection" as the court rejecting a motion). Worth comparing gemma4:e4b on the help answers when tuning D6.
+Known weakness of gemma3:4b: it sometimes invents rulings (reads "Objection" as the court rejecting a motion). A rule in every prompt fixed it in Summary and What did they say?, but Ask still slips. Worth comparing gemma4:e4b on the help answers when tuning D6.
 
 Replay of the test hearing: "articles of impeachment" is said at 0:06, its line and full Checked card show 2.8 s later, and the AI's "Right now" line replaces the plain one about 2 s after that.
 
@@ -61,7 +61,7 @@ Replay of the test hearing: "articles of impeachment" is said at 0:06, its line 
 | D8 | AI-written "Right now" on Checked cards | Keep the Checked badge; the UI teammate is told the AI writes that one line | 2026-10-09 |
 | D9 | Terms not in the glossary | open (Phase 9) | |
 | D10 | Simple vs Detailed | open (Phase 9) | |
-| D11 | Legal-advice or off-topic questions in Ask | open (Phase 7) | |
+| D11 | Legal-advice or off-topic questions in Ask | Explain, then redirect: a keyword check (Tagalog and English) catches advice and predictions, and the answer always starts with a fixed "no legal advice, see a lawyer or the PAO" line before the AI explains the related term or step. Off-topic questions get a fixed line. | 2026-10-09 |
 | D12 | Top-bar title | The AI writes a short title with each summary (button or final), sent with `status`. Until then the UI's date-based name stays. | 2026-10-09 |
 | D13 | "Offline mode" pill | open (Phase 10) | |
 
