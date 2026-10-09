@@ -47,7 +47,7 @@ apps/web/src/
   overlay/             OverlayApp + overlay.css (compact layout)
   lib/desktop.ts       typed bridge to the Electron shell (window.linawDesktop)
   lib/socket.ts        the only backend connection (validates with the contract)
-  lib/audio.ts         tab/system capture (getDisplayMedia), file capture, MediaRecorder chunks
+  lib/audio.ts         tab/system capture (getDisplayMedia), MediaRecorder chunks
   lib/settings.ts      user settings + localStorage
   lib/speech.ts        read-aloud with on-device voices
   state/session.ts     reducer: server messages -> UI state

@@ -1,4 +1,4 @@
-/** Audio capture: a shared tab, all system audio (desktop overlay) or a local file, recorded in small chunks. */
+/** Audio capture: a shared tab or all system audio (desktop overlay), recorded in small chunks. */
 
 const PREFERRED_MIME = 'audio/webm;codecs=opus';
 const CHUNK_MS = 1000;
@@ -15,7 +15,7 @@ export class NoAudioError extends Error {
 
 export interface AudioSource {
   stream: MediaStream;
-  /** Stops capture and releases the tab or file. */
+  /** Stops capture and releases the tab or system audio. */
   release: () => void;
 }
 
@@ -40,32 +40,6 @@ export async function captureScreenAudio(): Promise<AudioSource> {
   }
   const stream = new MediaStream(audioTracks);
   return { stream, release: () => stream.getTracks().forEach((track) => track.stop()) };
-}
-
-/** Plays a local file (so the user hears it) and captures its audio as it plays. */
-export async function captureFile(file: File): Promise<AudioSource> {
-  const url = URL.createObjectURL(file);
-  const media = document.createElement('audio');
-  media.src = url;
-  await media.play();
-
-  const capturable = media as HTMLAudioElement & { captureStream?: () => MediaStream };
-  if (!capturable.captureStream) {
-    media.pause();
-    URL.revokeObjectURL(url);
-    throw new Error('This browser cannot read audio from files. Please use Chrome or Edge.');
-  }
-  const stream = capturable.captureStream();
-  media.addEventListener('ended', () => stream.getTracks().forEach((track) => track.stop()));
-
-  return {
-    stream,
-    release: () => {
-      media.pause();
-      stream.getTracks().forEach((track) => track.stop());
-      URL.revokeObjectURL(url);
-    },
-  };
 }
 
 export interface Recorder {

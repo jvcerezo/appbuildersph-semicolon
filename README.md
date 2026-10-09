@@ -71,7 +71,7 @@ pnpm conformance --audio sample.webm --fast   # also stream a recording
 ## How it fits together
 
 ```
- system audio / tab / file
+ system audio / tab
             │
             ▼
  apps/desktop (Electron overlay) ─ loads ─▶ apps/web (React UI) ◀── WebSocket :8765 ──▶ backend (speech-to-text + Ollama)

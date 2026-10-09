@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import type { Card } from '@linaw/contract';
-import { captureFile, captureScreenAudio, startRecorder, type AudioSource, type Recorder } from '../lib/audio';
+import { captureScreenAudio, startRecorder, type AudioSource, type Recorder } from '../lib/audio';
 import { newRequestId } from '../lib/format';
 import { historyStore, newId, type SessionRecord } from '../lib/history';
 import { loadSettings, saveSettings, SPEECH_RATE, TEXT_SCALE, toPreferences, type Settings } from '../lib/settings';
@@ -15,7 +15,7 @@ const AUTOSAVE_MS = 800;
 /** What the library shows when no session is live. */
 export type LibraryView = { page: 'home' } | { page: 'session'; id: string };
 
-export type SourceRequest = { kind: 'tab' } | { kind: 'system' } | { kind: 'file'; file: File };
+export type SourceRequest = { kind: 'tab' } | { kind: 'system' };
 type SourceKind = SourceRequest['kind'];
 
 /**
@@ -109,7 +109,7 @@ export function useLinaw() {
 
       let source: AudioSource;
       try {
-        source = request.kind === 'file' ? await captureFile(request.file) : await captureScreenAudio();
+        source = await captureScreenAudio();
       } catch (err) {
         // NotAllowedError = the user closed the share window; nothing to report.
         if (err instanceof DOMException && err.name === 'NotAllowedError') return;
@@ -121,7 +121,7 @@ export function useLinaw() {
         source.stream,
         (chunk) => socket.current?.sendAudio(chunk),
         () => {
-          // Sharing stopped or the file finished.
+          // Sharing stopped.
           stopCapture();
           socket.current?.send({ type: 'session.stop' });
           dispatch({ type: 'listening.stopped' });
@@ -146,11 +146,8 @@ export function useLinaw() {
     dispatch({ type: 'listening.stopped' });
   };
 
-  /** Tab and system audio restart in place; a file has to be picked again from the library. */
   const reconnect = () => {
-    const last = lastSource.current;
-    if (last.kind === 'file') void finishSession();
-    else void startListening(last);
+    void startListening(lastSource.current);
   };
 
   // ---- saving: the live session is written to the library as it goes

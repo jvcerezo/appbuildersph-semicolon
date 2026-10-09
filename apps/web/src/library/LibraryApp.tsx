@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AudioLines,
   BookmarkCheck,
-  FileAudio,
   FileText,
   Headphones,
   Info,
@@ -149,7 +148,6 @@ export function LibraryApp({ linaw }: { linaw: Linaw }) {
 // ------------------------------------------------------------------ home
 
 function Home({ linaw, sessions }: { linaw: Linaw; sessions: SessionRecord[] }) {
-  const fileInput = useRef<HTMLInputElement>(null);
   const ready = linaw.session.connection === 'open';
   const terms = sessions.reduce((sum, s) => sum + s.cards.length, 0);
 
@@ -178,24 +176,6 @@ function Home({ linaw, sessions }: { linaw: Linaw; sessions: SessionRecord[] }) 
           </span>
           <span className="choice__cta">Start listening</span>
         </button>
-        <button type="button" className="choice" disabled={!ready} onClick={() => fileInput.current?.click()}>
-          <FileAudio size={32} aria-hidden="true" />
-          <span className="choice__title">Use a video or audio file</span>
-          <span className="choice__hint">For a recording saved on this computer.</span>
-          <span className="choice__cta">Choose a file</span>
-        </button>
-        <input
-          ref={fileInput}
-          type="file"
-          accept="audio/*,video/*"
-          className="visually-hidden"
-          tabIndex={-1}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            e.target.value = '';
-            if (file) void linaw.startListening({ kind: 'file', file });
-          }}
-        />
       </div>
 
       {linaw.session.error && (
