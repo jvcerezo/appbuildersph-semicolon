@@ -46,6 +46,48 @@ const NOW_EXAMPLES: NowExample[] = [
   },
 ];
 
+const WHAT_SAID_EXAMPLE = {
+  parts: [
+    ['The witness is reminded that she remains under oath.', 'Counsel, please proceed with your questions.'],
+    ['Mr. President, may we ask for a ten-minute recess?', 'Granted. The session is suspended for ten minutes.'],
+  ],
+  points: {
+    tl: [
+      'Pinaalalahanan ang testigo na nanunumpa pa rin siyang magsasabi ng totoo, at itinuloy ang pagtatanong.',
+      'Humiling ang isang panig ng sampung minutong pahinga, at pinayagan ito.',
+    ],
+    en: [
+      'The witness was reminded that she is still under oath, and the questioning went on.',
+      'One side asked for a ten-minute break, and it was granted.',
+    ],
+  },
+};
+
+/**
+ * "What did they say?": one plain sentence for one stretch of the hearing.
+ * One call per stretch, because a 4B model given the whole window summed up
+ * only the start, or mixed stretches up and invented rulings.
+ */
+export function whatSaid(args: { lines: string[]; language: Language }): JsonRequest<{ point: string }> {
+  const { lines, language } = args;
+  const task =
+    language === 'tl'
+      ? 'Para sa taong hindi nakasunod sa pagdinig, isulat ang "point": ISANG maikling pangungusap kung ano ang sinabi sa mga linyang ito. Banggitin kung sino ang nagsalita kung malinaw (hal. ang depensa, ang prosekusyon, ang namumuno). Huwag sabihing may desisyon kung walang sinabing desisyon.'
+      : 'For someone who lost track of the hearing, write "point": ONE short sentence on what was said in these lines. Say who spoke when it is clear (e.g. the defense, the prosecution, the presiding officer). Never say something was decided unless a decision was said.';
+  const messages: ChatMessage[] = [{ role: 'system', content: [...RULES[language], task].join('\n') }];
+  WHAT_SAID_EXAMPLE.parts.forEach((part, i) => {
+    messages.push({ role: 'user', content: part.join('\n') });
+    messages.push({ role: 'assistant', content: JSON.stringify({ point: WHAT_SAID_EXAMPLE.points[language][i] }) });
+  });
+  messages.push({ role: 'user', content: lines.join('\n') });
+  return {
+    messages,
+    format: { type: 'object', properties: { point: { type: 'string', minLength: 5, maxLength: 250 } }, required: ['point'] },
+    schema: z.object({ point: z.string().trim().min(5) }),
+    maxTokens: 90,
+  };
+}
+
 /** "Simpler": the same meaning and example in easier words. */
 export function simpler(args: {
   term: string;

@@ -3,6 +3,7 @@ import { PauseCutter, type Utterance } from './audio/cutter';
 import { FfmpegDecoder, SAMPLE_RATE } from './audio/decoder';
 import { toWav } from './audio/wav';
 import { checkedCard, nowLine, simplerText } from './cards';
+import { whatWasSaid } from './help';
 import { AiUnavailableError } from './llm/ollama';
 import type { Services } from './services';
 import type { Outgoing } from './wire';
@@ -17,6 +18,9 @@ const SUPPORTED_AUDIO = /^(audio|video)\/(webm|ogg)\b/i;
 const SPEAKER = 'Speaker';
 
 const CONTEXT_LINES = 2;
+
+// Keeps the prompt small enough for a quick answer from a 4B model.
+const MAX_HELP_LINES = 40;
 
 /** Unique per run, so ids never collide with lines an open UI already shows. */
 const RUN = Date.now().toString(36);
@@ -88,6 +92,9 @@ export class Session {
         break;
 
       case 'what_said.request':
+        this.whatSaid(message.requestId, message.windowSec);
+        break;
+
       case 'ask':
         this.notReady(message.requestId);
         break;
@@ -248,13 +255,38 @@ export class Session {
         this.cards.set(simple.id, simple);
         this.send({ type: 'card', card: simple, requestId });
       })
-      .catch((err: unknown) => {
-        console.error(`[backend] simplify failed: ${describe(err)}`);
-        if (this.disposed) return;
-        const code = err instanceof AiUnavailableError ? 'model_unavailable' : 'internal';
-        this.send({ type: 'error', code, message: 'Linaw couldn’t make this simpler. Try again.', requestId });
-      });
+      .catch((err: unknown) => this.helpFailed(err, requestId, 'Linaw couldn’t make this simpler. Try again.'));
     this.track(job);
+  }
+
+  private whatSaid(requestId: string, windowSec: number): void {
+    const lines = this.recentLines(windowSec);
+    const { language } = this.preferences;
+    const startedAt = Date.now();
+    const job = whatWasSaid(lines, language, this.services.ai)
+      .then(({ points, sources }) => {
+        this.aiFailing = false;
+        if (this.disposed) return;
+        this.send({ type: 'what_said.result', requestId, windowSec, points, sources });
+        console.log(`[backend] what was said (${lines.length} lines, ${((Date.now() - startedAt) / 1000).toFixed(1)} s): ${points.join(' / ')}`);
+      })
+      .catch((err: unknown) => this.helpFailed(err, requestId, 'Linaw couldn’t look back right now. Try again.'));
+    this.track(job);
+  }
+
+  /** Lines from the last `windowSec` of the hearing. While paused, the window ends at the last line. */
+  private recentLines(windowSec: number): Line[] {
+    const last = this.lines.at(-1);
+    if (!last) return [];
+    const end = this.stream && this.clockZero !== null ? (Date.now() - this.clockZero) / 1000 : last.t;
+    return this.lines.filter((line) => line.t >= end - windowSec).slice(-MAX_HELP_LINES);
+  }
+
+  private helpFailed(err: unknown, requestId: string, message: string): void {
+    console.error(`[backend] help request failed: ${describe(err)}`);
+    if (this.disposed) return;
+    const code = err instanceof AiUnavailableError ? 'model_unavailable' : 'internal';
+    this.send({ type: 'error', code, message, requestId });
   }
 
   private cardId(entryId: string): string {

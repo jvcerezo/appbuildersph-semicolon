@@ -55,6 +55,8 @@ for (let i = 0; i < chunkCount; i++) {
 }
 session.handle({ v: 1, type: 'session.stop' });
 await session.drained();
+session.handle({ v: 1, type: 'what_said.request', requestId: 'replay-what-said', windowSec: 120 });
+await session.drained();
 session.dispose();
 
 console.log(`\nDone in ${((Date.now() - startedAt) / 1000).toFixed(1)} s:`, Object.fromEntries(counts));
@@ -82,6 +84,9 @@ function print(message: Outgoing): void {
         cardsSeen.add(message.card.id);
         console.log(`${at} card (${message.card.kind}) ${message.card.term}\n           meaning: ${message.card.meaning}\n           example: ${message.card.example}\n           now:     ${message.card.now}`);
       }
+      break;
+    case 'what_said.result':
+      console.log(`${at} what was said (${message.windowSec} s):\n${message.points.map((p) => `           - ${p}`).join('\n')}\n           sources: ${(message.sources ?? []).join(', ')}`);
       break;
     default:
       console.log(`${at} ${JSON.stringify(message)}`);

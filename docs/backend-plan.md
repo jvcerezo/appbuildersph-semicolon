@@ -28,14 +28,14 @@ Order follows the team's task list: "What did they say?" matters most for the de
 | 2 | Ears | live transcript | must | done |
 | 3 | Checked cards from the glossary, and Simpler | underlined terms, Checked cards | must | done (5 seed terms; glossary pending) |
 | 4 | Instant cards: the glossary card shows at once, "Right now" fills in a moment later | cards with no wait | must | done |
-| 5 | What did they say? | help panel answers | must | next |
-| 6 | Summary, including the final one saved after Stop | Summary panel, library | must | |
+| 5 | What did they say? | help panel answers | must | done (~6 s; up to 3 points, one AI call each) |
+| 6 | Summary, including the final one saved after Stop | Summary panel, library | must | next |
 | 7 | Ask, with RAG over the rules | Ask panel answers | should | needs the rules text |
 | 8 | Fuzzy term matching | terms found even when misheard | should | after the real clips |
 | 9 | AI-explained cards for terms not in the glossary | more cards | could | later |
 | 10 | Demo prep: real clips, D7 test, glossary from the clips, disclosures, two clean rehearsals, backup video | ready to present | must | |
 
-`pnpm conformance --audio ../../backend/fixtures/mock-hearing-tts.webm --fast`: 10 passed, 0 failed; the warnings are the help requests not built yet.
+`pnpm conformance --audio ../../backend/fixtures/mock-hearing-tts.webm --fast`: 11 passed, 0 failed; the warnings are Summary and Ask, not built yet.
 
 Replay of the test hearing: "articles of impeachment" is said at 0:06, its line and full Checked card show 2.8 s later, and the AI's "Right now" line replaces the plain one about 2 s after that.
 
