@@ -28,8 +28,8 @@ Order follows the team's task list: "What did they say?" matters most for the de
 | 2 | Ears | live transcript | must | done |
 | 3 | Checked cards from the glossary, and Simpler | underlined terms, Checked cards | must | done (5 seed terms; glossary pending) |
 | 4 | Instant cards: the glossary card shows at once, "Right now" fills in a moment later | cards with no wait | must | done |
-| 5 | What did they say? | help panel answers | must | done (~6 s; up to 3 points, one AI call each) |
-| 6 | Summary, including the final one saved after Stop | Summary panel, library | must | done (~5 s; events for every 6 lines are written in the background) |
+| 5 | What did they say? | help panel answers | must | done (~11 s on gemma4:e4b; up to 3 points, one AI call each) |
+| 6 | Summary, including the final one saved after Stop | Summary panel, library | must | done (~6.5 s; events for every 6 lines are written in the background) |
 | 7 | Ask, with RAG over the rules | Ask panel answers | should | done from the transcript and glossary; rules search waits for the rules text |
 | 8 | Fuzzy term matching | terms found even when misheard | should | next (best tuned on the real clips) |
 | 9 | AI-explained cards for terms not in the glossary | more cards | could | later |
@@ -37,7 +37,7 @@ Order follows the team's task list: "What did they say?" matters most for the de
 
 `pnpm conformance --audio ../../backend/fixtures/mock-hearing-tts.webm --fast`: 14 passed, 0 failed, 0 warnings.
 
-Known weakness of gemma3:4b: it sometimes invents rulings (reads "Objection" as the court rejecting a motion). A rule in every prompt fixed it in Summary and What did they say?, but Ask still slips. Worth comparing gemma4:e4b on the help answers when tuning D6.
+Every prompt says an objection is not a ruling, because gemma3:4b kept reading "Objection" as the court rejecting a motion. That and Ask's mistakes led to switching to gemma4:e4b (D6).
 
 Replay of the test hearing: "articles of impeachment" is said at 0:06, its line and full Checked card show 2.8 s later, and the AI's "Right now" line replaces the plain one about 2 s after that.
 
@@ -56,7 +56,7 @@ Replay of the test hearing: "articles of impeachment" is said at 0:06, its line 
 | D3 | Who writes the glossary | A teammate writes the Tagalog entries (format below) | 2026-10-09 |
 | D4 | AI fails after "Explaining…" shows | Add a `card.failed` contract message and the UI change; Gabb's side writes it, UI teammate reviews. Lands with Phase 9: from Phase 4 on, Checked cards never wait on the AI. | 2026-10-09 |
 | D5 | Speech-to-text model | Whisper `small` on the CPU, with a legal-term hint (~2.5 s per sentence, transcribed the test hearing perfectly) | 2026-10-09 |
-| D6 | AI model | `gemma3:4b` for now (fastest, ~2.5 s per card). Swappable with `OLLAMA_MODEL`. In tests `gemma4:e4b` was the most accurate (~4–5 s per card, "write the English meaning first" prompt); try it when optimizing. | 2026-10-09 |
+| D6 | AI model | `gemma4:e4b` (switched from `gemma3:4b` the same night). gemma3:4b was faster but kept inventing rulings (an objected motion reported as rejected); gemma4:e4b got them right. Costs on this PC: "Right now" ~3 s, What did they say? ~11 s, Summary ~6.5 s. Swappable with `OLLAMA_MODEL`; re-check on the demo laptop if it isn't this PC. | 2026-10-09 |
 | D7 | Whisper language | open — test `auto` vs `en` on a real demo clip | |
 | D8 | AI-written "Right now" on Checked cards | Keep the Checked badge; the UI teammate is told the AI writes that one line | 2026-10-09 |
 | D9 | Terms not in the glossary | open (Phase 9) | |

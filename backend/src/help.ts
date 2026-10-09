@@ -19,6 +19,9 @@ const LINES_PER_POINT = 4;
 
 export const LINES_PER_EVENT = 6;
 
+// Models asked for "" when nothing is open often write a sentence saying so instead.
+const NOTHING_OPEN = /^\s*$|^\s*(wala|walang|none|no\b|there\s+(is|are)\s+no|nothing)/i;
+
 // The overview prompt has to fit gemma's 4k-token context.
 const MAX_OVERVIEW_EVENTS = 30;
 
@@ -58,7 +61,7 @@ export class Summarizer {
       summaryOverview({ events: events.slice(-MAX_OVERVIEW_EVENTS), language }),
       'user',
     );
-    return { overview, events, openIssue: openIssue || undefined, title };
+    return { overview, events, openIssue: NOTHING_OPEN.test(openIssue) ? undefined : openIssue, title };
   }
 
   /** Writes a finished stretch's event in the background, so the summary is quick later. */

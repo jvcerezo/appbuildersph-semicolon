@@ -8,7 +8,7 @@ Plan, decisions and the glossary format: [`docs/backend-plan.md`](../docs/backen
 
 1. Node 20+ and pnpm 12 (`npm i -g pnpm@12.10.1`), then `pnpm install` at the repo root.
 2. ffmpeg: `winget install Gyan.FFmpeg`, then open a new terminal.
-3. Ollama, in PowerShell: `irm https://ollama.com/install.ps1 | iex`, then `ollama pull gemma3:4b`.
+3. Ollama, in PowerShell: `irm https://ollama.com/install.ps1 | iex`, then `ollama pull gemma4:e4b`.
 4. whisper.cpp: download `whisper-bin-x64.zip` from the [whisper.cpp releases](https://github.com/ggml-org/whisper.cpp/releases) and the `ggml-small.bin` model from [Hugging Face](https://huggingface.co/ggml-org/whisper.cpp). Keep both outside the repo.
 
 ## Run
@@ -19,7 +19,7 @@ pnpm backend                 # prints a checklist of what it found
 pnpm dev:overlay:backend     # or overlay window + UI + backend together
 ```
 
-Settings live in `.env` (copy `.env.example`): ports, the ffmpeg path, the Whisper language, and the Ollama model. To try a smarter model, `ollama pull gemma4:e4b` and set `OLLAMA_MODEL=gemma4:e4b`.
+Settings live in `.env` (copy `.env.example`): ports, the ffmpeg path, the Whisper language, and the Ollama model. For faster but less accurate answers, `ollama pull gemma3:4b` and set `OLLAMA_MODEL=gemma3:4b`.
 
 ## Check it
 

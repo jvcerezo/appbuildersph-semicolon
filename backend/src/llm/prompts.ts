@@ -74,8 +74,8 @@ export function whatSaid(args: { lines: string[]; language: Language }): JsonReq
   const { lines, language } = args;
   const task =
     language === 'tl'
-      ? 'Para sa taong hindi nakasunod sa pagdinig, isulat ang "point": ISANG maikling pangungusap kung ano ang sinabi sa mga linyang ito. Banggitin kung sino ang nagsalita kung malinaw (hal. ang depensa, ang prosekusyon, ang namumuno). Huwag sabihing may desisyon kung walang sinabing desisyon.'
-      : 'For someone who lost track of the hearing, write "point": ONE short sentence on what was said in these lines. Say who spoke when it is clear (e.g. the defense, the prosecution, the presiding officer). Never say something was decided unless a decision was said.';
+      ? 'Para sa taong hindi nakasunod sa pagdinig, isulat ang "point": ISANG maikling pangungusap lang (hanggang 25 salita) kung ano ang sinabi sa mga linyang ito. Banggitin kung sino ang nagsalita kung malinaw (hal. ang depensa, ang prosekusyon, ang namumuno). Huwag sabihing may desisyon kung walang sinabing desisyon.'
+      : 'For someone who lost track of the hearing, write "point": just ONE short sentence (up to 25 words) on what was said in these lines. Say who spoke when it is clear (e.g. the defense, the prosecution, the presiding officer). Never say something was decided unless a decision was said.';
   const messages: ChatMessage[] = [{ role: 'system', content: [...RULES[language], task].join('\n') }];
   WHAT_SAID_EXAMPLE.parts.forEach((part, i) => {
     messages.push({ role: 'user', content: part.join('\n') });

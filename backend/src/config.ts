@@ -36,6 +36,6 @@ export function loadConfig(): Config {
     whisperUrl: localUrl('WHISPER_URL', 'http://127.0.0.1:8178'),
     whisperLanguage: process.env.WHISPER_LANGUAGE || 'en',
     ollamaUrl: localUrl('OLLAMA_URL', 'http://127.0.0.1:11434'),
-    ollamaModel: process.env.OLLAMA_MODEL || 'gemma3:4b',
+    ollamaModel: process.env.OLLAMA_MODEL || 'gemma4:e4b',
   };
 }
