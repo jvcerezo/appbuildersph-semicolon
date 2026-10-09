@@ -46,6 +46,34 @@ const NOW_EXAMPLES: NowExample[] = [
   },
 ];
 
+/** "Simpler": the same meaning and example in easier words. */
+export function simpler(args: {
+  term: string;
+  meaning: string;
+  example: string;
+  language: Language;
+}): JsonRequest<{ meaning: string; example: string }> {
+  const { term, meaning, example, language } = args;
+  const task =
+    language === 'tl'
+      ? 'Isulat muli ang meaning at example nang MAS SIMPLE, para maintindihan ng batang 10 taong gulang: maiikling pangungusap at karaniwang salita. Huwag baguhin ang ibig sabihin.'
+      : 'Rewrite the meaning and example SIMPLER, so a 10-year-old understands: short sentences, common words. Keep the meaning the same.';
+  const facts =
+    language === 'tl'
+      ? `Termino: ${term}\nmeaning: ${meaning}\nexample: ${example}`
+      : `Term: ${term}\nmeaning: ${meaning}\nexample: ${example}`;
+  const text = { type: 'string', minLength: 5, maxLength: 220 };
+  return {
+    messages: [
+      { role: 'system', content: [...RULES[language], task].join('\n') },
+      { role: 'user', content: facts },
+    ],
+    format: { type: 'object', properties: { meaning: text, example: text }, required: ['meaning', 'example'] },
+    schema: z.object({ meaning: z.string().trim().min(5), example: z.string().trim().min(5) }),
+    maxTokens: 160,
+  };
+}
+
 /** "Right now": one sentence on what the term means at this moment of the hearing. */
 export function rightNow(args: {
   term: string;

@@ -1,6 +1,6 @@
 import type { Card, Language, Preferences } from '@linaw/contract';
 import type { OllamaClient } from './llm/ollama';
-import { rightNow } from './llm/prompts';
+import { rightNow, simpler } from './llm/prompts';
 import type { GlossaryEntry } from './terms/glossary';
 
 const FALLBACK_NOW: Record<Language, string> = {
@@ -40,4 +40,13 @@ export async function checkedCard(args: {
     card: { id: args.id, term: entry.term, kind: 'checked', meaning: text.meaning, example: text.example, now, t: args.t, language },
     aiError,
   };
+}
+
+/** The same card in easier words. The AI rewrote it, so it is no longer Checked. */
+export async function simplerCard(card: Card, ai: OllamaClient): Promise<Card> {
+  const { meaning, example } = await ai.json(
+    simpler({ term: card.term, meaning: card.meaning, example: card.example, language: card.language }),
+    'user',
+  );
+  return { ...card, kind: 'ai', meaning, example };
 }

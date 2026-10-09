@@ -1,8 +1,8 @@
-import type { ClientMessage, Preferences, TermRef } from '@linaw/contract';
+import type { Card, ClientMessage, Preferences, TermRef } from '@linaw/contract';
 import { PauseCutter, type Utterance } from './audio/cutter';
 import { FfmpegDecoder, SAMPLE_RATE } from './audio/decoder';
 import { toWav } from './audio/wav';
-import { checkedCard } from './cards';
+import { checkedCard, simplerCard } from './cards';
 import { AiUnavailableError } from './llm/ollama';
 import type { Services } from './services';
 import type { Outgoing } from './wire';
@@ -11,7 +11,7 @@ export type Send = (message: Outgoing) => void;
 
 type StartMessage = Extract<ClientMessage, { type: 'session.start' }>;
 
-const SUPPORTED_AUDIO = /^(audio|video)\/webm\b/i;
+const SUPPORTED_AUDIO = /^(audio|video)\/(webm|ogg)\b/i;
 
 // Whisper can't tell speakers apart.
 const SPEAKER = 'Speaker';
@@ -20,9 +20,11 @@ const CONTEXT_LINES = 2;
 
 /** Unique per run, so ids never collide with lines an open UI already shows. */
 const RUN = Date.now().toString(36);
+let sessionCount = 0;
 
 interface Stream {
   decoder: FfmpegDecoder;
+  epoch: number;
   startedAt: number;
   offsetSec: number;
 }
@@ -33,14 +35,20 @@ export interface Line {
   text: string;
 }
 
-/** One UI connection. Stop then start on it is a pause: transcript, cards and clock carry on. */
+/**
+ * One UI connection. Stop then start is a pause (Reconnect): transcript, cards and clock carry on.
+ * A summary request after stop is the UI finishing the session, so the next start begins a new one.
+ */
 export class Session {
   private preferences: Preferences = { level: 'simple', language: 'tl' };
+  private epoch = ++sessionCount;
+  private finished = false;
   private clockZero: number | null = null;
   private stream: Stream | null = null;
   private readonly lines: Line[] = [];
   private lineCount = 0;
   private readonly explained = new Set<string>();
+  private readonly cards = new Map<string, Card>();
   private readonly work = new Set<Promise<unknown>>();
   private disposed = false;
   private sttFailing = false;
@@ -70,16 +78,18 @@ export class Session {
         console.log(`[backend] preferences: ${this.describePreferences()}`);
         break;
 
-      case 'what_said.request':
       case 'summary.request':
-      case 'ask':
+        if (this.stream === null && this.lines.length > 0) this.finished = true;
+        this.notReady(message.requestId);
+        break;
+
       case 'card.simplify':
-        this.send({
-          type: 'error',
-          code: 'internal',
-          message: 'This part of Linaw isn’t ready yet.',
-          requestId: message.requestId,
-        });
+        this.simplify(message.requestId, message.cardId);
+        break;
+
+      case 'what_said.request':
+      case 'ask':
+        this.notReady(message.requestId);
         break;
     }
   }
@@ -110,19 +120,14 @@ export class Session {
       });
       return;
     }
+    if (this.finished) this.reset();
 
     const now = Date.now();
     this.clockZero ??= now;
-    const offsetSec = (now - this.clockZero) / 1000;
     let stream: Stream | null = null;
-    const cutter = new PauseCutter(
-      (utterance) => {
-        if (stream) this.heard(utterance, stream);
-      },
-      () => {
-        if (stream && stream === this.stream) this.send({ type: 'status', status: 'listening' });
-      },
-    );
+    const cutter = new PauseCutter((utterance) => {
+      if (stream) this.heard(utterance, stream);
+    });
     const decoder = new FfmpegDecoder(this.services.config.ffmpegPath, {
       onPcm: (samples) => cutter.push(samples),
       onClose: () => cutter.flush(),
@@ -133,12 +138,22 @@ export class Session {
         }
       },
     });
-    stream = { decoder, startedAt: now, offsetSec };
+    stream = { decoder, epoch: this.epoch, startedAt: now, offsetSec: (now - this.clockZero) / 1000 };
     this.stream = stream;
     this.track(decoder.closed);
 
     console.log(`[backend] listening to ${message.source} (${message.mimeType}), ${this.describePreferences()}`);
-    this.send({ type: 'status', status: 'waiting' });
+    this.send({ type: 'status', status: 'listening' });
+  }
+
+  private reset(): void {
+    this.finished = false;
+    this.epoch = ++sessionCount;
+    this.clockZero = null;
+    this.lines.length = 0;
+    this.lineCount = 0;
+    this.explained.clear();
+    this.cards.clear();
   }
 
   private endStream(): void {
@@ -146,9 +161,13 @@ export class Session {
     this.stream = null;
   }
 
+  private notReady(requestId: string): void {
+    this.send({ type: 'error', code: 'internal', message: 'This part of Linaw isn’t ready yet.', requestId });
+  }
+
   private heard(utterance: Utterance, stream: Stream): void {
-    if (this.disposed) return;
-    const id = `${RUN}-s${++this.lineCount}`;
+    if (this.disposed || stream.epoch !== this.epoch) return;
+    const id = `${RUN}.${this.epoch}-s${++this.lineCount}`;
     const t = Math.round((stream.offsetSec + utterance.startSec) * 10) / 10;
     const cutAt = Date.now();
     const wav = toWav(utterance.samples, SAMPLE_RATE);
@@ -157,7 +176,7 @@ export class Session {
       .transcribe(wav, this.services.whisperPrompt)
       .then((text) => {
         this.sttFailing = false;
-        if (this.disposed || text === '') return;
+        if (this.disposed || stream.epoch !== this.epoch || text === '') return;
         this.addLine({ id, t, text });
         const behind = (Date.now() - stream.startedAt) / 1000 - (utterance.startSec + utterance.durationSec);
         const whisperSec = (Date.now() - cutAt) / 1000;
@@ -179,7 +198,7 @@ export class Session {
   private addLine(line: Line): void {
     this.lines.push(line);
     const found = this.services.finder.find(line.text);
-    const terms: TermRef[] = found.map((term) => ({ text: term.text, cardId: cardId(term.entryId) }));
+    const terms: TermRef[] = found.map((term) => ({ text: term.text, cardId: this.cardId(term.entryId) }));
     this.send({ type: 'transcript.segment', id: line.id, t: line.t, speaker: SPEAKER, text: line.text, terms, final: true });
 
     for (const { entryId } of found) {
@@ -192,7 +211,8 @@ export class Session {
   private explain(entryId: string, line: Line): void {
     const entry = this.services.glossary.get(entryId);
     if (!entry) return;
-    const id = cardId(entryId);
+    const id = this.cardId(entryId);
+    const { epoch } = this;
     const { t } = line;
     this.send({ type: 'card.pending', id, term: entry.term, t });
 
@@ -200,12 +220,39 @@ export class Session {
     const job = checkedCard({ id, t, entry, before: this.linesBefore(line), line: line.text, preferences: this.preferences, ai: this.services.ai }).then(
       ({ card, aiError }) => {
         if (aiError !== undefined) this.aiProblem(aiError);
-        if (this.disposed) return;
+        if (this.disposed || epoch !== this.epoch) return;
+        this.cards.set(card.id, card);
         this.send({ type: 'card', card });
         console.log(`[backend] card "${card.term}" (${card.kind}, ${((Date.now() - startedAt) / 1000).toFixed(1)} s): ${card.now}`);
       },
     );
     this.track(job);
+  }
+
+  private simplify(requestId: string, cardId: string): void {
+    const card = this.cards.get(cardId);
+    if (!card) {
+      this.send({ type: 'error', code: 'bad_request', message: 'Linaw doesn’t know that card.', requestId });
+      return;
+    }
+    const { epoch } = this;
+    const job = simplerCard(card, this.services.ai)
+      .then((simple) => {
+        if (this.disposed || epoch !== this.epoch) return;
+        this.cards.set(simple.id, simple);
+        this.send({ type: 'card', card: simple, requestId });
+      })
+      .catch((err: unknown) => {
+        console.error(`[backend] simplify failed: ${describe(err)}`);
+        if (this.disposed) return;
+        const code = err instanceof AiUnavailableError ? 'model_unavailable' : 'internal';
+        this.send({ type: 'error', code, message: 'Linaw couldn’t make this simpler. Try again.', requestId });
+      });
+    this.track(job);
+  }
+
+  private cardId(entryId: string): string {
+    return `${RUN}.${this.epoch}-c-${entryId}`;
   }
 
   private linesBefore(line: Line): string[] {
@@ -232,10 +279,6 @@ export class Session {
   private describePreferences(): string {
     return `${this.preferences.language}, ${this.preferences.level}`;
   }
-}
-
-function cardId(entryId: string): string {
-  return `${RUN}-c-${entryId}`;
 }
 
 function describe(err: unknown): string {
