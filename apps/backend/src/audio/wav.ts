@@ -1,4 +1,4 @@
-/** Wraps 16-bit mono PCM in a WAV header, the format whisper-server reads. */
+/** 16-bit mono PCM to WAV, the format whisper-server reads. */
 export function toWav(samples: Int16Array, sampleRate: number): Buffer {
   const data = Buffer.from(samples.buffer, samples.byteOffset, samples.byteLength);
   const header = Buffer.alloc(44);

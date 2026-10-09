@@ -4,11 +4,9 @@ import type { Config } from './config';
 export interface Check {
   name: string;
   ok: boolean;
-  /** What to do when `ok` is false. */
   hint: string;
 }
 
-/** Checks the three local programs the backend needs. Never throws. */
 export async function checkHealth(config: Config): Promise<Check[]> {
   return Promise.all([checkFfmpeg(config), checkWhisper(config), checkOllama(config)]);
 }

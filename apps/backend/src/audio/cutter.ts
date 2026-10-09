@@ -1,6 +1,4 @@
-/** A piece of speech between two pauses. */
 export interface Utterance {
-  /** Where the clip starts, in seconds from the start of the stream. */
   startSec: number;
   durationSec: number;
   samples: Int16Array;
@@ -8,19 +6,14 @@ export interface Utterance {
 
 export interface CutterOptions {
   sampleRate: number;
-  /** A pause this long ends a clip. */
   endSilenceMs: number;
-  /** A clip is cut here even without a pause. */
   maxClipMs: number;
-  /** Clips with less speech than this are dropped (coughs, clicks). */
   minSpeechMs: number;
-  /** Audio kept from just before speech starts, so the first word isn't clipped. */
+  /** Kept from before speech starts, so the first word isn't clipped. */
   prerollMs: number;
-  /** Silence kept after the last word. */
   trailMs: number;
   /** Speech must be this much louder than the background. */
   marginDb: number;
-  /** Nothing quieter than this counts as speech. */
   quietestSpeechDb: number;
 }
 
@@ -39,17 +32,12 @@ const FRAME_MS = 20;
 /** Loud frames in a row that start a clip (60 ms). */
 const START_FRAMES = 3;
 
-/**
- * Splits a PCM stream into utterances at pauses, using loudness against an
- * estimate of the background noise. Whisper is far more accurate on whole
- * sentences than on fixed slices that cut words in half.
- */
+/** Splits PCM into utterances at pauses. Whisper is far more accurate on whole sentences than on fixed slices. */
 export class PauseCutter {
   private readonly options: CutterOptions;
   private readonly frameSize: number;
   private readonly partial: Int16Array;
   private partialLength = 0;
-  /** Samples consumed so far; the index of the next frame's first sample. */
   private position = 0;
   private readonly noise = new NoiseFloor();
   private recent: Int16Array[] = [];
@@ -62,7 +50,6 @@ export class PauseCutter {
 
   constructor(
     private readonly onUtterance: (utterance: Utterance) => void,
-    /** Called once, when the first speech is heard. */
     private readonly onFirstSpeech: () => void = () => undefined,
     options: Partial<CutterOptions> = {},
   ) {
@@ -85,7 +72,6 @@ export class PauseCutter {
     }
   }
 
-  /** The stream ended: emit the clip in progress, if it holds enough speech. */
   flush(): void {
     this.finish(this.silenceFrames - this.frames(this.options.trailMs));
   }
@@ -131,7 +117,6 @@ export class PauseCutter {
     }
   }
 
-  /** Emits the clip in progress without its last `trim` frames of silence. */
   private finish(trim: number): void {
     const clip = this.clip;
     if (clip === null) return;
@@ -182,7 +167,6 @@ class NoiseFloor {
   }
 }
 
-/** Loudness of a frame in dBFS (0 = full scale), floored at -100. */
 function levelDb(frame: Int16Array): number {
   let sum = 0;
   for (const sample of frame) sum += sample * sample;

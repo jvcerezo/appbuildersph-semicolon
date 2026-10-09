@@ -1,61 +1,50 @@
-import type { ClientMessage, Preferences } from '@linaw/contract';
+import type { ClientMessage, Preferences, TermRef } from '@linaw/contract';
 import { PauseCutter, type Utterance } from './audio/cutter';
 import { FfmpegDecoder, SAMPLE_RATE } from './audio/decoder';
 import { toWav } from './audio/wav';
-import type { Config } from './config';
-import { whisperPrompt } from './stt/vocabulary';
-import type { WhisperClient } from './stt/whisper';
+import { checkedCard } from './cards';
+import { AiUnavailableError } from './llm/ollama';
+import type { Services } from './services';
 import type { Outgoing } from './wire';
 
 export type Send = (message: Outgoing) => void;
 
-export interface Services {
-  config: Config;
-  whisper: WhisperClient;
-}
-
 type StartMessage = Extract<ClientMessage, { type: 'session.start' }>;
 
-/** What Chrome's and Electron's MediaRecorder produce: WebM with Opus audio. */
 const SUPPORTED_AUDIO = /^(audio|video)\/webm\b/i;
 
-/** Whisper can't tell speakers apart, so every line gets the same label. */
+// Whisper can't tell speakers apart.
 const SPEAKER = 'Speaker';
 
-/** Unique per backend run, so ids never collide with lines an open UI already shows. */
+const CONTEXT_LINES = 2;
+
+/** Unique per run, so ids never collide with lines an open UI already shows. */
 const RUN = Date.now().toString(36);
 
-/** One `session.start` worth of audio: a fresh WebM stream with its own decoder. */
 interface Stream {
   decoder: FfmpegDecoder;
-  /** Wall-clock start, to measure how far behind the live audio we are. */
   startedAt: number;
-  /** Seconds from the session clock's zero to this stream's first sample. */
   offsetSec: number;
 }
 
 export interface Line {
   id: string;
-  /** Seconds since the session started. */
   t: number;
   text: string;
 }
 
-/**
- * One UI connection. Turns its audio into transcript lines and answers its
- * messages. Stop and start on the same connection is a pause: the transcript
- * and the clock carry on. A new connection (e.g. a page reload) starts fresh.
- */
+/** One UI connection. Stop then start on it is a pause: transcript, cards and clock carry on. */
 export class Session {
   private preferences: Preferences = { level: 'simple', language: 'tl' };
-  /** When the first `session.start` arrived; `t` values count from here. */
   private clockZero: number | null = null;
   private stream: Stream | null = null;
   private readonly lines: Line[] = [];
   private lineCount = 0;
+  private readonly explained = new Set<string>();
   private readonly work = new Set<Promise<unknown>>();
   private disposed = false;
   private sttFailing = false;
+  private aiFailing = false;
 
   constructor(
     private readonly services: Services,
@@ -95,7 +84,6 @@ export class Session {
     }
   }
 
-  /** A binary frame: the next piece of the WebM stream announced by `session.start`. */
   audio(chunk: Buffer): void {
     this.stream?.decoder.write(chunk);
   }
@@ -106,7 +94,6 @@ export class Session {
     this.stream = null;
   }
 
-  /** Resolves once every clip heard so far has been transcribed and sent. */
   async drained(): Promise<void> {
     while (this.work.size > 0) await Promise.allSettled([...this.work]);
   }
@@ -154,7 +141,6 @@ export class Session {
     this.send({ type: 'status', status: 'waiting' });
   }
 
-  /** Lets the current stream finish: ffmpeg decodes what it has and the last clip is transcribed. */
   private endStream(): void {
     this.stream?.decoder.end();
     this.stream = null;
@@ -168,19 +154,17 @@ export class Session {
     const wav = toWav(utterance.samples, SAMPLE_RATE);
 
     const job = this.services.whisper
-      .transcribe(wav, whisperPrompt())
+      .transcribe(wav, this.services.whisperPrompt)
       .then((text) => {
         this.sttFailing = false;
         if (this.disposed || text === '') return;
-        this.lines.push({ id, t, text });
-        this.send({ type: 'transcript.segment', id, t, speaker: SPEAKER, text, terms: [], final: true });
-
+        this.addLine({ id, t, text });
         const behind = (Date.now() - stream.startedAt) / 1000 - (utterance.startSec + utterance.durationSec);
         const whisperSec = (Date.now() - cutAt) / 1000;
         console.log(`[backend] ${id} @${t}s (${behind.toFixed(1)} s behind, whisper ${whisperSec.toFixed(1)} s): ${text}`);
       })
       .catch((err: unknown) => {
-        console.error(`[backend] transcription failed: ${err instanceof Error ? err.message : String(err)}`);
+        console.error(`[backend] transcription failed: ${describe(err)}`);
         if (this.sttFailing || this.disposed) return;
         this.sttFailing = true;
         this.send({
@@ -192,6 +176,54 @@ export class Session {
     this.track(job);
   }
 
+  private addLine(line: Line): void {
+    this.lines.push(line);
+    const found = this.services.finder.find(line.text);
+    const terms: TermRef[] = found.map((term) => ({ text: term.text, cardId: cardId(term.entryId) }));
+    this.send({ type: 'transcript.segment', id: line.id, t: line.t, speaker: SPEAKER, text: line.text, terms, final: true });
+
+    for (const { entryId } of found) {
+      if (this.explained.has(entryId)) continue;
+      this.explained.add(entryId);
+      this.explain(entryId, line);
+    }
+  }
+
+  private explain(entryId: string, line: Line): void {
+    const entry = this.services.glossary.get(entryId);
+    if (!entry) return;
+    const id = cardId(entryId);
+    const { t } = line;
+    this.send({ type: 'card.pending', id, term: entry.term, t });
+
+    const startedAt = Date.now();
+    const job = checkedCard({ id, t, entry, before: this.linesBefore(line), line: line.text, preferences: this.preferences, ai: this.services.ai }).then(
+      ({ card, aiError }) => {
+        if (aiError !== undefined) this.aiProblem(aiError);
+        if (this.disposed) return;
+        this.send({ type: 'card', card });
+        console.log(`[backend] card "${card.term}" (${card.kind}, ${((Date.now() - startedAt) / 1000).toFixed(1)} s): ${card.now}`);
+      },
+    );
+    this.track(job);
+  }
+
+  private linesBefore(line: Line): string[] {
+    const index = this.lines.indexOf(line);
+    return this.lines.slice(Math.max(0, index - CONTEXT_LINES), Math.max(0, index)).map((l) => l.text);
+  }
+
+  private aiProblem(err: unknown): void {
+    console.error(`[backend] AI failed: ${describe(err)}`);
+    if (!(err instanceof AiUnavailableError) || this.aiFailing || this.disposed) return;
+    this.aiFailing = true;
+    this.send({
+      type: 'error',
+      code: 'model_unavailable',
+      message: 'Linaw’s AI isn’t running, so explanations are limited. Open the Ollama app.',
+    });
+  }
+
   private track(job: Promise<unknown>): void {
     this.work.add(job);
     void job.finally(() => this.work.delete(job));
@@ -200,4 +232,12 @@ export class Session {
   private describePreferences(): string {
     return `${this.preferences.language}, ${this.preferences.level}`;
   }
+}
+
+function cardId(entryId: string): string {
+  return `${RUN}-c-${entryId}`;
+}
+
+function describe(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
 }

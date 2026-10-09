@@ -1,0 +1,54 @@
+{
+  "terms": [
+    {
+      "id": "articles-of-impeachment",
+      "term": "Articles of Impeachment",
+      "aliases": ["Article of Impeachment"],
+      "tl": {
+        "meaning": "Ang listahan ng mga paratang laban sa opisyal na nililitis.",
+        "example": "Parang listahan ng mga reklamo na binabasa bago magsimula ang paglilitis."
+      },
+      "source": "jvcerezo (mock scenario)"
+    },
+    {
+      "id": "presiding-officer",
+      "term": "Presiding Officer",
+      "aliases": [],
+      "tl": {
+        "meaning": "Ang namumuno sa paglilitis. Siya ang nagpapasya sa takbo ng sesyon.",
+        "example": "Parang referee sa laro na nagsasabi kung sino ang puwedeng magsalita."
+      },
+      "source": "jvcerezo (mock scenario)"
+    },
+    {
+      "id": "subpoena",
+      "term": "Subpoena",
+      "aliases": ["subpoenas", "subpoenaed", "subpena"],
+      "tl": {
+        "meaning": "Utos ng korte na humarap ang isang tao o magdala ng dokumento.",
+        "example": "Parang opisyal na imbitasyon na hindi puwedeng tanggihan nang walang dahilan."
+      },
+      "source": "jvcerezo (mock scenario)"
+    },
+    {
+      "id": "objection",
+      "term": "Objection",
+      "aliases": ["objections"],
+      "tl": {
+        "meaning": "Pagtutol sa sinabi o hiniling ng kabilang panig.",
+        "example": "Parang pagtaas ng kamay para sabihing, “Hindi po kami sang-ayon diyan.”"
+      },
+      "source": "jvcerezo (mock scenario)"
+    },
+    {
+      "id": "sine-die",
+      "term": "Sine die",
+      "aliases": [],
+      "tl": {
+        "meaning": "Itinigil ang sesyon nang walang takdang petsa ng pagbabalik.",
+        "example": "Parang “Saka na lang ulit tayo magkita,” pero walang petsang napag-usapan."
+      },
+      "source": "jvcerezo (mock scenario)"
+    }
+  ]
+}

@@ -1,13 +1,8 @@
 import { ServerMessageSchema, withVersion, type ServerMessage, type Unversioned } from '@linaw/contract';
 
-/** A server message before `v` is added. */
 export type Outgoing = Unversioned<ServerMessage>;
 
-/**
- * Turns a message into the JSON text sent to the UI, or `null` if it doesn't
- * match the contract. A mismatch is a backend bug, so it is logged loudly and
- * never sent: the UI would drop it anyway.
- */
+/** JSON for the UI, or null when the message breaks the contract (a backend bug, logged loudly). */
 export function encode(message: Outgoing): string | null {
   const full = withVersion(message);
   const result = ServerMessageSchema.safeParse(full);

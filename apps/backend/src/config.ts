@@ -1,15 +1,11 @@
 import { DEFAULT_PORT } from '@linaw/contract';
 
-/**
- * Backend settings, read once from the environment (or `apps/backend/.env`).
- * Every service URL must point at this computer: Linaw never sends anything
- * off the machine.
- */
+/** From the environment or apps/backend/.env. Every URL must point at this computer. */
 export interface Config {
   port: number;
   ffmpegPath: string;
   whisperUrl: string;
-  /** Whisper language code (`en`, `tl`), or `auto` to detect it per clip. */
+  /** `en`, `tl` or `auto`. */
   whisperLanguage: string;
   ollamaUrl: string;
   ollamaModel: string;

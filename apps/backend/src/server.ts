@@ -1,36 +1,33 @@
-/**
- * Linaw backend. Listens on ws://127.0.0.1:8765 and speaks the contract in
- * packages/contract, like tools/mock-server but with real speech-to-text
- * (whisper.cpp) and explanations (Ollama), all on this computer.
- *
- *   pnpm backend          run it
- *   pnpm dev:backend      UI + backend, restarting on changes
- *
- * Settings come from the environment or apps/backend/.env (see .env.example).
- */
+/** Linaw backend on ws://127.0.0.1:8765: the mock's contract with real whisper.cpp and Ollama. Settings: .env.example. */
 import { WebSocketServer, type RawData, type WebSocket } from 'ws';
 import { parseClientMessage } from '@linaw/contract';
-import { loadConfig, type Config } from './config';
+import { loadConfig } from './config';
 import { checkHealth, printHealth } from './health';
+import { createServices, type Services } from './services';
 import { Session } from './session';
-import { WhisperClient } from './stt/whisper';
 import { encode, type Outgoing } from './wire';
 
 try {
   process.loadEnvFile();
 } catch {
-  // No .env file: defaults and the real environment apply.
+  // No .env file.
 }
 
-const config = loadConfigOrExit();
-// One local whisper-server, shared by every connection; it transcribes one clip at a time.
-const whisper = new WhisperClient(config.whisperUrl, config.whisperLanguage);
+const services = createServicesOrExit();
+const { config } = services;
 const sessions = new Set<Session>();
 const wss = new WebSocketServer({ host: '127.0.0.1', port: config.port });
 
 wss.on('listening', () => {
-  console.log(`Linaw backend on ws://localhost:${config.port}`);
-  void checkHealth(config).then(printHealth);
+  console.log(`Linaw backend on ws://localhost:${config.port} (${services.glossary.size} glossary terms)`);
+  void checkHealth(config).then((checks) => {
+    printHealth(checks);
+    // Avoid a cold start on the first card.
+    return services.ai
+      .warmUp()
+      .then(() => console.log(`  ✓ ${services.ai.model} loaded`))
+      .catch((err: unknown) => console.warn(`  ✗ couldn't load ${services.ai.model}: ${err instanceof Error ? err.message : String(err)}`));
+  });
 });
 
 wss.on('error', (err) => {
@@ -44,7 +41,7 @@ wss.on('error', (err) => {
 
 wss.on('connection', (socket) => {
   console.log('[backend] UI connected');
-  const session = new Session({ config, whisper }, (message) => sendTo(socket, message));
+  const session = new Session(services, (message) => sendTo(socket, message));
   sessions.add(session);
 
   socket.on('message', (data, isBinary) => {
@@ -86,9 +83,9 @@ function toBuffer(data: RawData): Buffer {
   return Buffer.isBuffer(data) ? data : Buffer.from(data);
 }
 
-function loadConfigOrExit(): Config {
+function createServicesOrExit(): Services {
   try {
-    return loadConfig();
+    return createServices(loadConfig());
   } catch (err) {
     console.error(`[backend] ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);

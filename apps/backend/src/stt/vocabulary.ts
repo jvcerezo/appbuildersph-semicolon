@@ -1,9 +1,4 @@
-/**
- * Words Whisper should expect in a Philippine hearing. Passing them as the
- * prompt fixes terms it otherwise mishears (in tests, "sine die" came out as
- * "signed die" without it). Whisper reads at most ~220 tokens of prompt, so
- * keep the list short; glossary terms are added in front of these.
- */
+/** Without these in the prompt, "sine die" came out as "signed die". Whisper reads only ~220 tokens of prompt. */
 const HEARING_WORDS = [
   'sine die',
   'subpoena',

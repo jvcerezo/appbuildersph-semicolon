@@ -8,8 +8,8 @@
 import { spawn } from 'node:child_process';
 import { parseArgs } from 'node:util';
 import { loadConfig } from '../src/config';
+import { createServices } from '../src/services';
 import { Session } from '../src/session';
-import { WhisperClient } from '../src/stt/whisper';
 import { encode, type Outgoing } from '../src/wire';
 
 const { values, positionals } = parseArgs({
@@ -37,7 +37,9 @@ console.log(`Replaying ${file}: ${durationSec.toFixed(1)} s at ${speed}x, ${chun
 
 const startedAt = Date.now();
 const counts = new Map<string, number>();
-const session = new Session({ config, whisper: new WhisperClient(config.whisperUrl, config.whisperLanguage) }, print);
+const services = createServices(config);
+await services.ai.warmUp().catch((err: unknown) => console.warn(`AI model not loaded: ${err instanceof Error ? err.message : String(err)}`));
+const session = new Session(services, print);
 
 session.handle({
   v: 1,
@@ -57,7 +59,7 @@ session.dispose();
 console.log(`\nDone in ${((Date.now() - startedAt) / 1000).toFixed(1)} s:`, Object.fromEntries(counts));
 
 function print(message: Outgoing): void {
-  if (encode(message) === null) return; // encode() already logged the contract mismatch
+  if (encode(message) === null) return; // already logged
   counts.set(message.type, (counts.get(message.type) ?? 0) + 1);
   const at = `[${((Date.now() - startedAt) / 1000).toFixed(1).padStart(6)} s]`;
   switch (message.type) {
@@ -97,7 +99,6 @@ function encodeWebm(input: string): Promise<Buffer> {
   });
 }
 
-/** Reads the duration ffmpeg reports for the input ("Duration: 00:01:04.84"). */
 function probeDuration(input: string): Promise<number> {
   return new Promise((resolve, reject) => {
     const child = spawn(config.ffmpegPath, ['-hide_banner', '-i', input], { windowsHide: true });

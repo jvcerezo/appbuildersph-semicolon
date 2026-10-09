@@ -1,6 +1,5 @@
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 
-/** Whisper wants 16 kHz mono. */
 export const SAMPLE_RATE = 16000;
 
 const ARGS = [
@@ -30,19 +29,12 @@ const ARGS = [
 
 export interface DecoderEvents {
   onPcm: (samples: Int16Array) => void;
-  /** ffmpeg has exited: after `end()`, `kill()`, or a failure. */
   onClose: () => void;
   onError: (message: string) => void;
 }
 
-/**
- * Turns the UI's WebM/Opus stream into 16 kHz mono PCM with an ffmpeg child
- * process. The UI's chunks form one continuous stream and only the first has
- * the header, so they are written to ffmpeg's stdin in order. Each
- * `session.start` brings a fresh stream, so it needs a fresh decoder.
- */
+/** Decodes the UI's WebM/Opus stream to 16 kHz mono PCM. Only the first chunk has the header, so each `session.start` needs a fresh decoder. */
 export class FfmpegDecoder {
-  /** Resolves once ffmpeg has exited and its last samples were delivered. */
   readonly closed: Promise<void>;
   private readonly child: ChildProcessWithoutNullStreams;
   private leftover = Buffer.alloc(0);
@@ -75,7 +67,7 @@ export class FfmpegDecoder {
       const usable = bytes.length - (bytes.length % 2);
       this.leftover = Buffer.from(bytes.subarray(usable));
       if (usable === 0) return;
-      // Copy so the samples start on an aligned, unshared buffer.
+      // Int16Array needs an aligned buffer.
       const copy = new Uint8Array(bytes.subarray(0, usable));
       events.onPcm(new Int16Array(copy.buffer, 0, usable / 2));
     });
@@ -85,7 +77,6 @@ export class FfmpegDecoder {
     if (!this.ending) this.child.stdin.write(chunk);
   }
 
-  /** No more audio is coming: ffmpeg decodes what it has, then exits. */
   end(): void {
     if (this.ending) return;
     this.ending = true;
