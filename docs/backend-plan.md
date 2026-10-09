@@ -19,17 +19,31 @@ Everything runs locally: ffmpeg, `whisper-server` on 127.0.0.1:8178, and Ollama 
 
 ## Phases
 
+Order follows the team's task list: "What did they say?" matters most for the demo, and the AI stays off the card path.
+
 | # | Phase | Shows on screen | Scope | Status |
 |---|---|---|---|---|
 | 0 | Setup: Ollama, ffmpeg, whisper.cpp, test clips | each tool works alone | must | done (real demo clips still needed) |
 | 1 | Skeleton backend | UI connects | must | done |
 | 2 | Ears | live transcript | must | done |
-| 3 | Checked cards from the glossary | underlined terms, Checked cards | must | done (5 seed terms; glossary pending) |
-| 4 | AI-explained cards | cards for terms not in the glossary | must | next |
-| 5 | What did they say? → Summary → Ask → Simpler | help panels answer | should | Simpler done |
-| 6 | Demo prep: two clean rehearsals, backup video | ready to present | must | |
+| 3 | Checked cards from the glossary, and Simpler | underlined terms, Checked cards | must | done (5 seed terms; glossary pending) |
+| 4 | Instant cards: the glossary card shows at once, "Right now" fills in a moment later | cards with no wait | must | next |
+| 5 | What did they say? | help panel answers | must | |
+| 6 | Summary, including the final one saved after Stop | Summary panel, library | must | |
+| 7 | Ask, with RAG over the rules | Ask panel answers | should | needs the rules text |
+| 8 | Fuzzy term matching | terms found even when misheard | should | after the real clips |
+| 9 | AI-explained cards for terms not in the glossary | more cards | could | later |
+| 10 | Demo prep: real clips, D7 test, glossary from the clips, disclosures, two clean rehearsals, backup video | ready to present | must | |
 
 `pnpm conformance --audio ../../backend/fixtures/mock-hearing-tts.webm --fast`: 10 passed, 0 failed; the warnings are the help requests not built yet.
+
+Replay of the test hearing: "articles of impeachment" is said at 0:06, its line and placeholder card show 2.8 s later, and the full card 2.0 s after that.
+
+## Teammates' work
+
+- **jvcerezo**: UI, overlay, contract, demo backend. Contract changes go through the `linaw-contract` skill and their review. The demo backend is the fallback if the real backend fails on stage.
+- **Glossary teammate** (D3): the first 30–40 terms, starting with the demo clips.
+- **Open questions for the team**: is the demo laptop this PC (D6 was measured here)? Which rules does Ask search?
 
 ## Decisions log
 
@@ -38,16 +52,16 @@ Everything runs locally: ffmpeg, `whisper-server` on 127.0.0.1:8178, and Ollama 
 | D1 | Backend language and location | TypeScript in `backend/` (moved from `apps/backend` to match `docs/backend.md`), inside the pnpm workspace | 2026-10-09 |
 | D2 | How the demo plays the hearing | Desktop overlay listening to system audio while a saved hearing video plays (works with Wi-Fi off). Team picks 2 clips with many legal terms. | 2026-10-09 |
 | D3 | Who writes the glossary | A teammate writes the Tagalog entries (format below) | 2026-10-09 |
-| D4 | AI fails after "Explaining…" shows | Add a `card.failed` contract message and the UI change; Gabb's side writes it, UI teammate reviews | 2026-10-09 |
+| D4 | AI fails after "Explaining…" shows | Add a `card.failed` contract message and the UI change; Gabb's side writes it, UI teammate reviews. Lands with Phase 9: from Phase 4 on, Checked cards never wait on the AI. | 2026-10-09 |
 | D5 | Speech-to-text model | Whisper `small` on the CPU, with a legal-term hint (~2.5 s per sentence, transcribed the test hearing perfectly) | 2026-10-09 |
 | D6 | AI model | `gemma3:4b` for now (fastest, ~2.5 s per card). Swappable with `OLLAMA_MODEL`. In tests `gemma4:e4b` was the most accurate (~4–5 s per card, "write the English meaning first" prompt); try it when optimizing. | 2026-10-09 |
 | D7 | Whisper language | open — test `auto` vs `en` on a real demo clip | |
 | D8 | AI-written "Right now" on Checked cards | Keep the Checked badge; the UI teammate is told the AI writes that one line | 2026-10-09 |
-| D9 | Terms not in the glossary | open (Phase 4) | |
-| D10 | Simple vs Detailed | open (Phase 4) | |
-| D11 | Legal-advice or off-topic questions in Ask | open (Phase 5) | |
-| D12 | Top-bar title | open (Phase 5) | |
-| D13 | "Offline mode" pill | open (Phase 6) | |
+| D9 | Terms not in the glossary | open (Phase 9) | |
+| D10 | Simple vs Detailed | open (Phase 9) | |
+| D11 | Legal-advice or off-topic questions in Ask | open (Phase 7) | |
+| D12 | Top-bar title | open (Phase 6) | |
+| D13 | "Offline mode" pill | open (Phase 10) | |
 
 Defaults unless someone objects: the speaker is shown as "Speaker"; no live "typing" lines; a repeated term links to its existing card; "Simpler" on a Checked card makes it AI-explained; Summary reads the whole transcript; a language switch affects only new items.
 
@@ -82,4 +96,4 @@ File: `backend/glossary/terms.json`. Every entry here shows as a **Checked** car
 - `tl` is required: `meaning` is one short sentence in everyday Tagalog; `example` is an everyday comparison, usually starting with "Parang…". `en` is optional.
 - Never tell the user what to do legally. Explain the term only.
 - The "Right now" line is not in the glossary. It depends on the moment, so the AI writes it from what was just said.
-- Start with every legal term in the two demo clips, then the common ones (objection, sustained, overruled, hearsay, witness, testimony, quorum, recess…).
+- Aim for 30–40 terms: every legal term in the demo clips first, then the common ones (objection, sustained, overruled, hearsay, witness, testimony, quorum, recess…).

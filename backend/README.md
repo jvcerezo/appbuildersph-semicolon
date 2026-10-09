@@ -31,4 +31,4 @@ pnpm validate                                                              # inc
 
 ## Glossary
 
-`glossary/terms.json`: every entry becomes a **Checked** card, so only add explanations someone has checked. The AI writes only the "Right now" line. Terms outside the glossary aren't explained yet; AI-explained cards are the next phase.
+`glossary/terms.json`: every entry becomes a **Checked** card, so only add explanations someone has checked. The AI writes only the "Right now" line. Terms outside the glossary aren't explained yet (Phase 9 in the plan).
