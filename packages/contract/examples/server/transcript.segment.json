@@ -1,0 +1,18 @@
+{
+  "v": 1,
+  "type": "transcript.segment",
+  "id": "seg-0412",
+  "t": 5045,
+  "speaker": "DEFENSE",
+  "text": "…we respectfully file a motion to quash the subpoena issued to the witness.",
+  "terms": [
+    {
+      "text": "motion to quash",
+      "cardId": "card-motion-to-quash"
+    },
+    {
+      "text": "subpoena"
+    }
+  ],
+  "final": true
+}

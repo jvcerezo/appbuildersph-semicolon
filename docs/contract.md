@@ -1,0 +1,68 @@
+# Linaw contract v1
+
+How the UI and the local backend talk. The zod schemas in [`packages/contract/src/index.ts`](../packages/contract/src/index.ts) are the source of truth. This page explains them, and [`packages/contract/examples/`](../packages/contract/examples) has a valid JSON example of every message.
+
+## Connection
+
+- The backend listens on **`ws://localhost:8765`**, bound to `127.0.0.1` only.
+- **Text frames** carry JSON messages. Every message has `"v": 1` and a `"type"`.
+- **Binary frames** (UI → backend only) carry audio, sent after `session.start`:
+  - The encoding is the `mimeType` from `session.start`, normally `audio/webm;codecs=opus`.
+  - Chunks arrive about once a second from a `MediaRecorder`. Together they form **one continuous WebM stream**, and only the first chunk has the header, so append them in order before decoding. Don't decode each chunk on its own.
+- Times (`t`) are **seconds since the session started**.
+- If the socket drops, the UI reconnects and sends `session.start` again, followed by a fresh WebM stream.
+- Either side must ignore a message that fails validation. The backend may answer one with `error` / `bad_request`.
+
+## Session flow
+
+```
+UI                                    Backend
+ |  -- connect -->                      |
+ |  <-- status: waiting --------------- |
+ |  -- session.start ----------------> |
+ |  -- [binary audio] ...  ----------> |
+ |  <-- status: listening ------------ |
+ |  <-- transcript.segment (final:false)|   partial, same id re-sent
+ |  <-- transcript.segment (final:true) |   terms[] flag the jargon
+ |  <-- card.pending ----------------- |   shows a skeleton card
+ |  <-- card ------------------------- |   same id replaces it
+ |  -- what_said.request / summary.request / ask / card.simplify -->
+ |  <-- what_said.result / summary.result / answer / card (with requestId)
+ |  -- session.stop ----------------> |
+ |  <-- status: stopped -------------- |
+```
+
+## Backend → UI
+
+| type | when | key fields |
+|---|---|---|
+| `status` | On connect, and whenever the state changes | `status`: `waiting` \| `listening` \| `stopped` \| `offline`; optional `title` |
+| `transcript.segment` | Speech recognized | `id`, `t`, `speaker`, `text`, `terms[]` (`text`, optional `cardId`), `final` |
+| `card.pending` | A term was spotted and an explanation is coming | `id` (the future card id), `term`, `t` |
+| `card` | An explanation is ready, or a simpler rewrite | `card` {`id`, `term`, `kind`: `checked` \| `ai`, `meaning`, `example`, `now`, `t`, `language`}; optional `requestId` |
+| `what_said.result` | Reply to `what_said.request` | `requestId`, `windowSec`, `points[]` |
+| `summary.result` | Reply to `summary.request` | `requestId`, `overview`, `events[]` {`t`, `title`, `detail`}, optional `openIssue` |
+| `answer` | Reply to `ask` | `requestId`, `question`, `text` |
+| `error` | Something failed | `code`: `bad_request` \| `unsupported_audio` \| `model_unavailable` \| `internal`; `message`; optional `requestId` |
+
+Notes:
+- `status: offline` means "working without internet". Everything is local, so the session continues normally.
+- `kind: checked` means the explanation came from a verified glossary. `kind: ai` means the model wrote it, and the UI labels it "AI-explained".
+- A `terms[].cardId` links the transcript to a card. The UI underlines the term with a dotted line until that card arrives, then with a solid line it can click.
+- `meaning`, `example` and `now` should be in the language the user chose in `preferences.language`. Keep them short and plain. Linaw explains terms and never gives legal advice.
+
+## UI → backend
+
+| type | when | key fields |
+|---|---|---|
+| `session.start` | The user starts listening to a tab or file | `source`: `tab` \| `file`, `mimeType`, `preferences` {`level`: `simple` \| `detailed`, `language`: `tl` \| `en`} |
+| `session.stop` | Sharing stopped, or the file ended | – |
+| `preferences.update` | The user changed the level or language | `preferences` |
+| `what_said.request` | "What did they say?" button | `requestId`, `windowSec` (120) |
+| `summary.request` | "Summary" button | `requestId` |
+| `ask` | The user asked a question | `requestId`, `question` (≤ 500 chars, Tagalog or English) |
+| `card.simplify` | "Simpler" on a card | `requestId`, `cardId`; reply with `card` using the same id and the `requestId` |
+
+## Changing the contract
+
+Follow the `linaw-contract` skill: edit the schema, update the examples and mock, run `pnpm check`, and tell the backend owner. For a breaking change, bump `CONTRACT_VERSION`.

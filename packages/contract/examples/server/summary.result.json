@@ -1,0 +1,29 @@
+{
+  "v": 1,
+  "type": "summary.result",
+  "requestId": "req-2",
+  "overview": "Sa ikatlong araw ng paglilitis, binasa ang unang dalawang paratang. Nagsimulang magtanong ang prosekusyon sa unang testigo tungkol sa mga dokumento. Bandang huli, humiling ang depensa na ibasura ang isang subpoena at tumutol ang prosekusyon. Wala pang desisyon ang namumuno.",
+  "events": [
+    {
+      "t": 0,
+      "title": "Binuksan ang sesyon",
+      "detail": "Sinimulan ng namumuno ang ikatlong araw ng paglilitis."
+    },
+    {
+      "t": 610,
+      "title": "Binasa ang mga paratang",
+      "detail": "Binasa nang malakas ang unang dalawang Articles of Impeachment."
+    },
+    {
+      "t": 2400,
+      "title": "Unang testigo",
+      "detail": "Tinanong ng prosekusyon ang testigo tungkol sa mga dokumento."
+    },
+    {
+      "t": 5045,
+      "title": "Hiling na ibasura ang subpoena",
+      "detail": "Humiling ang depensa; tumutol ang prosekusyon."
+    }
+  ],
+  "openIssue": "Ayon sa depensa, hindi dapat tawagin ang testigo. Ayon naman sa prosekusyon, kailangan ang testigo para sa ikalawang paratang. Ang namumuno ang magpapasya."
+}

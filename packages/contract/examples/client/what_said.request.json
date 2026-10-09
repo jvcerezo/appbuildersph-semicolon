@@ -1,0 +1,6 @@
+{
+  "v": 1,
+  "type": "what_said.request",
+  "requestId": "req-1",
+  "windowSec": 120
+}

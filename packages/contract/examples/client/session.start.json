@@ -1,0 +1,10 @@
+{
+  "v": 1,
+  "type": "session.start",
+  "source": "tab",
+  "mimeType": "audio/webm;codecs=opus",
+  "preferences": {
+    "level": "simple",
+    "language": "tl"
+  }
+}

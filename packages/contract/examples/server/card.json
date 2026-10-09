@@ -1,0 +1,14 @@
+{
+  "v": 1,
+  "type": "card",
+  "card": {
+    "id": "card-motion-to-quash",
+    "term": "Motion to quash",
+    "kind": "ai",
+    "meaning": "Pormal na hiling na ibasura o huwag tanggapin ang isang bagay, gaya ng subpoena.",
+    "example": "Parang sinabi mong, “Hindi ko po tatanggapin ang sulat na ito,” at hiniling sa namumuno na ipawalang-bisa ito.",
+    "now": "Hinihiling ng depensa na ibasura ang subpoena para sa isang testigo.",
+    "t": 5052,
+    "language": "tl"
+  }
+}
