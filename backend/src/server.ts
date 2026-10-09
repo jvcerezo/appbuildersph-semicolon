@@ -60,7 +60,7 @@ function ready(): void {
 
 wss.on('connection', (socket) => {
   console.log('[backend] UI connected');
-  const session = new Session(services, (message) => sendTo(socket, message));
+  const session = new Session(services, (message, binary) => sendTo(socket, message, binary));
   sessions.add(session);
 
   socket.on('message', (data, isBinary) => {
@@ -92,9 +92,11 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   });
 }
 
-function sendTo(socket: WebSocket, message: Outgoing): void {
+function sendTo(socket: WebSocket, message: Outgoing, binary?: Buffer): void {
   const text = encode(message);
-  if (text !== null && socket.readyState === socket.OPEN) socket.send(text);
+  if (text === null || socket.readyState !== socket.OPEN) return;
+  socket.send(text);
+  if (binary) socket.send(binary); // same socket, same tick: ws preserves frame order
 }
 
 function toBuffer(data: RawData): Buffer {

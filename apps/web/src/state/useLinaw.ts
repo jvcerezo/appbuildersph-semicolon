@@ -5,13 +5,17 @@ import { newRequestId } from '../lib/format';
 import { historyStore, newId, type SessionRecord } from '../lib/history';
 import { loadSettings, saveSettings, SPEECH_RATE, TEXT_SCALE, toPreferences, type Settings } from '../lib/settings';
 import { BackendSocket } from '../lib/socket';
-import { readAloud, stopReading } from '../lib/speech';
+import { playCloudAudio, readAloud, stopReading } from '../lib/speech';
 import { toBase64 } from '../lib/voice';
 import { initialSession, sessionReducer, type HelpKind, type SessionState } from './session';
 
 const WHAT_SAID_WINDOW_SEC = 120;
 const FOCUS_MS = 6000;
 const AUTOSAVE_MS = 800;
+// Soniox's non-streaming TTS call alone measures ~5-6 s for a card-length clip. Kept comfortably above
+// the backend's own 15 s fetch timeout (backend/src/tts/client.ts) so a `tts.failed` from a real backend
+// timeout is the common path, not a race with this one.
+const SPEAK_TIMEOUT_MS = 18000;
 
 /** What the library shows when no session is live. */
 export type LibraryView = { page: 'home' } | { page: 'session'; id: string };
@@ -35,6 +39,10 @@ export function useLinaw() {
   const focusTimer = useRef<number | undefined>(undefined);
   /** The final summary requested when a session is finished, to store when it arrives. */
   const pendingSummary = useRef<{ recordId: string; requestId: string } | null>(null);
+  /** The one in-flight cloud read-aloud request; resolved by its audio, rejected by `tts.failed` or a timeout. */
+  const pendingSpeak = useRef<{ requestId: string; resolve: (blob: Blob) => void; reject: () => void } | null>(null);
+  /** Card currently waiting on cloud read-aloud, so its button can show a loading state. */
+  const [speakingCardId, setSpeakingCardId] = useState<string | null>(null);
   const [libraryView, setLibraryView] = useState<LibraryView>({ page: 'home' });
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -43,6 +51,12 @@ export function useLinaw() {
   useEffect(() => {
     const backend = new BackendSocket(
       (message) => {
+        const pendingTts = pendingSpeak.current;
+        if (pendingTts && message.type === 'tts.failed' && message.requestId === pendingTts.requestId) {
+          pendingSpeak.current = null;
+          pendingTts.reject();
+          return;
+        }
         const pending = pendingSummary.current;
         if (pending && 'requestId' in message && message.requestId === pending.requestId) {
           pendingSummary.current = null;
@@ -65,6 +79,13 @@ export function useLinaw() {
             mimeType: active.recorder.mimeType,
             preferences: toPreferences(settingsRef.current),
           });
+        }
+      },
+      (requestId, blob) => {
+        const pending = pendingSpeak.current;
+        if (pending?.requestId === requestId) {
+          pendingSpeak.current = null;
+          pending.resolve(blob);
         }
       },
     );
@@ -240,9 +261,39 @@ export function useLinaw() {
     socket.current?.send({ type: 'card.simplify', requestId, cardId: card.id });
   };
 
+  /** Read aloud: try Soniox (cloud) first, falling back to the on-device voice if it's unavailable or slow. */
   const speak = (card: Card) => {
     stopReading();
-    readAloud(`${card.term}. ${card.meaning} ${card.example}`, card.language, SPEECH_RATE[settings.readSpeed]);
+    setSpeakingCardId(null); // clears any previous card's now-abandoned loading state
+    const text = `${card.term}. ${card.meaning} ${card.example}`;
+    const rate = SPEECH_RATE[settings.readSpeed];
+    const fallback = () => readAloud(text, card.language, rate);
+    const requestId = newRequestId();
+    if (!socket.current?.send({ type: 'tts.request', requestId, text, language: card.language })) {
+      fallback(); // not connected at all; don't even wait, so there's nothing to show loading for
+      return;
+    }
+    setSpeakingCardId(card.id);
+    const timer = window.setTimeout(() => {
+      if (pendingSpeak.current?.requestId === requestId) {
+        pendingSpeak.current = null;
+        setSpeakingCardId(null);
+        fallback();
+      }
+    }, SPEAK_TIMEOUT_MS);
+    pendingSpeak.current = {
+      requestId,
+      resolve: (blob) => {
+        window.clearTimeout(timer);
+        setSpeakingCardId(null);
+        void playCloudAudio(blob, rate).catch(fallback);
+      },
+      reject: () => {
+        window.clearTimeout(timer);
+        setSpeakingCardId(null);
+        fallback();
+      },
+    };
   };
 
   return {
@@ -264,6 +315,7 @@ export function useLinaw() {
     reportError: (message: string) => dispatch({ type: 'error', message }),
     simplify,
     speak,
+    speakingCardId,
     toggleSaved: (card: Card) => dispatch({ type: 'card.toggleSaved', cardId: card.id }),
     /** Close any help sheet and show this transcript line (used by source quotes). */
     showSegment: (segmentId: string | null) => {

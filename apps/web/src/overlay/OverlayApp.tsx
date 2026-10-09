@@ -198,6 +198,7 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
       card={card}
       saved={session.saved.includes(card.id)}
       simplifying={session.simplifying.some((s) => s.cardId === card.id)}
+      speaking={linaw.speakingCardId === card.id}
       highlighted={false}
       onReadAloud={linaw.speak}
       onSimplify={linaw.simplify}
@@ -221,6 +222,7 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
             </div>
             <p className={caption.final ? 'ov-caption__text' : 'ov-caption__text ov-caption__text--partial'}>
               {highlightTerms(caption, explainedIds, showCard)}
+              {!caption.final && <span className="segment__cursor" aria-hidden="true" />}
             </p>
             {settings.showTranslation && caption.translation && (
               <p className="ov-caption__translation" lang={caption.translation.language}>

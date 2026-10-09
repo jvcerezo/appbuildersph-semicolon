@@ -232,6 +232,7 @@ Connect to `ws://HOST:PORT/ws/session` and you receive:
 | `WS /ws/session` | Unified transcript, status and metrics bus |
 | `WS /ws/stream` | For backends: text `{"type":"start","offset_seconds":X}`, then binary PCM s16le mono 16 kHz, then `{"type":"stop"}`. Replies on the same socket with `transcript` and `status` messages (same format as `/ws/session`) and `done`. Picks Soniox or the local engine from `STT_MODE`, falls back mid-stream and hands back when online. `{"type":"simulate_offline","on":true}` demos the fallback |
 | `WS /ws/stt-local` | Text `{"type":"start","offset_seconds":X}`, then binary PCM s16le mono 16 kHz, then `{"type":"stop"}`. Replies with `stats` and `done`. A socket may stay idle (standby) before `start` |
+| `POST /api/tts` | Read-aloud: `{"text","language"}` in, raw audio bytes out. One REST call to Soniox TTS (`SONIOX_TTS_*`), same key as STT. 503 when cloud isn't available (offline, not configured, `local_only`, or Soniox failed) — the caller falls back to its own on-device voice |
 
 ## Configuration
 

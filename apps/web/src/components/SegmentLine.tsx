@@ -25,7 +25,10 @@ export const SegmentLine = forwardRef<HTMLDivElement, SegmentLineProps>(function
       <div className="segment__meta">
         {formatClock(segment.t)} · {segment.speaker}
       </div>
-      <div className="segment__text">{highlightTerms(segment, explainedIds, onTermClick)}</div>
+      <div className="segment__text">
+        {highlightTerms(segment, explainedIds, onTermClick)}
+        {!segment.final && <span className="segment__cursor" aria-hidden="true" />}
+      </div>
       {showTranslation && segment.translation && (
         <div className="segment__translation" lang={segment.translation.language}>
           <span className="segment__translation-label">{LANGUAGE_NAME[segment.translation.language]}</span>

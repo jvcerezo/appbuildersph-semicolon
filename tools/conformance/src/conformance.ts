@@ -201,6 +201,22 @@ async function main(): Promise<void> {
     }
   }
 
+  // 5b. tts.request: either audio or a graceful failure, never left hanging
+  {
+    const since = received.length;
+    send({ type: 'tts.request', requestId: 'conf-tts', text: 'Subpoena.', language: 'tl' });
+    const reply = await waitFor(
+      (m): m is ServerMessage => 'requestId' in m && m.requestId === 'conf-tts' && (m.type === 'tts.audio' || m.type === 'tts.failed'),
+      timeoutMs,
+      since,
+    );
+    report(
+      reply ? 'pass' : 'warn',
+      'Answers `tts.request` with `tts.audio` or `tts.failed`',
+      reply ? reply.type : `no reply within ${args.timeout} s`,
+    );
+  }
+
   // 6. invalid input
   {
     const since = received.length;
@@ -239,7 +255,12 @@ async function main(): Promise<void> {
     'Every message matches the contract',
     invalid.length === 0 ? `${received.length} messages checked` : invalid.slice(0, 5).join('\n      '),
   );
-  report(binaryFromServer === 0 ? 'pass' : 'fail', 'Sends only text (JSON) frames', binaryFromServer ? `${binaryFromServer} binary frames` : undefined);
+  const ttsAudioCount = received.filter(is('tts.audio')).length;
+  report(
+    binaryFromServer === ttsAudioCount ? 'pass' : 'fail',
+    'Sends binary frames only as the audio for a `tts.audio` header, one each',
+    `${binaryFromServer} binary frame(s), ${ttsAudioCount} tts.audio header(s)`,
+  );
 
   const pendingIds = new Set(received.filter(is('card.pending')).map((m) => m.id));
   const cardIds = new Set(received.filter(is('card')).map((m) => m.card.id));

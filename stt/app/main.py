@@ -11,6 +11,7 @@ Routes
   WS   /ws/stt-local             PCM in, local engine segments out (via /ws/session)
   WS   /ws/stream                for backends: PCM in, Soniox or local transcripts out, with fallback
   POST /api/transcribe           one short clip (a spoken question), local engine only
+  POST /api/tts                  read aloud via Soniox TTS; 503 when cloud isn't available
 """
 
 from __future__ import annotations
@@ -30,13 +31,15 @@ from contextlib import asynccontextmanager
 
 import httpx  # noqa: E402
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect  # noqa: E402
-from fastapi.responses import FileResponse  # noqa: E402
+from fastapi.responses import FileResponse, Response  # noqa: E402
 
 from .config import ROOT_DIR, load_settings, load_stt_terms  # noqa: E402
 from .local_engine import LocalSTTEngine, TranscriptEvent, create_local_engine  # noqa: E402
 from .local_stt import ModelUnavailableError, create_engine  # noqa: E402
 from .session import SessionHub  # noqa: E402
 from .stream import StreamSession  # noqa: E402
+from .tts import TtsUnavailable  # noqa: E402
+from .tts import synthesize as tts_synthesize  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("linaw")
@@ -361,6 +364,34 @@ async def transcribe(request: Request):
     text = " ".join(" ".join(seg.text.split()) for seg in segments).strip()
     log.info("clip of %.1f s transcribed in %.1f s: %s", len(pcm) / 32000, time.perf_counter() - t0, text)
     return {"text": text}
+
+
+@app.post("/api/tts")
+async def tts(request: Request):
+    """Read-aloud: {"text","language"} in, raw audio bytes out (Content-Type
+    is whatever Soniox returned). 503 when cloud TTS isn't available right
+    now - offline, not configured, local_only, or Soniox itself failed; the
+    caller falls back to its on-device voice.
+
+    No connectivity pre-check here (unlike /ws/stream): this is one short
+    REST call, not a long session to steer up front, and tts_synthesize()
+    already turns a network failure into TtsUnavailable on its own - probing
+    first would just add a second round trip before every request, online or
+    not."""
+    body = await request.json()
+    text = str(body.get("text", "")).strip()
+    language = str(body.get("language", "tl"))
+    if not text or len(text) > 1000:
+        raise HTTPException(400, "text must be 1-1000 characters")
+    if not settings.cloud_allowed:
+        raise HTTPException(503, "STT_MODE=local_only: cloud TTS is disabled")
+    if not settings.soniox_configured:
+        raise HTTPException(503, "SONIOX_API_KEY is not set on the server")
+    try:
+        audio, mime_type = await tts_synthesize(settings, text, language)
+    except TtsUnavailable as e:
+        raise HTTPException(503, str(e))
+    return Response(content=audio, media_type=mime_type)
 
 
 _clip_lock = asyncio.Lock()

@@ -24,6 +24,28 @@ export function readAloud(text: string, language: Language, rate: number): void 
   synth.speak(utterance);
 }
 
+let cloudAudio: HTMLAudioElement | null = null;
+
+/**
+ * Plays a Soniox text-to-speech clip the backend sent (read-aloud while online).
+ * Rejects on playback failure so the caller can fall back to `readAloud`.
+ */
+export function playCloudAudio(blob: Blob, rate: number): Promise<void> {
+  stopReading();
+  const audio = new Audio(URL.createObjectURL(blob));
+  audio.playbackRate = rate;
+  cloudAudio = audio;
+  return new Promise((resolve, reject) => {
+    audio.addEventListener('ended', () => resolve(), { once: true });
+    audio.addEventListener('error', () => reject(new Error('cloud audio playback failed')), { once: true });
+    void audio.play().catch(reject);
+  });
+}
+
 export function stopReading(): void {
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  if (cloudAudio) {
+    cloudAudio.pause();
+    cloudAudio = null;
+  }
 }

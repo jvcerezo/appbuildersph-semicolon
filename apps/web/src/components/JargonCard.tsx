@@ -8,6 +8,8 @@ interface JargonCardProps {
   card: Card;
   saved: boolean;
   simplifying: boolean;
+  /** Waiting on cloud read-aloud (Soniox) for this card; the on-device fallback starts instantly instead. */
+  speaking: boolean;
   highlighted: boolean;
   onReadAloud: (card: Card) => void;
   /** Omit where the backend can't be asked (past sessions); hides "Simpler". */
@@ -16,7 +18,7 @@ interface JargonCardProps {
 }
 
 export const JargonCard = forwardRef<HTMLElement, JargonCardProps>(function JargonCard(
-  { card, saved, simplifying, highlighted, onReadAloud, onSimplify, onToggleSaved },
+  { card, saved, simplifying, speaking, highlighted, onReadAloud, onSimplify, onToggleSaved },
   ref,
 ) {
   const ai = card.kind === 'ai';
@@ -29,7 +31,7 @@ export const JargonCard = forwardRef<HTMLElement, JargonCardProps>(function Jarg
       ref={ref}
       className={className}
       aria-labelledby={`${card.id}-term`}
-      aria-busy={simplifying || undefined}
+      aria-busy={simplifying || speaking || undefined}
       tabIndex={-1}
     >
       <header className="card__header">
@@ -71,9 +73,9 @@ export const JargonCard = forwardRef<HTMLElement, JargonCardProps>(function Jarg
       </section>
 
       <footer className="card__actions">
-        <button type="button" className="ghost-button" onClick={() => onReadAloud(card)}>
-          <Volume2 size={20} aria-hidden="true" />
-          Read aloud
+        <button type="button" className="ghost-button" onClick={() => onReadAloud(card)} disabled={speaking}>
+          {speaking ? <ThinkingDots /> : <Volume2 size={20} aria-hidden="true" />}
+          {speaking ? 'Reading aloud…' : 'Read aloud'}
         </button>
         {onSimplify && (
           <button type="button" className="ghost-button" onClick={() => onSimplify(card)} disabled={simplifying}>

@@ -407,6 +407,7 @@ function SessionView({ record, linaw, onDeleted }: { record: SessionRecord; lina
                   card={card}
                   saved={record.saved.includes(card.id)}
                   simplifying={false}
+                  speaking={linaw.speakingCardId === card.id}
                   highlighted={false}
                   onReadAloud={linaw.speak}
                   onToggleSaved={(c) =>

@@ -6,9 +6,9 @@ How the UI and the local backend talk. The zod schemas in [`packages/contract/sr
 
 - The backend listens on **`ws://localhost:8765`**, bound to `127.0.0.1` only.
 - **Text frames** carry JSON messages. Every message has `"v": 1` and a `"type"`.
-- **Binary frames** (UI → backend only) carry audio, sent after `session.start`:
-  - The encoding is the `mimeType` from `session.start`, normally `audio/webm;codecs=opus`.
-  - Chunks arrive about once a second from a `MediaRecorder`. Together they form **one continuous WebM stream**, and only the first chunk has the header, so append them in order before decoding. Don't decode each chunk on its own.
+- **Binary frames** carry audio, in both directions:
+  - **UI → backend**, sent after `session.start`: the encoding is the `mimeType` from `session.start`, normally `audio/webm;codecs=opus`. Chunks arrive about once a second from a `MediaRecorder`. Together they form **one continuous WebM stream**, and only the first chunk has the header, so append them in order before decoding. Don't decode each chunk on its own.
+  - **Backend → UI**: exactly one frame, immediately after a `tts.audio` header, carrying that clip's audio (encoding is `tts.audio.mimeType`). This is the only server → client binary frame.
 - Times (`t`) are **seconds since the session started**.
 - If the socket drops, the UI reconnects and sends `session.start` again, followed by a fresh WebM stream.
 - Either side must ignore a message that fails validation. The backend may answer one with `error` / `bad_request`.
@@ -47,6 +47,8 @@ UI                                    Backend
 | `summary.result` | Reply to `summary.request` | `requestId`, `overview`, `events[]` {`t`, `title`, `detail`, optional `sources[]`}, optional `openIssue` |
 | `answer` | Reply to `ask` or `ask.audio` | `requestId`, `question` (for `ask.audio`: the words the backend heard), `text`, optional `sources[]` |
 | `error` | Something failed | `code`: `bad_request` \| `unsupported_audio` \| `model_unavailable` \| `internal`; `message`; optional `requestId` |
+| `tts.audio` | Reply to `tts.request`: cloud read-aloud succeeded | `requestId`, `mimeType`. Immediately followed by one binary frame carrying the audio |
+| `tts.failed` | Reply to `tts.request`: cloud read-aloud isn't available right now | `requestId`. The UI falls back to its on-device voice; never shown to the user |
 
 Notes:
 - `status: offline` means "working without internet". Everything is local, so the session continues normally.
@@ -69,6 +71,7 @@ Notes:
 | `ask` | The user asked a question | `requestId`, `question` (≤ 500 chars, Tagalog or English) |
 | `ask.audio` | The user asked a question out loud (push to talk) | `requestId`, `mimeType`, `audio` (one clip of up to ~30 s, base64). Answered with `answer`, or `error` `unsupported_audio` if no question was heard |
 | `card.simplify` | "Simpler" on a card | `requestId`, `cardId`; reply with `card` using the same id and the `requestId` |
+| `tts.request` | "Read aloud" on a card | `requestId`, `text` (≤ 1000 chars), `language`; reply with `tts.audio` or `tts.failed` |
 
 ## Changing the contract
 

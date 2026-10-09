@@ -65,6 +65,7 @@ function FullLive({ linaw }: { linaw: Linaw }) {
         onError={linaw.reportError}
         onShowSegment={linaw.showSegment}
         onReadAloud={linaw.speak}
+        speakingCardId={linaw.speakingCardId}
         onSimplify={linaw.simplify}
         onToggleSaved={linaw.toggleSaved}
         onReconnect={linaw.reconnect}

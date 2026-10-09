@@ -237,5 +237,13 @@ function applyServerMessage(state: SessionState, message: ServerMessage): Sessio
         simplifying: next.simplifying.filter((s) => s.requestId !== id),
       };
     }
+
+    case 'tts.audio':
+      // Consumed in lib/socket.ts, paired with the binary frame that follows; never reaches here.
+      return state;
+
+    case 'tts.failed':
+      // Intercepted in useLinaw.ts to reject the pending speak() request and fall back locally.
+      return state;
   }
 }

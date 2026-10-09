@@ -5,925 +5,951 @@
       "term": "Hearsay",
       "tl": {
         "simple": {
-          "meaning": "Pagsasalaysay tungkol sa sinabi ng ibang tao, hindi sa mismong nakita o naranasan.",
-          "example": "Parang sinabi mo sa akin ng kaibigan mo kung ano ang nangyari, imbes na ikaw mismo ang nakakita."
+          "meaning": "Parang kwento na narinig mo lang, hindi mo mismo narinig o nakita. Ginagamit ito para patunayan ang isang bagay.",
+          "example": "Parang sinasabi ng isang tao na narinig niya na may gulo, pero hindi siya nakasaksi ng gulo mismo."
         },
         "detailed": {
-          "meaning": "Ito ay impormasyon na narinig mo lang mula sa ibang tao, hindi mo mismo nakita o naranasan. Sa pagdinig, kadalasan ay hindi ito tinatanggap dahil hindi ito mapagkakatiwalaan. Kailangan ng direktang patotoo para maging ebidensya.",
-          "example": "Parang tsismis na narinig mo lang sa kaibigan mo, hindi mo mismo nakita ang nangyari."
+          "meaning": "Parang kwento na narinig mo lang mula sa iba, hindi mo mismo narinig o nakita. Ginagamit ito sa pagdinig para patunayan kung totoo ang sinasabi ng isang tao, pero hindi ito basta-basta tinatanggap dahil hindi ito direktang testimonya.",
+          "example": "Parang sinasabi ng kaibigan mo na nakarinig siya ng usapan, pero hindi mo siya narinig mismo."
         }
       },
       "en": {
         "simple": {
-          "meaning": "It is information someone heard from someone else, not from firsthand experience.",
-          "example": "Like telling your friend what your cousin told them about a movie."
+          "meaning": "It’s a second-hand story used as evidence.",
+          "example": "Like telling a story you heard from a friend, not directly from you."
         },
         "detailed": {
-          "meaning": "This is when someone tells the hearing about what another person said, instead of telling what they personally saw or experienced. The rules often limit how much hearsay can be used because the original speaker isn't there to be questioned.",
-          "example": "Like telling your friend what your cousin told you about a movie, instead of telling them what you saw yourself."
+          "meaning": "It’s a statement someone else told you, and you’re trying to use it as proof in court. The rules say it’s usually not allowed because it’s not reliable. There are a few exceptions, like if it’s to challenge a claim that the person wasn’t telling the truth or if it’s to identify a person.",
+          "example": "Like telling a story you heard from a friend – it’s not necessarily true, and you can’t use it in court."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Rules on Evidence, Rule 130, Sec. 37"
     },
     {
       "id": "w-sustained",
       "term": "Sustained",
       "tl": {
         "simple": {
-          "meaning": "Tanggap o tama ang pagtutol na ginawa ng abogado.",
-          "example": "Parang sinabi ng judge, 'Tama ka, may mali doon.'"
+          "meaning": "Pag-apruba ng desisyon ng namumuno sa pagtutol.",
+          "example": "Parang sinabi ng teacher na tama ang iyong argumento."
         },
         "detailed": {
-          "meaning": "Ibig sabihin, pumayag ang namumuno sa pagtutol ng abogado. Dahil dito, hindi papayagan ang sinasabi o ipapakita ng kabilang panig. Pagkatapos nito, karaniwang itutuloy ang pagdinig nang walang sinasabi na iyon.",
-          "example": "Parang sinabi ng referee na 'Out' ang bola, kaya hindi ito isasama sa laro."
+          "meaning": "Ibig sabihin, tinanggap o pinayagan ang pagtutol. Kapag sinabi na “sustained,” ibig sabihin ay hindi tinanggihan ang pagtutol ng isang abogado.",
+          "example": "Parang pag-agree ka sa reklamo ng isang kaibigan."
         }
       },
       "en": {
         "simple": {
-          "meaning": "The judge or hearing officer agreed with the lawyer's protest.",
-          "example": "Like when a referee agrees with a player's call."
+          "meaning": "The presiding officer agreed that the lawyer’s protest was justified.",
+          "example": "Like saying ‘Okay, you’re right, that question shouldn’t have been asked.’"
         },
         "detailed": {
-          "meaning": "When a judge or presiding officer says an objection is 'sustained,' it means they agree with the lawyer who objected. This usually means the thing being objected to cannot be said or shown at that moment. The objection is officially accepted.",
-          "example": "Like when a referee agrees with a player's call that a foul was made."
+          "meaning": "When a senator says ‘sustained,’ it means they agreed with a lawyer’s protest – they thought the lawyer was right to question something that was said or done. It stops that particular point from being considered.",
+          "example": "Like when you say ‘no, that’s not fair’ and someone agrees with you, you’ve sustained their argument."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Senate Impeachment Rules, Rule XXI"
     },
     {
       "id": "w-overruled",
       "term": "Overruled",
       "tl": {
         "simple": {
-          "meaning": "Tinanggihan ng namumuno ang pagtutol ng abogado.",
-          "example": "Parang sinabing, 'Hindi ako papayag sa pagtutol na iyan.'"
+          "meaning": "Kapag tinanggihan ng namumuno ang pagtutol ng abogado, ibig sabihin ay hindi ito tinanggap.",
+          "example": "Parang sinabi ng guro na hindi tama ang sagot mo kahit na mayroon kang dahilan."
         },
         "detailed": {
-          "meaning": "Ibig sabihin, tinanggihan ng namumuno ang pagtutol ng abogado. Hindi ito nangangahulugang tama ang sinabi ng abogado, kundi hindi ito tinanggap ng korte. Pagkatapos nito, maaaring magpatuloy ang pagdinig sa kung ano ang gustong sabihin ng nagtatanong.",
-          "example": "Parang sinabi ng referee na 'Hindi valid ang hirit mo, ituloy na ang laro.'"
+          "meaning": "Ito ay kapag sinabi ng taong nasa posisyon na hindi niya tinanggap ang pagtutol na ginawa ng ibang abogado. Hindi ito desisyon, kundi pagtanggi lang.",
+          "example": "Parang sinabi ng teacher na hindi niya pinansin ang reklamo ng estudyante."
         }
       },
       "en": {
         "simple": {
-          "meaning": "The judge or officer said no to the lawyer's protest.",
-          "example": "Like when a teacher says 'no' to a student's question about the rules."
+          "meaning": "The judge decided not to listen to the lawyer’s complaint.",
+          "example": "Like when you tell your sibling not to interrupt you."
         },
         "detailed": {
-          "meaning": "When a lawyer objects to something, the presiding officer can say 'Overruled.' This means the officer disagrees with the lawyer's objection and allows what the lawyer protested. The objection is not accepted.",
-          "example": "Like when a referee says 'play on' even though a player tried to stop the game."
+          "meaning": "It means the judge or presiding officer decided that the lawyer’s complaint (the ‘objection’) wasn’t valid and allowed the question or testimony to continue. The presiding officer is saying ‘no, that objection doesn’t stand’.",
+          "example": "Like when you say ‘no, that’s not fair!’ and someone tells you ‘it is,’ you’ve been overruled."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Rules on Evidence, Rule 132, Sec. 37"
     },
     {
       "id": "w-under-advisement",
       "term": "Under advisement",
       "tl": {
         "simple": {
-          "meaning": "Pinag-aaralan pa ang usapin at hindi pa ito napagpasyahan.",
-          "example": "Parang iniwan muna sa mesa para pag-isipan nang mabuti bago magbigay ng sagot."
+          "meaning": "Parang sinasabi na ‘hindi pa ako nagpapasya, pero pag-iisipan ko pa rin ito.’",
+          "example": "Parang naghihintay ng sagot bago magdesisyon."
         },
         "detailed": {
-          "meaning": "Ibig sabihin, hindi pa napagdesisyunan ang isyu. Pinag-aaralan pa ito ng mga namumuno o ng komite. Kailangan pang maghintay para malaman ang pinal na hatol.",
-          "example": "Parang inilagay sa 'pending' o 'nasa pag-aaral' na folder ang isang bagay."
+          "meaning": "Ibig sabihin, pinag-iisipan pa ng namumuno ang mga argumento at ipapaalam niya ang desisyon sa ibang pagkakataon. Hindi pa ito napagpasyahan.",
+          "example": "Parang nagpapasa-bilis ng sagot, pero kailangan pang pag-isipan."
         }
       },
       "en": {
         "simple": {
-          "meaning": "The decision is being thought about right now.",
-          "example": "Like when a teacher says they are 'under advisement' before giving a final grade."
+          "meaning": "The judge is waiting to decide on something later.",
+          "example": "Like waiting for a chef to taste a dish before telling you if it’s good."
         },
         "detailed": {
-          "meaning": "This means the decision hasn't been made yet; it is being thought about. The people in charge are reviewing the situation before they give a final answer. It means they are still deciding.",
-          "example": "Like when a teacher says they are 'under advisement' on a grade, meaning they haven't finalized it yet."
+          "meaning": "It means the judge or presiding officer is listening to the arguments but hasn’t made a ruling yet, so the situation remains open. They need time to consider everything before deciding.",
+          "example": "Like waiting for a teacher to grade a test before telling the students if they passed."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked"
     },
     {
       "id": "w-motion-to-quash",
       "term": "Motion to quash",
       "tl": {
         "simple": {
-          "meaning": "Pormal na hiling na kanselahin ang isang utos ng korte o ng komite.",
-          "example": "Parang paghingi ng permiso para tanggalin ang isang nakatatakot na papel na ipinadala sa iyo."
+          "meaning": "Pagtutol para hindi ipatupad ang isang utos, kadalasan ay subpoena, dahil ito ay sobra o hindi makatwiran.",
+          "example": "Parang sinasabi mo, ‘Hindi ako dapat pumasok doon dahil masyadong mahigpit ang utos.’"
         },
         "detailed": {
-          "meaning": "Ito ay pormal na hiling sa korte para kanselahin ang isang utos, tulad ng subpoena. Ginagawa ito kapag naniniwala ang isang tao na mali o hindi tama ang pag-utos. Pagkatapos maghain nito, titingnan ito ng namumuno para magdesisyon.",
-          "example": "Parang pag-apela o pagtutol sa isang utos, na hinihiling na alisin ito sa talaan."
+          "meaning": "Pagtutol sa isang utos, karaniwan ay isang utos na humihingi ng pagdalo o dokumento. Ginagamit ito para pigilan ang pagpapatupad ng utos kung ito ay hindi makatwiran o labis na pinipilit.",
+          "example": "Parang pagtutol sa isang kaibigan na hindi mo gustong sundin ang kanyang utos."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A formal request to cancel a legal order.",
-          "example": "Like asking a teacher to cancel a test because it was unfair."
+          "meaning": "A request to throw out a court order.",
+          "example": "Like saying ‘no thanks’ to a request – but in a courtroom."
         },
         "detailed": {
-          "meaning": "This is a formal request asking the court to throw out a part of the legal action. It is used when someone believes a legal document or order is invalid or shouldn't be followed. After this motion, the presiding officer will decide if it is granted or denied.",
-          "example": "Like asking a teacher to cancel a test because the instructions were unclear."
+          "meaning": "It’s a way to challenge a legal order, usually a subpoena, arguing that it’s too demanding or doesn’t need to be enforced. The person receiving the order can ask the court to throw it out.",
+          "example": "Like saying ‘no thanks’ to an order you don’t want to accept."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Rules of Court, Rule 21, Sec. 4"
     },
     {
       "id": "w-subpoena-duces-tecum",
       "term": "Subpoena duces tecum",
       "tl": {
         "simple": {
-          "meaning": "Utos na magdala ng mga dokumento o ebidensya ang isang tao.",
-          "example": "Parang utos na hindi lang pumunta, kundi dala-dala rin ang lahat ng papeles na hinihingi."
+          "meaning": "Ito ay subpoena na hindi lamang humihingi ng pagdalo, kundi pati na rin ng pagdala ng mga dokumento.",
+          "example": "Parang utos na hindi lang kailangan makipag-usap, kundi pati na rin magbigay ng mga papeles."
         },
         "detailed": {
-          "meaning": "Ito ay isang utos na hindi lang para pumarating ang tao, kundi kailangan din niyang dalhin ang mga papeles o ebidensya. Ginagamit ito para makita ng mga nag-iimbestiga ang mga dokumento na may kaugnayan sa kaso. Pagkatapos maibigay ang mga dokumento, magpapatuloy ang pagdinig.",
-          "example": "Parang utos na hindi lang pumunta, kundi dala-dala mo rin ang lahat ng resibo at kontrata mo."
+          "meaning": "Ito ay espesyal na utos na hindi lang hinihingi na dumalo ka, kundi pati na rin ang pagdala ng mga papeles o gamit na pag-aari mo. Ginagamit ito para makuha ang mga ebidensya na kailangan sa paglilitis.",
+          "example": "Parang pakiusap na may kasamang listahan ng mga dokumentong kailangan mong ibigay."
         }
       },
       "en": {
         "simple": {
-          "meaning": "An order to show up and bring certain papers.",
-          "example": "Like being told to come to a meeting and bring all your important files."
+          "meaning": "It’s a command to show up and bring specific items to the hearing.",
+          "example": "Like asking someone to bring their diary to a meeting."
         },
         "detailed": {
-          "meaning": "This is a formal order that demands someone show up and bring certain papers or items. It is used when the hearing needs specific records to understand the situation. The person must bring what the order asks for.",
-          "example": "Like being told to come to a meeting and bring all your important files with you."
+          "meaning": "It’s a special type of subpoena that asks someone not just to show up and testify, but also to bring specific documents or items with them to the hearing. The order needs to clearly state what documents are being requested.",
+          "example": "Like asking a witness to bring their diary to court, so you can see what they wrote."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Rules of Court, Rule 21, Sec. 1"
     },
     {
       "id": "w-impeachment-court",
       "term": "Impeachment court",
       "tl": {
         "simple": {
-          "meaning": "Isang korte na ginawa para hatulan ang isang opisyal ng gobyerno dahil sa malaking pagkakamali.",
-          "example": "Parang espesyal na korte na ginagamit lang kapag may malaking kaso laban sa isang mataas na tao."
+          "meaning": "Ang lugar kung saan inaalam kung may kasalanan o hindi ang isang opisyal na nililitis.",
+          "example": "Parang espesyal na silid kung saan nagdedesisyon ang mga senador kung dapat bang tanggalin sa pwesto ang isang opisyal."
         },
         "detailed": {
-          "meaning": "Ito ay isang espesyal na hukuman na ginagamit para hatulan ang isang mataas na opisyal dahil sa mga kaso ng maling pag-uugali. Ang layunin nito ay alamin kung may nagawang paglabag sa tungkulin. Kapag nagkaroon ng hatol dito, malaki ang magiging epekto nito sa posisyon ng opisyal.",
-          "example": "Parang isang espesyal na paglilitis na ginagawa para sa mga pinuno ng gobyerno, hindi lang basta kaso sa ordinaryong korte."
+          "meaning": "Parang courtroom na espesyal para sa paglilitis sa mga mataas na opisyal. Dito, pinagdedesisyunan kung may sapat na basehan para tanggalin sa pwesto ang isang opisyal. Pagkatapos ng pagdedesisyon, puwede itong humantong sa pagtanggal sa pwesto.",
+          "example": "Parang espesyal na silid kung saan nagaganap ang malaking pagtatalo."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A special court set up to judge a high-ranking official.",
-          "example": "Like a special trial just for a very important person."
+          "meaning": "It’s the group of senators who are judging the case.",
+          "example": "Like a classroom where a student is being judged."
         },
         "detailed": {
-          "meaning": "This is a special court set up to judge a very important person. It is used when someone in a high position is accused of serious wrongdoing. If found guilty, they can be removed from their job.",
-          "example": "Like a special trial just for the President or a judge, instead of a regular court case."
+          "meaning": "It’s the group of senators who listen to the evidence and decide whether the official on trial is guilty of wrongdoing. The whole process happens within this specific group of senators.",
+          "example": "Like a classroom where a teacher makes a decision about a student’s behavior."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Senate Impeachment Rules, Rule II"
     },
     {
       "id": "w-cross-examination",
       "term": "Cross-examination",
       "tl": {
         "simple": {
-          "meaning": "Pagpapatanong sa isang saksi ng kabilang panig pagkatapos siyang tanungin ng unang panig.",
-          "example": "Parang pagtatanong ng kalaban para makahanap ng mali o kahinaan sa sinabi ng saksi."
+          "meaning": "Pag-tatanong ng abogado sa isang testigo para malaman kung totoo ang kanyang sinasabi o para itama ang mali sa kanyang sinabi.",
+          "example": "Parang pagtatanong ng isang detective para linawin ang mga detalye ng isang kaso."
         },
         "detailed": {
-          "meaning": "Ito ay pagtatanong sa isang saksi ng kabilang panig pagkatapos na sila ay tanungin ng unang panig. Ang layunin nito ay subukan ang katotohanan ng sinabi ng saksi at hanapin ang mga posibleng mali o hindi sigurado. Ito ay bahagi ng pagpapatunay ng mga ebidensya.",
-          "example": "Parang pagtatanong ng isang tao sa kaibigan niya para siguraduhin na tama ang sinabi nito sa iba."
+          "meaning": "Pagkakataon ng isang abogado na tanungin ang isang testigo para masuri kung totoo ang kanyang sinasabi o para itama ang kanyang sinabi. Ginagamit ito para malaman kung may mali sa testimonya ng saksi.",
+          "example": "Parang pagtatanong ng isang detective para malaman kung totoo ang sinasabi ng isang suspek."
         }
       },
       "en": {
         "simple": {
-          "meaning": "When one side questions a witness after the other side has already questioned them.",
-          "example": "Like when one team asks a player questions after the other team has already asked them."
+          "meaning": "It’s when one lawyer asks the other lawyer’s witness questions to see if they are telling the truth.",
+          "example": "Like arguing with someone to see if they’re being honest."
         },
         "detailed": {
-          "meaning": "This is when one side questions a witness who was called by the other side. The goal is usually to challenge the witness's story or credibility. It is a key part of gathering information during a hearing.",
-          "example": "Like when one team questions the other team's player after they have made a play."
+          "meaning": "It’s a chance for one side to challenge the witness’s answers and make them explain themselves, often to show if they are telling the truth or if they have a hidden motive. It’s a way to test the witness’s story.",
+          "example": "Like when you ask a friend if they really saw something, and then ask them questions to see if their story makes sense."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Rules on Evidence, Rule 132, Sec. 6"
     },
     {
       "id": "w-direct-examination",
       "term": "Direct examination",
       "tl": {
         "simple": {
-          "meaning": "Ang pagtatanong sa isang saksi ng abogado na nagpatawag sa kanya para magsalita.",
-          "example": "Parang ang unang pagtatanong sa isang tao pagkatapos siyang tawagin sa harap ng korte."
+          "meaning": "Pagtanong ng isang partido sa isang saksi para patunayan ang kanyang sinasabi.",
+          "example": "Parang pagtatanong sa isang kaibigan para patunayan na totoo ang kanyang kwento."
         },
         "detailed": {
-          "meaning": "Ito ang pagtatanong sa isang saksi ng abogado na nagpatawag sa kanya para magsalita. Dito, ang abogado ay nagtatanong para linawin ang kuwento ng saksi. Kadalasan, ito ang simula ng pagbibigay ng testimonya.",
-          "example": "Parang pagkuwento ng isang tao sa kaibigan mo, pero may mga tanong na nagpapatibay sa sinasabi niya."
+          "meaning": "Ito ang unang pagtatanong ng isang abogado sa isang testigo sa harap ng hukuman, para ipakita ang katotohanan ng kanyang sinasabi. Tinutulungan nito ang abogado na ipakita ang kanyang punto sa pagdinig.",
+          "example": "Parang pagtatanong ng isang guro sa kanyang estudyante para malaman kung ano talaga ang nangyari."
         }
       },
       "en": {
         "simple": {
-          "meaning": "The questioning of a witness by the person who brought them to the hearing.",
-          "example": "Like when the lawyer who called the witness asks them questions first."
+          "meaning": "It’s the initial questioning of a witness to get them to tell their story.",
+          "example": "Like asking someone a series of questions to understand what happened."
         },
         "detailed": {
-          "meaning": "This is when the lawyer who called the witness asks them questions. The goal is usually to present the witness's side of the story. After this, the other side gets a chance to question them.",
-          "example": "Like telling your own story first before someone else challenges it."
+          "meaning": "This is how the lawyer for the person being questioned asks the questions to get information for the case. It’s the first stage of questioning a witness.",
+          "example": "Like asking someone a series of questions to understand what happened, step by step."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Rules on Evidence, Rule 132, Sec. 5"
     },
     {
       "id": "w-under-oath",
       "term": "Under oath",
       "tl": {
         "simple": {
-          "meaning": "Kapag sinabi nang may panunumpa, ibig sabihin ay sinasabi ang totoo.",
-          "example": "Parang kapag nag-i-swear ka bago magbigay ng testimony, kailangan mong maging tapat."
+          "meaning": "Pag-amin ng katotohanan sa harap ng hukom o opisyal, kung mali ang sasabihin ay may parusa.",
+          "example": "Parang pagdedeklara ng totoo sa harap ng notaryo para masigurong walang magpapabulaan."
         },
         "detailed": {
-          "meaning": "Ibig sabihin, sinumpa ng taong nagsasalita na sasabihin niya ang totoo. Kapag sinabi ito, may legal na pananagutan siya sa sinabi niya. Ang sinabi niya ay itinuturing na opisyal na katotohanan sa pagdinig.",
-          "example": "Parang sinasabi mo na, 'Totoo po lahat ng sasabihin ko, at may kaso kung hindi.'"
+          "meaning": "Pag-amin sa harap ng hukom o opisyal na totoo ang sinasabi. Ginagamit ito para masigurong hindi basta-basta nagsisinungaling ang nagsasabi. Karaniwan, may pirmahan ito para mas maging matibay.",
+          "example": "Parang pagdedeklara ng totoo sa harap ng isang notaryo para maging legal ang sinasabi."
         }
       },
       "en": {
         "simple": {
-          "meaning": "Sworn to tell the truth while speaking.",
-          "example": "Like promising to tell the truth before a judge."
+          "meaning": "To swear that what you’re saying is true.",
+          "example": "Like promising to tell the truth as you’re standing in front of a judge."
         },
         "detailed": {
-          "meaning": "When someone is under oath, they promise to tell the truth. This promise is made before giving testimony. If they lie, it can be considered perjury.",
-          "example": "Like when you sign a document saying everything written in it is true."
+          "meaning": "It means saying something is true and committing to that truth in front of someone who can verify it. It’s used to make sure evidence and testimony are reliable.",
+          "example": "Like promising to tell the truth in front of a teacher, so you’re held accountable if you lie."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "RA 6713 (Code of Conduct), Sec. 8"
     },
     {
       "id": "w-stricken-from-the-record",
       "term": "Stricken from the record",
       "tl": {
         "simple": {
-          "meaning": "Pormal na tinanggal sa opisyal na talaan ng mga nangyari sa pagdinig.",
-          "example": "Parang binura sa libro ng mga nangyari, hindi na ito kasama sa opisyal na kwento."
+          "meaning": "Tanggalin sa talaan ang isang bagay na hindi na kailangan o hindi na relevant.",
+          "example": "Parang pagtatanggal ng isang pahina sa isang libro na hindi na mahalaga sa kwento."
         },
         "detailed": {
-          "meaning": "Ibig sabihin, tinanggal o hindi na isasama sa opisyal na talaan ng mga nangyari sa pagdinig. Ginagawa ito kapag may bagay na hindi dapat narinig o nakita ng publiko. Kapag ito ay nangyari, hindi na ito bahagi ng pormal na kasaysayan ng pagdinig.",
-          "example": "Parang pag-edit sa isang video kung saan tinanggal ang isang bahagi dahil hindi ito kailangan."
+          "meaning": "Ibig sabihin, tinanggal sa talaan ang isang bagay na sinabi o ipinakita. Ginagawa ito kapag hindi na ito mahalaga o hindi na ito tugma sa kung ano ang pinag-uusapan. Karaniwan, may dahilan kung bakit tinanggal ito, tulad ng hindi ito totoo o hindi ito relevant.",
+          "example": "Parang pagtanggal ng sulat sa isang liham pagkatapos basahin ito."
         }
       },
       "en": {
         "simple": {
-          "meaning": "It was taken out of the official notes of what happened.",
-          "example": "Like crossing something out of a notebook so it's not part of the final story."
+          "meaning": "To formally take something out of a record.",
+          "example": "Like deleting a message from your phone."
         },
         "detailed": {
-          "meaning": "This means something that was said or done is officially taken out of the minutes of the hearing. It is done to correct the official history of what happened. Usually, this happens when something is deemed irrelevant or improper.",
-          "example": "Like erasing a mistake from a final report so it doesn't count in the official version."
+          "meaning": "It means something has been taken out of the official record, usually because it’s no longer relevant or because there was a problem with it. The hearing officer decides if something should be removed.",
+          "example": "Like deleting a mistake from a document, so it’s no longer there."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked"
     },
     {
       "id": "w-testimony",
       "term": "Testimony",
       "tl": {
         "simple": {
-          "meaning": "Opisyal na pahayag ng isang saksi na sinumpa.",
-          "example": "Parang sinasabi ng tao ang totoo sa harap ng mga tao na nagpapasya."
+          "meaning": "Ang sinasabi o patotoo ng isang tao.",
+          "example": "Parang kwento o paliwanag na ibinibigay niya."
         },
         "detailed": {
-          "meaning": "Ito ay ang sinasabi ng isang tao sa harap ng mga nagpapatakbo ng pagdinig. Ito ay isang opisyal na pahayag na sinumpaan. Ito ang nagsisilbing ebidensya sa pagdinig.",
-          "example": "Parang kuwento na sinabi mo sa kaibigan mo, pero dito, sinumpaan mo ito at ito ay para sa opisyal na rekord."
+          "meaning": "Paglalahad ng impormasyon o katotohanan sa harap ng komite o sa pagdinig. Ito ang sinasabi ng mga testigo para patunayan o pabulaanan ang mga paratang.",
+          "example": "Parang sinasabi mo sa klase kung ano ang nakita mo o naramdaman mo."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A formal statement given about what someone knows.",
-          "example": "Like when you tell the police what you saw at an accident."
+          "meaning": "Someone’s spoken account of what they know.",
+          "example": "Like telling the truth in a police report."
         },
         "detailed": {
-          "meaning": "This is when someone tells the truth about what they know or saw. It is given to help the hearing understand the facts of the situation. After giving testimony, the person might be questioned by others.",
-          "example": "Like telling a story in court, but you have to promise it's the truth."
+          "meaning": "It’s when someone tells the truth about something they know, and they swear that what they’re saying is correct. It’s used to prove something in court.",
+          "example": "Like telling a story to a police officer when you’re giving a statement."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Rules on Evidence, Rule 130, Sec. 22"
     },
     {
       "id": "w-respondent",
       "term": "Respondent",
       "tl": {
         "simple": {
-          "meaning": "Ang taong pinag-uusapan o ang sumasagot sa isang kaso.",
-          "example": "Parang ang taong inaakusahan o ang kailangang magpaliwanag sa isang isyu."
+          "meaning": "Ang taong inakusahan o sinasampa ng kaso.",
+          "example": "Parang siya yung target ng galit o reklamo."
         },
         "detailed": {
-          "meaning": "Ito ang taong pinag-uusapan o ang taong may obligasyon na sumagot sa isang isyu. Sila ang kinakatawan ng kabilang panig sa pagdinig. Ang kanilang papel ay magbigay ng kanilang panig sa usapin.",
-          "example": "Parang ang taong inaasahang magbibigay ng paliwanag o depensa sa isang reklamo."
+          "meaning": "Ang taong inakusahan o sinasampa ng kaso. Ito yung taong pinag-uusapan sa pagdinig.",
+          "example": "Parang biktima sa isang kwento, yung tinutukoy na may problema."
         }
       },
       "en": {
         "simple": {
-          "meaning": "The person or side responding to the issue being discussed.",
-          "example": "Like the person who has to answer when someone makes a complaint against them."
+          "meaning": "The person being accused or sued.",
+          "example": "Like the defendant in a court case."
         },
         "detailed": {
-          "meaning": "This is the person or group responding to a claim or challenge. They are the ones defending against what is being brought forward. They participate in the proceedings to present their side.",
-          "example": "Like the person defending themselves when someone accuses them of something."
+          "meaning": "In a trial, the ‘respondent’ is the person being accused or sued, and the proceedings focus on whether those accusations are true. It’s the name given to the person the case is about.",
+          "example": "Like when you’re playing a game and one player is the ‘defendant’, the respondent is the one being challenged."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked"
     },
     {
       "id": "w-prosecution",
       "term": "Prosecution",
       "tl": {
         "simple": {
-          "meaning": "Ang panig na naghahabla o nag-uusig sa isang tao sa korte.",
-          "example": "Parang ang mga nagdadala ng kaso laban sa akusado."
+          "meaning": "Ang mga abogado na nagpapakita ng ebidensya at nagpapaliwanag ng kaso.",
+          "example": "Parang team ng mga atleta na naghahanda para sa laban."
         },
         "detailed": {
-          "meaning": "Ito ang panig na nagsasampa ng kaso laban sa isang tao. Sila ang nagpapakita ng ebidensya para patunayan na nagkasala ang akusado. Ang layunin nila ay kumbinsihin ang hukom o hurado na may pagkakasala ang tao.",
-          "example": "Parang ang naghahain ng reklamo sa isang away; sila ang nagsasabing may mali ang kabilang panig."
+          "meaning": "Sila ang naghahabol ng kaso o nagpapatunay ng kasalanan. Sila ang nagpapakita ng ebidensya at nagtatanong sa mga saksi.",
+          "example": "Parang grupo ng mga abogado na kumakatawan sa gobyerno sa isang paglilitis."
         }
       },
       "en": {
         "simple": {
-          "meaning": "The side that is bringing the case.",
-          "example": "Like the team that is trying to prove something in a game."
+          "meaning": "The group bringing the charges against someone.",
+          "example": "Like the team trying to win a game."
         },
         "detailed": {
-          "meaning": "This is the side that is trying to prove something in the hearing or trial. They present the evidence and arguments against another party. They are the ones making the case.",
-          "example": "Like the team trying to win a game by scoring points against the other team."
+          "meaning": "In a trial, ‘prosecution’ refers to the lawyers and witnesses who are trying to show that someone did something wrong. They present evidence and arguments to convince the judge or jury.",
+          "example": "Like a team of detectives trying to solve a crime, the prosecution gathers evidence to build their case."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "1987 Constitution, Art. XI, Sec. 3"
     },
     {
       "id": "w-defense-counsel",
       "term": "Defense counsel",
       "tl": {
         "simple": {
-          "meaning": "Ang abogado na tumutulong at nagtatanggol sa taong inaakusahan.",
-          "example": "Parang tagapagtanggol sa isang laban, siya ang nagsasabi ng panig ng akusado."
+          "meaning": "Ang abogado na nagsisidilim para sa taong inakusahan.",
+          "example": "Parang abogado na tumatanggap ng kaso para sa isang kliyente."
         },
         "detailed": {
-          "meaning": "Ito ang abogado na tumutulong at nagtatanggol sa taong inaakusahan. Ang trabaho niya ay ipagtanggol ang karapatan ng kliyente laban sa mga akusasyon. Siya ang nagsisiguro na patas ang pagdinig.",
-          "example": "Parang tagapagtanggol sa isang laro, siya ang nagpapakita ng mga punto ng kalaban para mapatunayan na tama ang panig ng kanyang kinakatawan."
+          "meaning": "Sila ang abogado ng taong pinag-uusapan sa pagdinig. Sila ang nagsasabi ng depensa at nagtatanggol sa kanya.",
+          "example": "Parang tagapagtanggol sa isang laban, pero sa halip na suntukan, nagsasalita sila sa korte."
         }
       },
       "en": {
         "simple": {
-          "meaning": "The lawyer who helps the person being accused.",
-          "example": "Like a coach for a player who is being accused of something."
+          "meaning": "The lawyers who represent the person on trial.",
+          "example": "Like having a team of experts fighting for you."
         },
         "detailed": {
-          "meaning": "This is the lawyer hired to protect the rights of the person being accused. Their job is to argue the case from the perspective of the accused. They help make sure the process is fair.",
-          "example": "Like a team defender in a sports game, they protect their player."
+          "meaning": "This refers to the lawyer who represents the person on trial, arguing their case and protecting their rights.",
+          "example": "Like a team of doctors working to treat a patient, defense counsel works to defend the accused."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked"
     },
     {
       "id": "w-quorum",
       "term": "Quorum",
       "tl": {
         "simple": {
-          "meaning": "Ang pinakamababang bilang ng tao na kailangang naroroon para maging balido ang pulong.",
-          "example": "Parang kailangan ng sapat na bilang ng tao para maging patas at may bisa ang desisyon."
+          "meaning": "Kailangan ng sapat na bilang ng tao para makapagdesisyon.",
+          "example": "Parang minimum na bilang ng estudyante para makapag-umpisa ng klase."
         },
         "detailed": {
-          "meaning": "Ito ay ang pinakamababang bilang ng mga tao na kailangang naroroon para maging balido ang pulong o pagdinig. Kailangan ito para magpatuloy ang mga opisyal na gawain. Kung wala ito, hindi magpapatuloy ang mga desisyon.",
-          "example": "Parang kailangan mo ng sapat na bilang ng mga tao sa isang meeting para maging tama ang napag-usapan."
+          "meaning": "Ito yung pinakamababang bilang ng mga senador na kailangang naroon para maging legal o makapagdesisyon ang pagdinig. Kailangan ito para maging epektibo ang pag-uusap.",
+          "example": "Parang minimum na bilang ng estudyante para makapagsimula ang klase."
         }
       },
       "en": {
         "simple": {
-          "meaning": "The required minimum number of people needed to make decisions.",
-          "example": "Like needing a certain number of people in a group for a vote to count."
+          "meaning": "A certain number of people must be there for a decision to be made.",
+          "example": "Like needing at least half the team to play a game."
         },
         "detailed": {
-          "meaning": "This is the smallest number of people needed for a meeting to be considered valid. If there are not enough people present, the meeting cannot make official decisions. It ensures that enough people are there to represent the group.",
-          "example": "Like needing at least three people to be present for a group decision to count."
+          "meaning": "It’s the smallest group of people needed to make decisions or conduct business; if there aren't enough people present, the meeting can't officially happen.",
+          "example": "Like needing at least half the team to play a game."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "1987 Constitution, Art. VI, Sec. 16"
     },
     {
       "id": "w-prima-facie",
       "term": "Prima facie",
       "tl": {
         "simple": {
-          "meaning": "Sa unang tingin o batay sa nakikita agad.",
-          "example": "Parang sa unang tingin, mukhang tama ang sinasabi niya, pero baka may iba pang detalye."
+          "meaning": "Parang may sapat na ebidensya para makita na totoo ang isang bagay sa simula pa lang.",
+          "example": "Parang kapag may nakita kang malaking bato, malamang na malaki rin ang buong bundok."
         },
         "detailed": {
-          "meaning": "Ibig sabihin, sa unang tingin o batay sa mga nakita pa lang. Hindi pa ito ang pinal na hatol, kundi isang paunang pagtingin sa mga ebidensya. Kailangan pa ng mas malalim na pag-aaral o pagdinig para makumpirma ito.",
-          "example": "Parang unang tingin sa isang pagkain, mukhang masarap pero baka hindi pala."
+          "meaning": "Ibig sabihin, sapat na ito para mapatunayan ang isang bagay hangga’t hindi pa ipinapakita ang ebidensya na nagpapatunay na mali ito. Ito ay parang unang pagtingin sa ebidensya – kung may sapat na katibayan, puwede nang paniwalaan.",
+          "example": "Parang unang impresyon sa isang kaso; kung may sapat na ebidensya, puwede nang paniwalaan na totoo ito hangga’t hindi pa lumalabas ang bagong ebidensya."
         }
       },
       "en": {
         "simple": {
-          "meaning": "At first glance, the evidence seems to show something is true.",
-          "example": "Like when you see a pile of evidence and it looks like a case is being made."
+          "meaning": "It suggests the evidence is strong enough to proceed with the case.",
+          "example": "Like having enough clues to suspect someone did something wrong."
         },
         "detailed": {
-          "meaning": "This means that based on the initial evidence presented, something appears to be true. It is a starting point for the discussion. More evidence is usually needed to confirm it fully.",
-          "example": "Like when you see a pile of dirt and assume it's a construction site, but you need to check the permits."
+          "meaning": "It suggests that the evidence presented is enough to prove something initially, but the opposing side can still challenge it with more evidence. It’s like saying the case looks good for one side, but the other side can still fight back.",
+          "example": "Like saying ‘looks good so far’ – it means something is probably true until proven otherwise."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Rules on Evidence, Rule 132, Sec. 30"
     },
     {
       "id": "w-affidavit",
       "term": "Affidavit",
       "tl": {
         "simple": {
-          "meaning": "Isang nakasulat na pahayag na sinumpaan na totoo.",
-          "example": "Parang sinulat na pangako na pinatunayan sa harap ng tao na may awtoridad."
+          "meaning": "Isang sinulat na pahayag ng katotohanan na pirmahan ng isang tao na may saksi ng abogado.",
+          "example": "Parang sinumpaang salaysay na ibinibigay mo kapag may problema ka."
         },
         "detailed": {
-          "meaning": "Isang nakasulat na pahayag na sinumpaan ng nagsabi na totoo ito. Ginagamit ito bilang patunay o ebidensya sa korte. Ito ay parang sinulat na bersyon ng sinumpaang salita.",
-          "example": "Parang sinulat na pangako na may pirma at selyo ng taong nagpapatunay na totoo ang sinabi niya."
+          "meaning": "Isang dokumento kung saan sinasabi ng isang tao na totoo ang kanyang sinasabi, at kinuha ang kanyang pirma sa harap ng isang opisyal. Ginagamit ito para magbigay ng ebidensiya sa pagdinig.",
+          "example": "Parang sinulat na pangako na may pirma, para mapatunayan na totoo ang sinabi."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A sworn written statement used as proof.",
-          "example": "Like a signed and sworn-to story that can be used in court."
+          "meaning": "A sworn statement of facts.",
+          "example": "Like a signed statement you make when you want to prove something."
         },
         "detailed": {
-          "meaning": "It is a sworn, written statement of facts. The person signing it promises that what they wrote is true. This document is used to present evidence to the hearing or court.",
-          "example": "Like a signed and sworn-in letter that you promise is completely honest."
+          "meaning": "It’s a formal, written statement that someone swears is true, and it’s used as proof in a legal case. It’s like a signed, sworn-statement.",
+          "example": "Like a signed note you write, promising to tell the truth."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Rules on Evidence, Rule 133, Sec. 8"
     },
     {
       "id": "w-recess",
       "term": "Recess",
       "tl": {
         "simple": {
-          "meaning": "Sandaling pahinga o pagtigil sa pagdinig.",
-          "example": "Parang pag-break sa klase para magkape."
+          "meaning": "Pansamantalang pagtigil ng pagdinig para magpahinga o mag-usap.",
+          "example": "Parang break time sa opisina, pero para sa buong pagdinig."
         },
         "detailed": {
-          "meaning": "Ito ay pansamantalang pagtigil o pahinga sa pagdinig o pagpupulong. Ginagawa ito para magpahinga ang mga tao o para maghanda ng mga susunod na gawain. Pagkatapos ng recess, magpapatuloy muli ang pagdinig.",
-          "example": "Parang pag-break sa klase para mag-lunch, pero ito ay opisyal na pagtigil ng pagdinig."
+          "meaning": "Pansamantalang pagtigil ng pagpupulong, para magpahinga o mag-isip. Ginagamit ito kapag kailangan magpahinga ang mga nasa pagdinig.",
+          "example": "Parang pagtigil ng laro para mag-merienda."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A short pause in the proceedings.",
-          "example": "Like a break time during a long class."
+          "meaning": "A short break in a meeting or trial.",
+          "example": "Like pausing a movie to take a breather."
         },
         "detailed": {
-          "meaning": "It means a temporary pause in the proceedings. This break allows people to rest, take calls, or prepare for the next part of the hearing. After the recess, the hearing will resume where it left off.",
+          "meaning": "It’s a break or a pause in a meeting or trial, usually for a short period, and it’s not a final decision.",
           "example": "Like taking a short break during a long movie to stretch your legs."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "1987 Constitution, Art. VII, Sec. 16"
     },
     {
       "id": "w-adjourned",
       "term": "Adjourned",
       "tl": {
         "simple": {
-          "meaning": "Pagtigil muna ng pagdinig at pagpapagpatuloy nito sa ibang araw o oras.",
-          "example": "Parang pansamantalang pag-break sa klase para magpahinga."
+          "meaning": "Itinigil ang pagdinig at ipagpapaliban ito.",
+          "example": "Parang nagka-aberya sa isang presentasyon kaya kailangan itong ipagpatuloy sa ibang araw."
         },
         "detailed": {
-          "meaning": "Ibig sabihin, pansamantalang itinigil o ipinagpaliban ang pagdinig. Hindi pa tapos ang usapan, kaya ibabalik ito sa ibang araw o oras. Pagkatapos ng pagpapaliban, magpapatuloy ang pagdinig sa itinakdang oras.",
-          "example": "Parang pag-pause sa pelikula; hindi pa tapos ang kwento, kaya ititigil muna at ipagpapatuloy mamaya."
+          "meaning": "Pinahinto ang pagdinig para magdesisyon kung kailan ito magpapatuloy. Hindi ito nangangahulugang natapos na ang pagdinig, kundi pansamantala lang.",
+          "example": "Parang nagpatuloy ang laro pagkatapos ng halftime dahil may problema sa field."
         }
       },
       "en": {
         "simple": {
-          "meaning": "The meeting was stopped and will continue later.",
-          "example": "Like hitting the pause button on a movie."
+          "meaning": "The hearing was temporarily stopped and will continue at a different time.",
+          "example": "Like postponing a birthday party until next month."
         },
         "detailed": {
-          "meaning": "This means the hearing was stopped for now. It is done so that the proceedings can resume at a different time. The hearing will pick up where it left off later.",
-          "example": "Like pausing a movie so you can come back to it later."
+          "meaning": "It means the hearing was stopped for now, and the senators decided to continue it at a different time. It doesn’t mean the trial is over; it’s just paused.",
+          "example": "Like postponing a birthday party until next month."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Senate Impeachment Rules, Rule XI"
     },
     {
       "id": "w-summons",
       "term": "Summons",
       "tl": {
         "simple": {
-          "meaning": "Pormal na paanyaya o abiso na kailangan mong dumalo sa pagdinig o korte.",
-          "example": "Parang opisyal na liham na nagsasabing kailangan mong magpakita sa isang lugar sa isang tiyak na oras."
+          "meaning": "Parang paalala o abiso na kailangan mong dumalo sa isang pagdinig.",
+          "example": "Parang mensahe mula sa korte na nagsasabi na kailangan mong sumipot."
         },
         "detailed": {
-          "meaning": "Ito ay pormal na paanyaya o abiso na nagsasabing kailangan mong dumalo sa isang pagdinig. Ito ang nagsasabi sa iyo kung kailan at saan ka dapat magpakita. Kapag nakatanggap ka nito, kailangan mong sundin ang nakasaad dito.",
-          "example": "Parang opisyal na paalala mula sa gobyerno na hindi mo pwedeng balewalain."
+          "meaning": "Parang paalala na kailangan mong dumalo sa isang pagdinig dahil may kaso laban sa iyo. Ito ay para siguraduhing naroroon ka at makikinig sa mga paratang.",
+          "example": "Parang mensahe na ipinapadala para sabihing ‘kailangan mong dumating’ sa isang mahalagang pagpupulong."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A formal notice telling someone they have to show up.",
-          "example": "Like a formal notice telling you to be somewhere at a certain time."
+          "meaning": "It’s a formal notice telling someone they’re being called to court.",
+          "example": "Like a letter asking you to show up for a meeting."
         },
         "detailed": {
-          "meaning": "It is a formal notice telling someone they must show up somewhere. This notice starts the legal process for that person. It tells them when and where they need to be.",
-          "example": "Like a formal notice telling you you have to show up for a meeting you didn't know about."
+          "meaning": "It’s like a formal notice telling someone they have to show up – usually to give evidence or answer questions. The rules say the Senate uses it to get the former secretary to appear.",
+          "example": "Like a ticket you get to a concert, it’s a command to be somewhere at a specific time."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Senate Impeachment Rules, Rule XXIII"
     },
     {
       "id": "w-motion-to-dismiss",
       "term": "Motion to dismiss",
       "tl": {
         "simple": {
-          "meaning": "Pormal na hiling na itapon o huwag nang ipagpatuloy ang kaso.",
-          "example": "Parang paghingi ng permiso sa guro na huwag nang ipasa ang isang pagsusulit dahil may mali sa tanong."
+          "meaning": "Hiling na itigil ang pagdinig o paglilitis.",
+          "example": "Parang sinasabi mong ‘tama na ‘to, hindi na natin ‘to pagtulungan.’"
         },
         "detailed": {
-          "meaning": "Isang pormal na hiling sa hukuman na huwag nang ipagpatuloy ang kaso. Ginagawa ito kapag naniniwala ang isang panig na may mali sa mismong kaso o sa pagkakabuo nito. Kung ito ay tanggapin, hindi na magpapatuloy ang paglilitis.",
-          "example": "Parang paghingi ng permiso sa guro na huwag nang ipagpatuloy ang isang takdang-aralin dahil mali ang pagkaka-assign nito."
+          "meaning": "Pakiusap sa hukuman para hindi ipagpatuloy ang pagdinig. Ginagamit ito para itigil ang isang bagay na hindi na kailangan o hindi tama. Kadalasan, ginagamit ito para mag-object sa isang ebidensya o proseso.",
+          "example": "Parang nagsasabi na ‘tama na ‘to, hindi na natin ‘to pag-usapan.’"
         }
       },
       "en": {
         "simple": {
-          "meaning": "A request to stop the case from moving forward.",
-          "example": "Like asking the referee to stop the game because the rules were broken before it even started."
+          "meaning": "A request to stop something from happening.",
+          "example": "Like asking someone to stop playing a game."
         },
         "detailed": {
-          "meaning": "This is a formal request made to the court or body. It asks them to stop the case before it goes further. If the request is granted, the case is thrown out.",
-          "example": "Like asking a teacher to cancel a test because the instructions were unclear."
+          "meaning": "It’s a way for someone to ask the judge or committee to stop the trial or to reject some of the evidence being presented. It’s often used to challenge the case or the way it’s being handled.",
+          "example": "Like asking a teacher to postpone a test because you didn’t study, it’s a request to change how things are going."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked"
     },
     {
       "id": "w-pre-trial-brief",
       "term": "Pre-trial brief",
       "tl": {
         "simple": {
-          "meaning": "Isang sulat na inihahain bago ang paglilitis para ilatag ang mga isyu at ebidensya.",
-          "example": "Parang paunang pagpapakita ng plano ng magkabilang panig bago magsimula ang laban."
+          "meaning": "Isang sulat o dokumento na isinusulat ng abogado para ipaalam kung ano ang kanyang paninindigan at kung anong ebidensya ang gagamitin niya sa paglilitis.",
+          "example": "Parang plano ng isang manlalaro bago maglaro, naglalaman ito ng mga estratehiya."
         },
         "detailed": {
-          "meaning": "Ito ay isang nakasulat na ulat na isinusumite bago pa man magsimula ang paglilitis. Ginagamit ito para maghanda ang lahat ng partido sa mga isyu at ebidensiyang pagtatalunan. Nakakatulong ito para maging mas organisado ang pagdinig.",
-          "example": "Parang listahan ng mga tanong at sagot na inihanda bago pa man magsimula ang debate."
+          "meaning": "Ito ay isang plano ng abogado bago magsimula ang paglilitis, naglalaman ng mga punto niya at ng mga patunay na gusto niyang ipakita. Ginagamit ito para maghanda ang kabilang panig.",
+          "example": "Parang outline ng isang papel na sinusulat bago ang pagsusulat ng buong papel, para alam ng lahat kung ano ang pag-uusapan."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A document given before the trial that explains what each side thinks.",
-          "example": "Like a detailed roadmap showing where the trial is going."
+          "meaning": "It’s a summary of what each side plans to prove.",
+          "example": "Like a detailed outline you give someone before a big presentation."
         },
         "detailed": {
-          "meaning": "This is a document written before the main hearing starts. It tells everyone what the sides plan to argue and what evidence they have. It helps everyone get ready for the actual proceedings.",
-          "example": "Like a detailed roadmap given to everyone before a long road trip."
+          "meaning": "It’s a summary of the evidence and arguments a lawyer will use, given to the other side so they can prepare. It’s a way to organize the case before the trial starts.",
+          "example": "Like a detailed outline for a presentation, it helps the lawyer and their team get ready."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked"
     },
     {
       "id": "w-sub-judice",
       "term": "Sub judice",
       "tl": {
         "simple": {
-          "meaning": "Isang usapin na kasalukuyang iniimbestigahan o pinag-aaralan ng korte o ng mga awtoridad.",
-          "example": "Parang isang bagay na 'nasa ilalim ng pagtatanong' at hindi pa tapos ang pag-uusap tungkol dito."
+          "meaning": "May ginagawang imbestigasyon o paglilitis pa rin sa korte.",
+          "example": "Parang may kaso pa na hindi pa nagpapasya ang hukuman."
         },
         "detailed": {
-          "meaning": "Ibig sabihin, ang usapin ay kasalukuyang pinag-aaralan o iniimbestigahan ng korte o ng isang komite. Dahil dito, may mga limitasyon sa kung ano ang pwedeng pag-usapan sa labas para hindi maapektuhan ang paglilitis.",
-          "example": "Parang may 'pause' sa usapan dahil inaasahan pa ang hatol o desisyon mula sa mga awtoridad."
+          "meaning": "Ibig sabihin, nasa proseso pa ng pag-iimbestiga o paglilitis ang isang kaso. Hindi pa ito natatapos o napagpasyahan.",
+          "example": "Parang isang kasong hindi pa natatapos sa korte, kaya hindi pa ito puwedeng pag-usapan nang malaya."
         }
       },
       "en": {
         "simple": {
-          "meaning": "The issue is currently being decided by the court or committee.",
-          "example": "Like a game that is still being played and hasn't reached the final score."
+          "meaning": "The case is still being investigated or decided.",
+          "example": "Like a problem that’s still being thought about, but hasn’t been solved yet."
         },
         "detailed": {
-          "meaning": "This means a case is currently being looked at by a court. When something is sub judice, people are usually told not to talk about it publicly. This is to prevent it from affecting the court's decision.",
-          "example": "Like keeping a secret until the judge has made their final ruling."
+          "meaning": "Something that is being investigated or discussed within a legal process, but hasn’t been formally decided yet. It’s a case or issue that’s still in progress.",
+          "example": "Like a dish that’s still simmering on the stove – it’s not ready to be served, but it’s being worked on."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked"
     },
     {
       "id": "w-betrayal-of-public-trust",
       "term": "Betrayal of public trust",
       "tl": {
         "simple": {
-          "meaning": "Pagtataksil sa tiwala na ipinagkaloob sa isang opisyal ng gobyerno.",
-          "example": "Parang paggamit ng pribadong pera para sa personal na gamit habang ikaw ay nasa posisyon ng tagapamahala ng pondo ng bayan."
+          "meaning": "Paglabag sa tiwala ng mga mamamayan, lalo na kung ginamit ang posisyon para sa sariling kapakanan.",
+          "example": "Parang pagsuway sa pangako na ginawa sa mga botante."
         },
         "detailed": {
-          "meaning": "Ito ay paglabag sa tiwala ng publiko sa isang taong may posisyon ng pamahalaan. Nangyayari ito kapag ginamit ng opisyal ang kanyang kapangyarihan para sa pansariling interes. Ito ay isang seryosong akusasyon na kadalasang nauugnay sa katiwalian.",
-          "example": "Parang paggamit ng susi ng bahay para nakawin ang gamit ng kapitbahay, kahit ikaw ay may posisyon na dapat magbantay."
+          "meaning": "Ito ay nangyayari kapag hindi natutupad ng isang opisyal ang kanyang tungkulin at nagdudulot ito ng pinsala sa interes ng bayan. Kadalasan, may kasama itong korapsyon o paggamit ng pwesto para sa pansariling kapakinabangan.",
+          "example": "Parang pagsuway sa pangako sa mga botante, kaya hindi na pinagkakatiwalaan ang isang lider."
         }
       },
       "en": {
         "simple": {
-          "meaning": "Acting in a way that breaks the faith the public has in an official.",
-          "example": "Like a friend who promises to keep a secret but then tells everyone."
+          "meaning": "When someone doesn’t do their job properly and hurts the people who rely on them.",
+          "example": "Like breaking a promise to a friend when they needed your help."
         },
         "detailed": {
-          "meaning": "This means someone in a position of public responsibility did something wrong. They failed to act in the best interest of the people they serve. This phrase is used to describe serious misconduct.",
-          "example": "Like a trusted guard secretly letting an enemy into the building."
+          "meaning": "It describes when someone in a position of power does something that damages the trust people have in them and their government. It’s a serious accusation, especially when it involves using their power for personal gain or harming the public.",
+          "example": "Like when a friend breaks a promise, it’s a betrayal of trust."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "1987 Constitution, Art. XI, Sec. 2"
     },
     {
       "id": "w-culpable-violation-of-the-constitution",
       "term": "Culpable violation of the Constitution",
       "tl": {
         "simple": {
-          "meaning": "Sadyang paglabag sa mga pangunahing batas ng bansa na may kasalanan.",
-          "example": "Parang sinadyang paglabag sa mga patakaran ng isang malaking kumpanya."
+          "meaning": "Nagkamali o nagkasala sa paglabag sa Saligang Batas.",
+          "example": "Parang paglabag sa patakaran na may kasalanan, hindi lang basta paglabag."
         },
         "detailed": {
-          "meaning": "Ito ay nangangahulugang may sadyang paglabag sa mga pangunahing batas ng bansa. Ito ay isang napakaseryosong akusasyon na tumutukoy sa pagsuway sa Konstitusyon. Kapag nabanggit ito, nangangahulugan itong may malaking isyu sa pamahalaan o batas.",
-          "example": "Parang paglabag sa mga pangunahing patakaran ng isang kumpanya na may malaking epekto sa lahat."
+          "meaning": "Ito ay nangyayari kapag may ginawa na hindi sinasadya pero malaki ang epekto sa ating konstitusyon. Kadalasan, ito ay dahil sa pagkakamali o paglabag sa mga patakaran. Pagkatapos nito, puwedeng maalis sa pwesto ang isang opisyal.",
+          "example": "Parang pagtapon ng basura sa ilalim ng puno, kahit hindi sinasadya, ay makakasira pa rin sa kapaligiran."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A very serious breaking of the country's main rules.",
-          "example": "Like breaking a major rule in a game that changes how the game is played."
+          "meaning": "A serious wrongdoing that goes against the country’s basic laws.",
+          "example": "Like breaking a promise to your friend – it’s a big deal."
         },
         "detailed": {
-          "meaning": "This means someone broke the Constitution in a way that they should have known was wrong or that they acted carelessly. It points to a fault or faultiness in the action taken. This phrase is used when discussing serious breaches of the country's basic rules.",
-          "example": "Like deliberately breaking a major rule in a game, not just accidentally tripping over it."
+          "meaning": "This charge is used when someone has done something that goes against the core principles of the Constitution, and it’s a very serious accusation. It’s often used in impeachment trials.",
+          "example": "Like breaking a promise to your friend, it’s a serious breach of trust."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "1987 Constitution, Art. XI, Sec. 2"
     },
     {
       "id": "w-graft-and-corruption",
       "term": "Graft and corruption",
       "tl": {
         "simple": {
-          "meaning": "Paggamit ng posisyon para sa pansariling kapakinabangan o pagtanggap ng suhol.",
-          "example": "Parang kapag may opisyal na kumukuha ng pera para makakuha ng pabor."
+          "meaning": "Pagkakamali o panlilinlang sa paggamit ng pera ng gobyerno para sa sariling interes.",
+          "example": "Parang pagnanakaw ng pera ng bayan."
         },
         "detailed": {
-          "meaning": "Ito ay tungkol sa pandaraya o pag-abuso sa kapangyarihan para sa pansariling pakinabang. Kasama rito ang pagtanggap ng suhol o paggamit ng posisyon para makakuha ng pera o benepisyo. Ito ay isang seryosong isyu sa gobyerno.",
-          "example": "Parang kapag may opisyal na tumanggap ng regalo kapalit ng pagpabor sa isang negosyo."
+          "meaning": "Ito ay tumutukoy sa paggamit ng pera ng bayan para sa sariling interes, tulad ng pangongotong o pagbebenta ng pwesto. Kadalasan, ito ay kasama ang pagtataksil sa tiwala ng publiko.",
+          "example": "Parang paggamit ng pondo ng paaralan para sa sariling gamit ng isang opisyal."
         }
       },
       "en": {
         "simple": {
-          "meaning": "Using one's position for illegal or dishonest gain.",
-          "example": "Like a politician taking money to vote a certain way."
+          "meaning": "Using public money for personal gain.",
+          "example": "Like taking a little extra money from the company’s account without permission."
         },
         "detailed": {
-          "meaning": "This refers to illegal or dishonest practices by people in power. It involves using their position to benefit themselves or others unfairly. This is a serious issue that investigations often look into.",
-          "example": "Like a government official taking a secret payment to approve a project for a friend."
+          "meaning": "It describes actions like taking bribes, stealing from the government, or using a public job for personal benefit. The Constitution lists it as a reason for removing officials from power.",
+          "example": "Like taking money from a company you’re supposed to be overseeing, it’s about abusing your authority for personal profit."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "1987 Constitution, Art. XI, Sec. 2"
     },
     {
       "id": "w-confidential-funds",
       "term": "Confidential funds",
       "tl": {
         "simple": {
-          "meaning": "Pera na hindi ipinapakita o hindi alam ng publiko.",
-          "example": "Parang lihim na pera na hindi pwedeng ikuwento sa lahat."
+          "meaning": "Pera na nakalaan na hindi direktang ginagamit, kundi para sa mga pangangailangan ng isang opisyal o ahensya, at dapat gamitin nang maingat at may katapatan.",
+          "example": "Parang reserbang pondo na hindi basta-basta ginagastos, kundi ginagamit lang kapag kinakailangan."
         },
         "detailed": {
-          "meaning": "Ito ay pera o pondo na hindi ipinapakita sa publiko. Kadalasan, may espesyal na dahilan kung bakit ito tinatago. Sa pagdinig, ito ay tumutukoy sa mga pondo na hindi pa lubusang naipapaliwanag.",
-          "example": "Parang lihim na ipon na hindi alam ng lahat ng tao."
+          "meaning": "Mga pondo na hindi ipinapakita o ibinabahagi sa publiko, para sa mga bagay na kailangan ng gobyerno pero hindi pa dapat malaman ng lahat. Ginagamit ito para sa mga bagay na kailangan ng seguridad o para sa mga gawain na kailangan ng pribadong impormasyon.",
+          "example": "Parang lihim na bank account ng gobyerno na ginagamit lang para sa mga tiyak na proyekto."
         }
       },
       "en": {
         "simple": {
-          "meaning": "Money that is not meant to be made public.",
-          "example": "Like a secret savings account."
+          "meaning": "Special money that isn’t openly discussed or used.",
+          "example": "Like a secret savings account for a special project."
         },
         "detailed": {
-          "meaning": "This refers to money that is not meant to be made public. It is kept private for specific reasons. This usually means the details of how it is used are kept secret.",
-          "example": "Like a secret piggy bank that only certain people know about."
+          "meaning": "These are special funds that the government sets aside for specific, often sensitive, activities and aren’t meant to be made public. They’re used when regular funds aren’t sufficient or appropriate, and their use needs to be carefully controlled.",
+          "example": "Like a secret savings account, it’s money kept separate from the main accounts."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked"
     },
     {
       "id": "w-ombudsman",
       "term": "Ombudsman",
       "tl": {
         "simple": {
-          "meaning": "Isang opisyal na nag-iimbestiga ng mga reklamo laban sa mga ahensya o opisyal ng gobyerno.",
-          "example": "Parang tagapagtanggol ng taumbayan laban sa mga maling gawain ng gobyerno."
+          "meaning": "Siya ang nag-iimbestiga kung may nagkasala sa gobyerno.",
+          "example": "Parang detective ng gobyerno na naghahanap ng mga taong lumalabag sa batas."
         },
         "detailed": {
-          "meaning": "Isang opisyal na inatasan para imbestigahan ang mga reklamo laban sa mga ahensya o opisyal ng gobyerno. Ang trabaho niya ay tiyakin na tama at patas ang pagtrato ng gobyerno sa mga tao. Kapag may reklamo, siya ang tinitingnan para malaman kung may mali.",
-          "example": "Parang tagapagtanggol ng taumbayan laban sa mga posibleng pagkakamali ng gobyerno."
+          "meaning": "Sila ang nag-iimbestiga kung may nagkasala sa gobyerno, tulad ng paggamit ng pera ng bayan para sa sariling kapakinabangan. Pagkatapos mag-imbestiga, puwede silang mag-file ng kaso laban sa taong nagkasala.",
+          "example": "Parang detective ng gobyerno na naghahanap ng mga taong lumalabag sa batas."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A person appointed to investigate complaints about government actions.",
-          "example": "Like a watchdog for the government to make sure things are fair."
+          "meaning": "It’s the person in charge of looking into wrongdoing involving public funds.",
+          "example": "Like a detective investigating a crime."
         },
         "detailed": {
-          "meaning": "An Ombudsman is an independent person who watches over government actions. Their job is to investigate complaints from people who feel they were treated unfairly by the government. They try to make sure the government is doing its job correctly.",
-          "example": "Like a watchdog for the government, making sure things are run fairly."
+          "meaning": "It’s a person in charge of looking into whether public officials have acted wrongly or unfairly. The office investigates and tries to stop corruption.",
+          "example": "Like a police detective, but for government wrongdoing."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "1987 Constitution, Art. XI, Sec. 6"
     },
     {
       "id": "w-sandiganbayan",
       "term": "Sandiganbayan",
       "tl": {
         "simple": {
-          "meaning": "Isang espesyal na korte sa Pilipinas na humahawak ng mga kaso ng mga opisyal ng gobyerno.",
-          "example": "Parang espesyal na korte para sa mga may mataas na posisyon sa gobyerno."
+          "meaning": "Ito ang korte na nag-iimbestiga at naglilitis sa mga kaso ng katiwalian.",
+          "example": "Parang espesyal na hukuman na nagpapatunay kung may nagkasala sa paggamit ng pondo ng gobyerno nang hindi tama."
         },
         "detailed": {
-          "meaning": "Ito ay isang espesyal na hukuman na nag-aasikaso ng mga kaso laban sa mga opisyal ng gobyerno. Dito din dinadala ang mga kaso ng katiwalian o paglabag sa tungkulin. Kapag may kaso, dito ito hahatulan.",
-          "example": "Parang espesyal na korte para sa mga may mataas na posisyon sa gobyerno, hindi ito pangkaraniwang korte."
+          "meaning": "Isang espesyal na korte sa Pilipinas na naghuhusga ng mga kaso tungkol sa korapsyon at pagbibinta ng posisyon. Ito ay may espesyal na kapangyarihan para sa mga ganitong uri ng kaso.",
+          "example": "Parang espesyal na hukuman na nakatuon lang sa mga kaso ng katiwalian."
         }
       },
       "en": {
         "simple": {
-          "meaning": "It is a specific court that deals with corruption cases.",
-          "example": "Like a special police station just for big corruption cases."
+          "meaning": "It’s a court that deals with serious crimes like bribery and stealing public money.",
+          "example": "Like a specialized department in a large company."
         },
         "detailed": {
-          "meaning": "This is a specific court in the Philippines that deals with cases involving government officials. It is where certain types of corruption or official misconduct cases are heard.",
-          "example": "Like a specialized police station just for high-ranking government workers."
+          "meaning": "It’s a court specifically set up to investigate and try people accused of taking bribes or misusing public funds. It continues to operate based on existing laws.",
+          "example": "Like a specialized department within a government agency, it focuses on a particular area of law."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "1987 Constitution, Art. XI, Sec. 4"
     },
     {
       "id": "w-commission-on-audit",
       "term": "Commission on Audit",
       "tl": {
         "simple": {
-          "meaning": "Isang ahensya ng gobyerno na nag-iimbestiga at nag-a-audit sa pera ng gobyerno.",
-          "example": "Parang mga taga-check ng pera ng gobyerno para siguraduhin na tama ang paggastos."
+          "meaning": "Sila ang nag-iinspeksyon kung tama ang paggastos ng pera ng gobyerno.",
+          "example": "Parang auditor na nagtitiyak na walang nasasayang na pondo."
         },
         "detailed": {
-          "meaning": "Ito ay isang ahensya ng gobyerno na nag-iinspeksyon at nag-a-audit sa pera ng bayan. Tinitiyak nila na tama at wasto ang paggasta ng pondo ng gobyerno. Kapag nabanggit ito, ibig sabihin ay may kaugnayan sa pagsusuri ng pananalapi.",
-          "example": "Parang 'financial detective' ng gobyerno na nagche-check kung saan napunta ang pera."
+          "meaning": "Ito ang grupo na nagbabantay kung tama ang paggastos ng pera ng bayan. Sila ang nag-i-investiga kung may maling ginawa sa pondo ng gobyerno.",
+          "example": "Parang mga auditor na nagtatrabaho para siguraduhing walang nasasayang na pera ng bansa."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A government group that checks the money spent by the government.",
-          "example": "Like an official accountant hired to check if the government spent money correctly."
+          "meaning": "It checks how the government spends money.",
+          "example": "Like a school inspector checking if students are learning correctly."
         },
         "detailed": {
-          "meaning": "This is a specific government group responsible for checking government finances. They make sure that public money is being used correctly and according to the rules.",
-          "example": "Like the school's accounting department, but for the government."
+          "meaning": "It checks how the government spends money and makes sure everything is done correctly and honestly. They look at all the money coming in and going out of the government’s accounts.",
+          "example": "Like a school inspector checking if students are following the rules, so the Commission on Audit checks if the government is following its financial rules."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "1987 Constitution, Art. IX, Sec. 2"
     },
     {
       "id": "w-senate-blue-ribbon-committee",
       "term": "Senate Blue Ribbon Committee",
       "tl": {
         "simple": {
-          "meaning": "Isang grupo sa Senado na inatasang imbestigahan ang isang partikular na bagay.",
-          "example": "Parang espesyal na grupo ng mga senador na pinagkatiwalaan para mag-imbestiga sa isang malaking problema."
+          "meaning": "Isang grupo ng mga senador na nag-iimbestiga sa mga problema tulad ng katiwalian.",
+          "example": "Parang isang grupo ng mga pulis na naghahanap ng ebidensya."
         },
         "detailed": {
-          "meaning": "Ito ay isang grupo ng mga senador na inatasang mag-imbestiga sa mga isyu na mahalaga sa publiko. Ginagamit nila ito para alamin ang katotohanan sa isang problema. Ang kanilang mga pagdinig ay madalas na nakikita ng tao.",
-          "example": "Parang isang espesyal na grupo ng mga imbestigador na binigyan ng kapangyarihan ng Senado para magtanong sa mga may alam."
+          "meaning": "Ito ay isang grupo sa Senado na naghahanap ng katotohanan tungkol sa mga katiwalian at iba pang problema. Sila ang nag-iimbestiga at nagtitipon ng ebidensya.",
+          "example": "Parang isang espesyal na grupo ng mga pulitiko na naghahanap ng katotohanan."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A specific group in the Senate that investigates things.",
-          "example": "Like a special task force set up to look into a particular problem."
+          "meaning": "It’s a group of senators looking into serious problems.",
+          "example": "Like a detective team focused on a specific case."
         },
         "detailed": {
-          "meaning": "This is a specific group within the Senate that is set up to look into certain problems. They gather information and hold hearings about what they are investigating.",
-          "example": "Like a special task force created just for one big problem."
+          "meaning": "It’s a group within the Senate that looks into serious accusations, especially when money is involved. They gather information and evidence to decide if there should be an impeachment trial.",
+          "example": "Like a detective team within a larger police force, it focuses on a specific area of investigation."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked"
     },
     {
       "id": "w-saln",
       "term": "SALN",
       "tl": {
         "simple": {
-          "meaning": "Ulat tungkol sa ari-arian, utang, at netong halaga ng isang tao.",
-          "example": "Parang taunang report ng yaman at utang ng isang opisyal."
+          "meaning": "Isang dokumento na kailangang punan ng mga opisyal ng gobyerno tungkol sa kanilang mga ari-arian, utang, at kabuuang halaga ng kanilang pinansyal.",
+          "example": "Parang talaan ng lahat ng pera, lupa, at ibang gamit na pagmamay-ari nila."
         },
         "detailed": {
-          "meaning": "Ito ay isang opisyal na ulat na nagpapakita ng ari-arian, utang, at netong halaga ng isang tao. Kailangan itong isumite ng mga opisyal para sa transparency. Ito ay bahagi ng proseso ng pagsubaybay sa mga opisyal.",
-          "example": "Parang taunang financial report ng isang tao, pero ito ay para sa mga opisyal ng gobyerno."
+          "meaning": "Isang dokumento na kailangang punan ng mga opisyal at empleyado ng gobyerno para ipakita kung ano ang kanilang pagmamay-ari, utang, at halaga ng kanilang ari-arian. Ginagawa ito para maging malinaw kung walang itinatago.",
+          "example": "Parang talaan ng lahat ng gamit at pera na mayroon sila, para malaman kung mayroon silang ipinanghawak na hindi tama."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A report detailing a person's money, debts, and wealth.",
-          "example": "Like a detailed financial report card for a public official."
+          "meaning": "It’s a form where a government official lists their money and debts.",
+          "example": "Like a detailed list of everything you own and owe."
         },
         "detailed": {
-          "meaning": "This is a required document where public officials list their money, debts, and overall wealth. It is used to ensure transparency and check for conflicts of interest. It is usually reviewed by oversight bodies.",
-          "example": "Like a detailed financial report card for a public official."
+          "meaning": "It’s a form that government officials must fill out and submit regularly to show where their money is and who they’re dealing with financially. It’s meant to promote transparency and prevent corruption.",
+          "example": "Like a detailed list of everything you own, including your bank accounts and investments."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "RA 6713 (Code of Conduct), Sec. 8"
     },
     {
       "id": "w-certified-true-copy",
       "term": "Certified true copy",
       "tl": {
         "simple": {
-          "meaning": "Isang kopya ng dokumento na sinigurado na eksaktong katulad ng orihinal.",
-          "example": "Parang photocopy na pinirmahan ng opisyal para mapatunayan na totoo talaga siya."
+          "meaning": "Kopya ng dokumento na napatunayang eksaktong pareho ng orihinal.",
+          "example": "Parang kopya ng diploma na sinabi ng eskwelahan na pareho ng orihinal."
         },
         "detailed": {
-          "meaning": "Ito ay kopya ng isang dokumento na sinigurado ng isang awtoridad na eksaktong katulad ng orihinal. Ginagamit ito para maging opisyal at mapagkakatiwalaan ang kopya sa korte o sa pagdinig. Kapag ito ay ipinakita, tinatanggap ito bilang tunay na dokumento.",
-          "example": "Parang photocopy na pinirmahan at tinatakan ng opisyal para masigurong hindi ito binago."
+          "meaning": "Kopya ng dokumento na napatunayang eksaktong pareho sa orihinal. Ginagamit ito para masigurong totoo ang ebidensya na ipapakita.",
+          "example": "Parang kopya ng diploma na may sertipikasyon na tunay ito."
         }
       },
       "en": {
         "simple": {
-          "meaning": "A copy that is officially proven to be the same as the original.",
-          "example": "Like a photocopy that has a stamp saying it's a perfect match to the original."
+          "meaning": "It’s a confirmed copy of something.",
+          "example": "Like a photocopy that’s been stamped to say it’s the same as the original."
         },
         "detailed": {
-          "meaning": "This means the copy is guaranteed to be exactly the same as the original document. It is used to prove the document's authenticity in legal settings. Usually, someone authorized signs it to confirm this.",
-          "example": "Like a photocopy that has a stamp from the original office saying, 'This is a perfect match.'"
+          "meaning": "It’s a way to prove that a document is the real thing, and it’s been checked to make sure it matches the original perfectly. It’s often used to show that a document exists and contains the information it claims.",
+          "example": "Like a photocopy that’s been stamped and signed to say it’s a perfect copy."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked"
     },
     {
       "id": "w-contempt",
       "term": "Contempt",
       "tl": {
         "simple": {
-          "meaning": "Pagtanggi o pagsuway sa utos ng korte o ng lehislatura.",
-          "example": "Parang paglabag sa patakaran o pagiging bastos sa harap ng mga opisyal."
+          "meaning": "Parang pagsuway sa utos ng hukom o ng isang opisyal, at may posibleng parusa.",
+          "example": "Parang pagtatalo sa isang guro sa harap ng klase – hindi ito katanggap-tanggap."
         },
         "detailed": {
-          "meaning": "Ito ay paglabag sa awtoridad ng korte o ng mga nasa pagdinig. Kapag ginawa ito, maaaring maparusahan ang tao. Ang pagpapakita ng pagsuway sa proseso ay itinuturing na paglabag.",
-          "example": "Parang pag-iingay nang malakas habang nagsasalita ang hukom, na nagpapakita ng hindi paggalang."
+          "meaning": "Kapag hindi sumunod sa isang utos o desisyon, parurusahan ka. Ito ay para matiyak na sinusunod ang batas at ang proseso ng paglilitis.",
+          "example": "Parang pagsuway sa utos ng iyong magulang, kaya may parusa ka."
         }
       },
       "en": {
         "simple": {
-          "meaning": "Disobeying or disrespecting the authority of the hearing.",
-          "example": "Like openly ignoring the rules of a game."
+          "meaning": "Breaking a rule or order of a court or authority.",
+          "example": "Like refusing to follow your parents’ instructions."
         },
         "detailed": {
-          "meaning": "It means showing open disrespect to the court or the proceedings. If someone is found in contempt, they can face penalties. This is usually for disobeying a direct order.",
-          "example": "Like openly ignoring the rules of a game when the referee is watching."
+          "meaning": "It’s about not following what a court or a Senate committee has asked you to do, and there can be consequences for that. The Senate can use it to make sure things go smoothly and that people cooperate.",
+          "example": "Like when you don’t follow your parents’ rules, and they might give you a time-out."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "Senate Impeachment Rules, Rule V"
     },
     {
       "id": "w-self-incrimination",
       "term": "Self-incrimination",
       "tl": {
         "simple": {
-          "meaning": "Ang pagbibigay ng impormasyon na maaaring magpabigat sa sarili mo sa kaso.",
-          "example": "Parang kapag ikaw mismo ang nagkuwento ng mga bagay na nagpapatunay na ikaw ang may kasalanan."
+          "meaning": "Pag-amin ng sariling kasalanan, kadalasan bilang depensa laban sa pag-uusig.",
+          "example": "Parang sinasabi mong ‘Ako po ang gumawa nito’ kahit alam mong ikaw ang suspek."
         },
         "detailed": {
-          "meaning": "Ito ay ang pagbibigay ng impormasyon o pag-amin na maaaring gamitin laban sa sarili mo sa isang kaso. May karapatan ang isang tao na huwag magsalita kung takot siyang maparusahan. Kapag ginamit ito, ang tao ay nagpapatunay ng sarili niyang pagiging may sala.",
-          "example": "Parang pag-amin sa sarili sa harap ng pulis, kahit hindi ka pa sigurado sa lahat."
+          "meaning": "Kapag tumanggi ang isang saksi na sumagot sa tanong dahil baka maparusahan siya sa kanyang sinasabi. Ito ay dahil ang kanyang sinagot ay maaaring gamitin laban sa kanya. Karaniwan itong ginagamit para protektahan ang sarili mula sa kasalanan.",
+          "example": "Parang pag-iwas ng mata at pagtatanong kung ‘okay lang’ bago tumanggi sumagot sa isang tanong na baka makasama sa’yo."
         }
       },
       "en": {
         "simple": {
-          "meaning": "Saying something that could make you look guilty.",
-          "example": "Like accidentally admitting you were there when something happened."
+          "meaning": "The right to remain silent and not answer questions that could harm you.",
+          "example": "Like refusing to answer a question you don’t want to answer."
         },
         "detailed": {
-          "meaning": "This means saying or presenting something that could make you look guilty of something. People have the right not to say anything that could hurt their case. This right is usually protected by law.",
-          "example": "Like if you tell the police something that proves you were at the scene of a crime."
+          "meaning": "This protects someone from being forced to say things that could be used to accuse them of a crime. It’s about protecting people from being wrongly charged.",
+          "example": "Like refusing to answer a question that could get you in trouble, so you don’t have to say anything that hurts you."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked"
     },
     {
       "id": "w-probable-cause",
       "term": "Probable cause",
       "tl": {
         "simple": {
-          "meaning": "May sapat na dahilan para paniwalaan na may nangyaring krimen o may nagkasala.",
-          "example": "Parang may matibay na ebidensya na nagpapakita na may nagawa talaga."
+          "meaning": "May makatwirang dahilan o paniniwala na may nagawang krimen, ginagawa pa, o gagawin pa.",
+          "example": "Parang pagdududa na may mali, base sa mga ebidensya."
         },
         "detailed": {
-          "meaning": "Ito ay batayan o sapat na dahilan para paniwalaan na may nangyaring krimen o may nagkasala. Hindi ito kasing-sigurado ng pagka-sure, pero sapat na para magpatuloy sa imbestigasyon. Ito ay madalas na kinakailangan bago magsimula ang pormal na kaso.",
-          "example": "Parang may nakita kang malinaw na senyales na may mali, kaya nagpapasya kang mag-imbestiga pa."
+          "meaning": "Ibig sabihin, may sapat na dahilan para paniwalaan na may nagawang krimen, o nagaganap pa, o malamang mangyari, kaya’t katanggap-tanggap ang gagawing aksyon tulad ng pag-aresto o paghahanap. Kadalasan, ito ang batayan para magbigay ng utos o magpataw ng parusa.",
+          "example": "Parang may malakas na hinala na may nagawa, kaya’t may basehan para kumilos."
         }
       },
       "en": {
         "simple": {
-          "meaning": "There is enough reason to believe something is true.",
-          "example": "Like having enough evidence to think a car accident happened because of speeding."
+          "meaning": "A good reason to believe something is true.",
+          "example": "Like having a strong feeling that someone is telling the truth."
         },
         "detailed": {
-          "meaning": "It means there is enough evidence to make a reasonable belief that something happened or that someone did something. This standard is often used before an arrest or a formal proceeding. It is a level of certainty, not absolute proof.",
-          "example": "Like having enough strong clues to make a good guess about what happened, but not having all the pieces of the puzzle."
+          "meaning": "It’s a level of certainty that a crime has happened or is about to happen, used to justify actions like searches or arrests. It’s not a guarantee, just a strong indication.",
+          "example": "Like when you think it’s likely to rain before you grab an umbrella."
         }
       },
-      "source": "AI draft (gemma4:e4b), not checked"
+      "source": "AI draft (gemma3:4b) from the law library, not checked",
+      "basis": "1987 Constitution, Art. III, Sec. 2"
     }
   ]
 }

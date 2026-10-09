@@ -6,7 +6,8 @@ import { z } from 'zod';
  * Every JSON message on the WebSocket between the UI and the local backend
  * (ws://localhost:8765) must match one of the schemas below. Audio is the only
  * thing sent outside this contract: raw binary frames from the UI after a
- * `session.start`, encoded as the `mimeType` it announced.
+ * `session.start`, encoded as the `mimeType` it announced; and, in the other
+ * direction, one binary frame from the backend right after each `tts.audio`.
  *
  * Times (`t`) are seconds since the session started.
  */
@@ -171,6 +172,30 @@ export const ErrorMessageSchema = z.object({
   requestId: id.optional(),
 });
 
+/**
+ * Read-aloud audio for a `tts.request`, via Soniox (cloud). This JSON header is
+ * immediately followed by one binary frame carrying the audio itself — the one
+ * other exception to "audio is binary frames", alongside `ask.audio`, but in the
+ * opposite direction: this is the only server -> client binary frame.
+ */
+export const TtsAudioMessageSchema = z.object({
+  v,
+  type: z.literal('tts.audio'),
+  requestId: id,
+  /** Encoding of the binary frame that follows, e.g. "audio/mpeg". */
+  mimeType: z.string().min(1),
+});
+
+/**
+ * Cloud read-aloud isn't available right now (offline, not configured, or Soniox
+ * failed). The UI falls back to its on-device voice; this is never shown to the user.
+ */
+export const TtsFailedMessageSchema = z.object({
+  v,
+  type: z.literal('tts.failed'),
+  requestId: id,
+});
+
 export const ServerMessageSchema = z.discriminatedUnion('type', [
   StatusMessageSchema,
   TranscriptSegmentMessageSchema,
@@ -181,6 +206,8 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
   SummaryResultMessageSchema,
   AnswerMessageSchema,
   ErrorMessageSchema,
+  TtsAudioMessageSchema,
+  TtsFailedMessageSchema,
 ]);
 export type ServerMessage = z.infer<typeof ServerMessageSchema>;
 
@@ -252,6 +279,19 @@ export const CardSimplifyMessageSchema = z.object({
   cardId: id,
 });
 
+/**
+ * Read aloud, via Soniox (cloud). Answered by `tts.audio` (a JSON header immediately
+ * followed by one binary frame with the audio) or `tts.failed`. `text` is a card's
+ * term + meaning + example, already in `language`.
+ */
+export const TtsRequestMessageSchema = z.object({
+  v,
+  type: z.literal('tts.request'),
+  requestId: id,
+  text: z.string().min(1).max(1000),
+  language: LanguageSchema,
+});
+
 export const ClientMessageSchema = z.discriminatedUnion('type', [
   SessionStartMessageSchema,
   SessionStopMessageSchema,
@@ -261,6 +301,7 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
   AskMessageSchema,
   AskAudioMessageSchema,
   CardSimplifyMessageSchema,
+  TtsRequestMessageSchema,
 ]);
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
 
