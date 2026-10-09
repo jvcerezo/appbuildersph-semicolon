@@ -45,7 +45,7 @@ UI                                    Backend
 | `card.failed` | The explanation promised by a `card.pending` won't come | `id` (the pending card's id) |
 | `what_said.result` | Reply to `what_said.request` | `requestId`, `windowSec`, `points[]`, optional `sources[]` |
 | `summary.result` | Reply to `summary.request` | `requestId`, `overview`, `events[]` {`t`, `title`, `detail`, optional `sources[]`}, optional `openIssue` |
-| `answer` | Reply to `ask` | `requestId`, `question`, `text`, optional `sources[]` |
+| `answer` | Reply to `ask` or `ask.audio` | `requestId`, `question` (for `ask.audio`: the words the backend heard), `text`, optional `sources[]` |
 | `error` | Something failed | `code`: `bad_request` \| `unsupported_audio` \| `model_unavailable` \| `internal`; `message`; optional `requestId` |
 
 Notes:
@@ -67,6 +67,7 @@ Notes:
 | `what_said.request` | "What did they say?" button | `requestId`, `windowSec` (120) |
 | `summary.request` | "Summary" button, and once more right after `session.stop` when the user finishes a session | `requestId` |
 | `ask` | The user asked a question | `requestId`, `question` (≤ 500 chars, Tagalog or English) |
+| `ask.audio` | The user asked a question out loud (push to talk) | `requestId`, `mimeType`, `audio` (one clip of up to ~30 s, base64). Answered with `answer`, or `error` `unsupported_audio` if no question was heard |
 | `card.simplify` | "Simpler" on a card | `requestId`, `cardId`; reply with `card` using the same id and the `requestId` |
 
 ## Changing the contract
