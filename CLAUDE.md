@@ -1,11 +1,12 @@
 # Linaw — guide for Claude Code
 
-Linaw is an **overlay that floats over the hearing a user is watching** and explains legal jargon in simple Tagalog as it is said. Two halves meet at one WebSocket:
+Linaw is a **standalone desktop app**. When idle it is a library of past sessions (summary, transcript, terms, notes). While listening it becomes an **overlay that floats over the hearing** and explains legal jargon in simple Tagalog as it is said. Two halves meet at one WebSocket:
 
-- **UI** (`apps/web`) — this repo's main work. Vite + React + TypeScript with two layouts over one hook (`state/useLinaw.ts`):
-  - **Overlay** (`src/overlay/`) — the primary product: a narrow, always-on-top panel. Used in the desktop shell, or in a browser at `?overlay`.
-  - **Full window** (`screens/`) — the original design's layout, for a normal browser tab.
-- **Desktop shell** (`apps/desktop`) — Electron. A frameless always-on-top window that loads the UI, captures system audio (Windows loopback, no picker), and has ghost mode (see-through + click-through, Ctrl+Shift+L).
+- **UI** (`apps/web`) — this repo's main work. Vite + React + TypeScript; all behavior lives in one hook (`state/useLinaw.ts`):
+  - **Library** (`src/library/`) — the app when nothing is live: start a session, past sessions, notes. Sessions are stored locally in IndexedDB (`lib/history.ts`) and never sent anywhere.
+  - **Overlay** (`src/overlay/`) — the live layout: a narrow, always-on-top panel. Used in the desktop shell, or in a browser at `?overlay`.
+  - **Full window** (`screens/LiveScreen`) — the original design's live layout, for a normal browser tab.
+- **Desktop shell** (`apps/desktop`) — Electron. One frameless window with two modes the UI switches: `app` (normal window, library) and `overlay` (always on top while listening). Captures system audio (Windows loopback, no picker) and has ghost mode (see-through + click-through, Ctrl+Shift+L) in overlay mode.
 - **Backend** (`backend/`) — owned by the backend team (speech-to-text + Ollama, all local), in a language of their choice. Integration guide: `docs/backend.md`. `pnpm conformance` checks any running backend against the contract.
 - **Contract** (`packages/contract`) — zod schemas for every message between them. The single source of truth. A generated JSON Schema (`schema/`) serves non-TypeScript backends.
 
@@ -37,8 +38,10 @@ Run `pnpm check` before committing.
 
 ```
 apps/web/src/
-  App.tsx              picks the overlay or full-window layout
+  App.tsx              library when idle; overlay or full-window layout while live
   state/useLinaw.ts    all behavior: socket, audio capture, settings, actions
+  library/             LibraryApp + library.css (sidebar, home, session pages)
+  lib/history.ts       past sessions + notes in IndexedDB
   overlay/             OverlayApp + overlay.css (compact layout)
   lib/desktop.ts       typed bridge to the Electron shell (window.linawDesktop)
   lib/socket.ts        the only backend connection (validates with the contract)

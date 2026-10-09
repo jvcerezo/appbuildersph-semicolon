@@ -7,12 +7,15 @@ description: Work on Linaw's desktop overlay — the Electron shell in apps/desk
 
 ## How it works
 
-- `apps/desktop/src/main.cjs` opens a **frameless, always-on-top** window (level `screen-saver`, so it stays above full-screen video). The window is 420 px wide and sits in the top-right corner. It loads:
-  - dev: `http://127.0.0.1:5173/?overlay`, retrying until Vite is up (override with `LINAW_URL`)
-  - `--prod`: `apps/web/dist/index.html?overlay` (Vite builds with `base: './'` for this)
+- `apps/desktop/src/main.cjs` opens one **frameless** window with two modes, switched by the UI through `desktop.setMode`:
+  - `app`: a normal centered window (min 720×520) for the library.
+  - `overlay`: 420 px wide in the top-right corner, always on top (level `screen-saver`, so it stays above full-screen video).
+  Each mode remembers where the user last put it. It loads:
+  - dev: `http://127.0.0.1:5173/`, retrying until Vite is up (override with `LINAW_URL`)
+  - `--prod`: `apps/web/dist/index.html` (Vite builds with `base: './'` for this)
 - **Audio**: the UI calls `getDisplayMedia()` as it would in a browser. `setDisplayMediaRequestHandler` answers with the primary screen plus `audio: 'loopback'`, which is all system audio, with no picker. The UI drops the video track. Loopback works on **Windows** only; elsewhere the UI shows `NoAudioError`.
 - **Ghost mode**: `setIgnoreMouseEvents(true, { forward: true })` plus `setOpacity(0.55)`. Because the window then ignores clicks, the **global shortcut Ctrl+Shift+L** is the only way back. Never remove it.
-- **Bridge**: `preload.cjs` exposes `window.linawDesktop` (`setGhost`, `onGhostChange`, `minimize`, `close`, `platform`). Its type lives in `apps/web/src/lib/desktop.ts`. Keep those two files in sync, and keep the API small. Never expose `ipcRenderer`, Node or the file system to the page.
+- **Bridge**: `preload.cjs` exposes `window.linawDesktop` (`setMode`, `setGhost`, `onGhostChange`, `minimize`, `toggleMaximize`, `close`, `platform`). Its type lives in `apps/web/src/lib/desktop.ts`. Keep those two files in sync, and keep the API small. Never expose `ipcRenderer`, Node or the file system to the page.
 - **Lockdown**: `contextIsolation`, `sandbox`, no `nodeIntegration`, navigation blocked, popups denied, and only `media` and `display-capture` permissions allowed. The no-network rule applies here too.
 
 ## Adding a shell feature
@@ -33,7 +36,7 @@ If `electron` fails with "Electron failed to install correctly", its binary down
 
 ## Verifying visually (do this after UI changes)
 
-`snapshot.cjs` saves a PNG of the overlay and quits. Run it with Vite (`pnpm dev`) and a backend running. For UI work, use `pnpm demo --speed 3` so cards, translations and sources arrive quickly. Without a backend you get the start screen with the "Can’t reach Linaw’s helper" banner. Give the first click a `LINAW_SNAPSHOT_STEP` of 3000 or more so the socket has connected (the button is disabled until then):
+`snapshot.cjs` drives the app through steps, saves PNGs and quits. Steps (separated by `>>`): button text or aria-label to click, `wait:<ms>`, `fill:<placeholder>=<text>`, `shot:<file.png>`. Use a scratch `--user-data-dir` so test sessions don't land in your real library (and reuse it to test that sessions persist). Run it with Vite (`pnpm dev`) and a backend running. For UI work, use `pnpm demo --speed 3` so cards, translations and sources arrive quickly. Without a backend you get the start screen with the "Can’t reach Linaw’s helper" banner. Give the first click a `LINAW_SNAPSHOT_STEP` of 3000 or more so the socket has connected (the button is disabled until then):
 
 ```sh
 cd apps/desktop
