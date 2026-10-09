@@ -1,8 +1,11 @@
 # Linaw — guide for Claude Code
 
-Linaw listens to a hearing or trial (a shared browser tab or an uploaded file) and explains legal jargon in simple Tagalog as it is said. Two halves meet at one WebSocket:
+Linaw is an **overlay that floats over the hearing a user is watching** and explains legal jargon in simple Tagalog as it is said. Two halves meet at one WebSocket:
 
-- **UI** (`apps/web`) — this repo's main work. Vite + React + TypeScript, runs in Chrome/Edge at `http://localhost:5173`.
+- **UI** (`apps/web`) — this repo's main work. Vite + React + TypeScript with two layouts over one hook (`state/useLinaw.ts`):
+  - **Overlay** (`src/overlay/`) — the primary product: a narrow, always-on-top panel. Used in the desktop shell, or in a browser at `?overlay`.
+  - **Full window** (`screens/`) — the original design's layout, for a normal browser tab.
+- **Desktop shell** (`apps/desktop`) — Electron. A frameless always-on-top window that loads the UI, captures system audio (Windows loopback, no picker), and has ghost mode (see-through + click-through, Ctrl+Shift+L).
 - **Backend** — owned by a teammate (speech-to-text + Ollama, all local). Not in this repo yet. Until it exists, `tools/mock-server` plays its part.
 - **Contract** (`packages/contract`) — zod schemas for every message between them. The single source of truth.
 
@@ -17,7 +20,8 @@ Linaw listens to a hearing or trial (a shared browser tab or an uploaded file) a
 
 ```sh
 pnpm install
-pnpm dev:mock     # UI + mock backend together (most common)
+pnpm dev:overlay  # overlay window + UI + mock backend (most common)
+pnpm dev:mock     # UI + mock backend in the browser
 pnpm dev          # UI only
 pnpm mock         # mock backend only; add flags after: pnpm mock --speed 4 --offline
 pnpm typecheck    # all packages
@@ -32,15 +36,22 @@ Run `pnpm check` before committing.
 
 ```
 apps/web/src/
-  App.tsx              wiring: socket, audio capture, settings, screens
+  App.tsx              picks the overlay or full-window layout
+  state/useLinaw.ts    all behavior: socket, audio capture, settings, actions
+  overlay/             OverlayApp + overlay.css (compact layout)
+  lib/desktop.ts       typed bridge to the Electron shell (window.linawDesktop)
   lib/socket.ts        the only backend connection (validates with the contract)
-  lib/audio.ts         tab capture (getDisplayMedia), file capture, MediaRecorder chunks
+  lib/audio.ts         tab/system capture (getDisplayMedia), file capture, MediaRecorder chunks
   lib/settings.ts      user settings + localStorage
   lib/speech.ts        read-aloud with on-device voices
   state/session.ts     reducer: server messages -> UI state
   screens/             StartScreen (+ ShareHelper), LiveScreen
   components/          TopBar, JargonCard, TranscriptPanel, ActionBar, HelpPanel, SettingsDialog
   styles.css           design tokens (light + high contrast) and all styles
+apps/desktop/src/
+  main.cjs             window, system-audio handler, ghost mode, lockdown
+  preload.cjs          exposes window.linawDesktop
+  snapshot.cjs         dev aid: screenshot the overlay (see linaw-overlay skill)
 packages/contract/
   src/index.ts         schemas, types, parse helpers
   examples/            one JSON example per message type (validated)
@@ -61,5 +72,6 @@ docs/contract.md       human-readable contract for the backend teammate
 
 - `linaw-contract` — changing or adding messages
 - `linaw-ui` — design system, accessibility and states
+- `linaw-overlay` — the Electron shell, overlay layout, ghost mode, and screenshot checks
 - `linaw-mock-scenarios` — writing scripted hearings for the mock
 - `commit-conventions` — commit message format

@@ -51,6 +51,19 @@ Waiting (listening animation plus "Play the hearing in your shared tab"), listen
 
 `lucide-react`, with names matching the design (clock, headphones, wifi-off, audio-lines, volume-x, settings, shield-check, cpu, volume-2, text, bookmark, circle-help, file-text, message-circle-question). Size 18–24, inheriting `currentColor`.
 
+## Overlay layout (`src/overlay/`)
+
+The overlay is the main way people use Linaw: a ~420px-wide panel beside the video. Design it narrow-first.
+
+- **Title bar** (drag handle in Electron): brand plus icon buttons (stop, ghost, settings, minimize, close). Nothing else fits at 420px, so status lives in the caption strip.
+- **Caption strip**: speaker, status pill and timer, then the latest transcript line (3-line clamp) with term underlines.
+- **Cards**: the newest card in full, then "Earlier terms" as one-line rows that expand in place. Pending terms show as a dashed "Explaining…" row.
+- **Action bar**: three equal buttons, icon above label.
+- **Help**: the sheet replaces the cards and caption until it is closed.
+- **Ghost mode** (`.overlay--ghost`): the shell makes the window 55% opaque and click-through. Hide the controls there, because nothing can be clicked.
+- New cards arrive at the top, so scroll containers need `overflow-anchor: none`. Otherwise the browser scrolls the newest card out of view.
+- Check changes at 420px wide. Use the screenshot aid in the `linaw-overlay` skill rather than guessing.
+
 ## Structure
 
-Components in `src/components` are presentational: props in, callbacks out. Server-driven state lives in `src/state/session.ts`, and side effects (socket, audio, settings) live in `App.tsx`. Responsive breakpoints are 64rem (transcript moves below the cards, as in the tablet design) and 40rem (phone).
+Components in `src/components` are presentational: props in, callbacks out. Server-driven state lives in `src/state/session.ts`, and side effects (socket, audio, settings, actions) live in `src/state/useLinaw.ts`. Both layouts reuse the same components. Responsive breakpoints are 64rem (transcript moves below the cards, as in the tablet design) and 40rem (phone).
