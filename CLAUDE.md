@@ -26,8 +26,10 @@ pnpm dev:overlay  # overlay window + UI (start the backend separately)
 pnpm demo         # demo backend only: --speed 3, --offline
 pnpm dev          # UI only, in the browser
 pnpm conformance  # check a running backend: add --audio clip.webm --fast to test speech too
+pnpm backend      # the real backend (needs whisper-server and Ollama, see backend/README.md)
+pnpm dev:overlay:backend  # overlay window + UI + real backend
 pnpm typecheck    # all packages
-pnpm validate     # contract examples + JSON Schema up to date
+pnpm validate     # contract examples, JSON Schema up to date, backend glossary
 pnpm build        # production build of the UI
 pnpm check        # typecheck + validate + build (what CI runs)
 ```
