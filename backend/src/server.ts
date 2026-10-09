@@ -1,4 +1,4 @@
-/** Linaw backend on ws://localhost:8765: the contract with real whisper.cpp and Ollama. Settings: .env.example. */
+/** Linaw backend on ws://localhost:8765: the contract with real speech-to-text (stt/ service or whisper.cpp) and Ollama. Settings: .env.example. */
 import { createServer, type Server } from 'node:http';
 import { WebSocketServer, type RawData, type WebSocket } from 'ws';
 import { parseClientMessage } from '@linaw/contract';

@@ -8,7 +8,26 @@ export interface Check {
 }
 
 export async function checkHealth(config: Config): Promise<Check[]> {
-  return Promise.all([checkFfmpeg(config), checkWhisper(config), checkOllama(config)]);
+  const speech = config.stt === 'service' ? checkSpeechService(config) : checkWhisper(config);
+  return Promise.all([checkFfmpeg(config), speech, checkOllama(config)]);
+}
+
+async function checkSpeechService(config: Config): Promise<Check> {
+  const name = `speech service (${config.sttUrl})`;
+  try {
+    const res = await fetch(`${config.sttUrl}/api/config`, { signal: AbortSignal.timeout(3000) });
+    const body = (await res.json()) as { soniox?: { available?: boolean }; local?: { available?: boolean; engine?: string; model?: string } };
+    const soniox = body.soniox?.available === true;
+    const local = body.local?.available === true;
+    const engines = `Soniox ${soniox ? 'on' : 'off'}, local ${local ? `${body.local?.engine ?? ''} ${body.local?.model ?? ''}`.trim() : 'not loaded'}`;
+    return {
+      name: `${name}: ${engines}`,
+      ok: soniox || local,
+      hint: 'has no engine. Set SONIOX_API_KEY in stt/.env or run "uv run scripts/download_models.py" in stt/.',
+    };
+  } catch {
+    return { name, ok: false, hint: 'not answering. Start it: pnpm stt' };
+  }
 }
 
 export function printHealth(checks: Check[]): void {
