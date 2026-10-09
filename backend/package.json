@@ -8,7 +8,7 @@
     "start": "tsx src/server.ts",
     "dev": "tsx watch src/server.ts",
     "replay": "tsx scripts/replay.ts",
-    "validate": "tsx scripts/validate-glossary.ts",
+    "validate": "tsx scripts/validate-glossary.ts && tsx scripts/check-finder.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
