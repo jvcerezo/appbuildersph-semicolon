@@ -25,7 +25,7 @@ description: Work on Linaw's desktop overlay — the Electron shell in apps/desk
 ## Running
 
 ```sh
-pnpm dev:overlay                 # Vite + mock + overlay window
+pnpm dev:overlay                 # Vite + overlay window (start the backend separately)
 pnpm --filter @linaw/desktop start   # load the production build (run `pnpm build` first)
 ```
 
@@ -33,14 +33,14 @@ If `electron` fails with "Electron failed to install correctly", its binary down
 
 ## Verifying visually (do this after UI changes)
 
-`snapshot.cjs` saves a PNG of the overlay and quits. Run it with Vite and the mock already running (`pnpm dev:mock`):
+`snapshot.cjs` saves a PNG of the overlay and quits. Run it with Vite (`pnpm dev`) running. To see cards and captions, a backend must be running on :8765 too; without one you get the start screen with the "Can’t reach Linaw’s helper" banner:
 
 ```sh
 cd apps/desktop
 LINAW_SNAPSHOT=/tmp/ov.png LINAW_SNAPSHOT_DELAY=2500 npx electron .
 # Drive it: click buttons by their text, separated by >>
 LINAW_SNAPSHOT=/tmp/ov.png LINAW_SNAPSHOT_CLICK="Start listening>>Summary" LINAW_SNAPSHOT_STEP=2000 npx electron .
-# Mid-session at normal mock speed, ~35 s gives several cards
+# Mid-session: wait long enough for the backend to send a few cards
 LINAW_SNAPSHOT=/tmp/ov.png LINAW_SNAPSHOT_CLICK="Start listening" LINAW_SNAPSHOT_DELAY=36000 npx electron .
 ```
 

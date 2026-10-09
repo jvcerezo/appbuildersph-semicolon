@@ -6,8 +6,8 @@ Linaw is an **overlay that floats over the hearing a user is watching** and expl
   - **Overlay** (`src/overlay/`) — the primary product: a narrow, always-on-top panel. Used in the desktop shell, or in a browser at `?overlay`.
   - **Full window** (`screens/`) — the original design's layout, for a normal browser tab.
 - **Desktop shell** (`apps/desktop`) — Electron. A frameless always-on-top window that loads the UI, captures system audio (Windows loopback, no picker), and has ghost mode (see-through + click-through, Ctrl+Shift+L).
-- **Backend** — owned by a teammate (speech-to-text + Ollama, all local). Not in this repo yet. Until it exists, `tools/mock-server` plays its part.
-- **Contract** (`packages/contract`) — zod schemas for every message between them. The single source of truth.
+- **Backend** (`backend/`) — owned by the backend team (speech-to-text + Ollama, all local), in a language of their choice. Integration guide: `docs/backend.md`. `pnpm conformance` checks any running backend against the contract.
+- **Contract** (`packages/contract`) — zod schemas for every message between them. The single source of truth. A generated JSON Schema (`schema/`) serves non-TypeScript backends.
 
 ## Hard rules
 
@@ -20,12 +20,11 @@ Linaw is an **overlay that floats over the hearing a user is watching** and expl
 
 ```sh
 pnpm install
-pnpm dev:overlay  # overlay window + UI + mock backend (most common)
-pnpm dev:mock     # UI + mock backend in the browser
-pnpm dev          # UI only
-pnpm mock         # mock backend only; add flags after: pnpm mock --speed 4 --offline
+pnpm dev:overlay  # overlay window + UI (start the backend separately)
+pnpm dev          # UI only, in the browser
+pnpm conformance  # check a running backend: add --audio clip.webm --fast to test speech too
 pnpm typecheck    # all packages
-pnpm validate     # contract examples + mock scenarios against the schemas
+pnpm validate     # contract examples + JSON Schema up to date
 pnpm build        # production build of the UI
 pnpm check        # typecheck + validate + build (what CI runs)
 ```
@@ -55,10 +54,11 @@ apps/desktop/src/
 packages/contract/
   src/index.ts         schemas, types, parse helpers
   examples/            one JSON example per message type (validated)
-tools/mock-server/
-  src/server.ts        mock backend
-  scenarios/*.json     scripted hearings
-docs/contract.md       human-readable contract for the backend teammate
+  schema/              generated JSON Schema (pnpm --filter @linaw/contract schema)
+tools/conformance/     backend conformance checker
+backend/               the backend team’s code (any language)
+docs/contract.md       human-readable contract
+docs/backend.md        how to wire a backend in
 ```
 
 ## Conventions
@@ -73,5 +73,5 @@ docs/contract.md       human-readable contract for the backend teammate
 - `linaw-contract` — changing or adding messages
 - `linaw-ui` — design system, accessibility and states
 - `linaw-overlay` — the Electron shell, overlay layout, ghost mode, and screenshot checks
-- `linaw-mock-scenarios` — writing scripted hearings for the mock
+- `linaw-backend` — building or debugging the backend against the contract
 - `commit-conventions` — commit message format

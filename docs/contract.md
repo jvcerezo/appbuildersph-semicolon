@@ -1,6 +1,6 @@
 # Linaw contract v1
 
-How the UI and the local backend talk. The zod schemas in [`packages/contract/src/index.ts`](../packages/contract/src/index.ts) are the source of truth. This page explains them, and [`packages/contract/examples/`](../packages/contract/examples) has a valid JSON example of every message.
+How the UI and the local backend talk. The zod schemas in [`packages/contract/src/index.ts`](../packages/contract/src/index.ts) are the source of truth. This page explains them, and [`packages/contract/examples/`](../packages/contract/examples) has a valid JSON example of every message. Backends in other languages can use the generated [JSON Schema](../packages/contract/schema/linaw-contract.schema.json). To build one, start with [backend.md](backend.md).
 
 ## Connection
 
@@ -65,4 +65,4 @@ Notes:
 
 ## Changing the contract
 
-Follow the `linaw-contract` skill: edit the schema, update the examples and mock, run `pnpm check`, and tell the backend owner. For a breaking change, bump `CONTRACT_VERSION`.
+Follow the `linaw-contract` skill: edit the schema, regenerate the JSON Schema, update the examples, run `pnpm check`, and tell the backend owner. For a breaking change, bump `CONTRACT_VERSION`.

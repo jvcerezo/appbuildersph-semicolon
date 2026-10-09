@@ -30,7 +30,7 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Validate contract examples and mock scenarios
+      - name: Validate contract examples and JSON Schema
         run: pnpm validate
 
       - name: Build UI

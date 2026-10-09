@@ -5,7 +5,7 @@
  * UI's getDisplayMedia() call with all system audio, so no share picker is
  * needed.
  *
- *   pnpm dev:overlay        UI dev server + mock backend + this window
+ *   pnpm dev:overlay        UI dev server + this window (backend runs separately)
  *   electron . --prod       load apps/web/dist instead of the dev server
  */
 const path = require('node:path');

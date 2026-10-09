@@ -23,10 +23,11 @@ The contract in `packages/contract/src/index.ts` is the only agreement between t
    - Times are `t` in seconds since session start.
    - Add a JSDoc comment to any field whose meaning isn't obvious.
 2. **Example** — add or update `packages/contract/examples/{server|client}/<type>.json`. The filename must equal the `type`. Use realistic Tagalog content, not "lorem". `pnpm validate` fails if any type lacks an example.
-3. **Mock** — make `tools/mock-server/src/server.ts` send or handle the new message. If it carries content, add it to the scenario format in `tools/mock-server/src/scenario.ts` and to `scenarios/*.json` (see the `linaw-mock-scenarios` skill).
+3. **JSON Schema** — run `pnpm --filter @linaw/contract schema` to regenerate `schema/linaw-contract.schema.json`, the file backends in other languages build on. `pnpm validate` fails in CI if you forget.
+   **Conformance** — if the backend must send or answer the new message, add a check to `tools/conformance/src/conformance.ts`.
 4. **UI** — handle it in `apps/web/src/state/session.ts` (`applyServerMessage`). TypeScript's exhaustive `switch` shows you where. Send client messages only through `BackendSocket.send` in `lib/socket.ts`.
 5. **Docs** — update the tables in `docs/contract.md`.
-6. **Verify** — run `pnpm check`. For behavior, run `pnpm dev:mock` and exercise the feature.
+6. **Verify** — run `pnpm check`. For behavior, run the UI against a backend (`pnpm dev:overlay`) and `pnpm conformance`.
 7. **Commit** as `feat(contract): …`, or `feat(contract)!: …` with a `BREAKING CHANGE:` footer. Keep contract changes in their own commit, separate from the UI work that uses them.
 
 ## Rules

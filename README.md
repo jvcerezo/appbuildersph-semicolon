@@ -20,7 +20,7 @@ pnpm install
 pnpm dev:overlay
 ```
 
-The Linaw overlay opens in the top-right corner of your screen. Play any video with sound and click **Start listening**. The mock backend then plays a scripted impeachment hearing, so you can see cards, captions and the help panels working.
+The Linaw overlay opens in the top-right corner of your screen. Start the backend (see [`backend/`](backend/README.md)), play the hearing, and click **Start listening**. Until the backend is running, the overlay shows “Can’t reach Linaw’s helper” and keeps retrying.
 
 | Shortcut | Does |
 |---|---|
@@ -31,16 +31,18 @@ Capturing system audio works on **Windows**. On other systems, use the browser v
 ### Browser version
 
 ```sh
-pnpm dev:mock
+pnpm dev
 ```
 
 Open http://localhost:5173 in **Chrome or Edge** for the full-window layout, or http://localhost:5173/?overlay for the compact one. Choose **Listen to a browser tab**, pick the tab with the hearing, and turn on **Share tab audio**.
 
-### Mock options
+## Building the backend
+
+The backend (speech-to-text + Ollama) can be written in any language. It only has to serve the contract on `ws://localhost:8765`. Start with **[docs/backend.md](docs/backend.md)**, then check your server with:
 
 ```sh
-pnpm mock --speed 4      # replay 4x faster
-pnpm mock --offline      # show the "Offline mode" state
+pnpm conformance                              # protocol checks
+pnpm conformance --audio sample.webm --fast   # also stream a recording
 ```
 
 ## How it fits together
@@ -50,7 +52,7 @@ pnpm mock --offline      # show the "Offline mode" state
             │
             ▼
  apps/desktop (Electron overlay) ─ loads ─▶ apps/web (React UI) ◀── WebSocket :8765 ──▶ backend (speech-to-text + Ollama)
-                                                  │                                     └ tools/mock-server stands in for now
+                                                  │                                     └ backend/ (any language)
                                                   └── speaks only packages/contract
 ```
 
@@ -59,19 +61,21 @@ pnpm mock --offline      # show the "Offline mode" state
 | `apps/web` | The UI (Vite + React + TypeScript): full layout and compact overlay layout |
 | `apps/desktop` | Electron shell: always-on-top window, system audio, ghost mode |
 | `packages/contract` | Message schemas (zod), types and example payloads |
-| `tools/mock-server` | Fake backend that replays scripted hearings |
-| `docs/contract.md` | The contract in plain words, for the backend |
+| `packages/contract/schema` | Generated JSON Schema, for backends in any language |
+| `tools/conformance` | Checks a running backend against the contract |
+| `backend/` | The backend team’s code |
+| `docs/backend.md` | How to wire a backend in |
+| `docs/contract.md` | The contract in plain words |
 
 ## Scripts
 
 | Command | Does |
 |---|---|
-| `pnpm dev:overlay` | Overlay window, UI and mock backend together |
-| `pnpm dev:mock` | UI and mock backend (browser) |
-| `pnpm dev` | UI only (bring your own backend) |
-| `pnpm mock` | Mock backend only |
+| `pnpm dev:overlay` | Overlay window and UI |
+| `pnpm dev` | UI in the browser |
+| `pnpm conformance` | Check a running backend against the contract |
 | `pnpm typecheck` | Type-check every package |
-| `pnpm validate` | Check examples and mock scenarios against the contract |
+| `pnpm validate` | Check examples against the contract and that the JSON Schema is current |
 | `pnpm build` | Production build of the UI |
 | `pnpm check` | Typecheck, validate and build (what CI runs) |
 
@@ -79,4 +83,4 @@ Set `VITE_BACKEND_URL` to point the UI at a backend on a different port.
 
 ## Working with coding agents
 
-`CLAUDE.md` holds the project rules, and `.claude/skills/` has guides for the contract, the UI design system, the overlay shell, mock scenarios and commit messages.
+`CLAUDE.md` holds the project rules, and `.claude/skills/` has guides for the contract, the UI design system, the overlay shell, the backend and commit messages.
