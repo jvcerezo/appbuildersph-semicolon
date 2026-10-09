@@ -61,7 +61,7 @@ export function TranscriptPanel({ segments, explainedIds, status, stoppedAtSec, 
 }
 
 /** Underlines each flagged term: solid once its card exists, dotted while pending. */
-function highlightTerms(segment: Segment, explainedIds: ReadonlySet<string>, onTermClick: (cardId: string) => void) {
+export function highlightTerms(segment: Segment, explainedIds: ReadonlySet<string>, onTermClick: (cardId: string) => void) {
   const parts: ReactNode[] = [];
   let rest = segment.text;
   let key = 0;

@@ -1,0 +1,197 @@
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import type { Card } from '@linaw/contract';
+import { captureFile, captureScreenAudio, startRecorder, type AudioSource, type Recorder } from '../lib/audio';
+import { newRequestId } from '../lib/format';
+import { loadSettings, saveSettings, SPEECH_RATE, TEXT_SCALE, toPreferences, type Settings } from '../lib/settings';
+import { BackendSocket } from '../lib/socket';
+import { readAloud, stopReading } from '../lib/speech';
+import { initialSession, sessionReducer, type HelpKind, type Phase } from './session';
+
+const WHAT_SAID_WINDOW_SEC = 120;
+
+export type SourceRequest = { kind: 'tab' } | { kind: 'system' } | { kind: 'file'; file: File };
+type SourceKind = SourceRequest['kind'];
+
+/**
+ * Everything Linaw does, independent of layout: the backend socket, audio
+ * capture, settings and user actions. The full-page app and the overlay
+ * are two views over this one hook.
+ */
+export function useLinaw() {
+  const [session, dispatch] = useReducer(sessionReducer, initialSession);
+  const [settings, setSettings] = useState<Settings>(loadSettings);
+  const now = useNow(session.phase === 'live' && session.status !== 'stopped');
+
+  const socket = useRef<BackendSocket | null>(null);
+  const capture = useRef<{ source: AudioSource; recorder: Recorder; kind: SourceKind } | null>(null);
+  const lastSource = useRef<SourceRequest>({ kind: 'tab' });
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+
+  // ---- backend connection
+  useEffect(() => {
+    const backend = new BackendSocket(
+      (message) => dispatch({ type: 'server', message }),
+      (state) => {
+        dispatch({ type: 'connection', state });
+        // The backend forgets the session when the socket drops; announce it again.
+        const active = capture.current;
+        if (state === 'open' && active) {
+          backend.send({
+            type: 'session.start',
+            source: active.kind,
+            mimeType: active.recorder.mimeType,
+            preferences: toPreferences(settingsRef.current),
+          });
+        }
+      },
+    );
+    socket.current = backend;
+    return () => {
+      backend.dispose();
+      socket.current = null;
+    };
+  }, []);
+
+  // ---- settings: persist, apply to the page, tell the backend
+  useEffect(() => {
+    saveSettings(settings);
+    const root = document.documentElement;
+    root.dataset.theme = settings.highContrast ? 'hc' : 'light';
+    root.style.setProperty('--text-scale', String(TEXT_SCALE[settings.textSize]));
+  }, [settings]);
+
+  useEffect(() => {
+    socket.current?.send({ type: 'preferences.update', preferences: { level: settings.level, language: settings.language } });
+  }, [settings.level, settings.language]);
+
+  // ---- audio
+  const stopCapture = useCallback(() => {
+    const active = capture.current;
+    if (!active) return;
+    capture.current = null;
+    active.recorder.stop();
+    active.source.release();
+  }, []);
+
+  useEffect(() => stopCapture, [stopCapture]);
+
+  const startListening = useCallback(
+    async (request: SourceRequest) => {
+      const backend = socket.current;
+      if (!backend || session.connection !== 'open') {
+        dispatch({ type: 'error', message: 'Linaw’s helper is not running on this computer yet. Start it, then try again.' });
+        return;
+      }
+      stopCapture();
+      lastSource.current = request;
+
+      let source: AudioSource;
+      try {
+        source = request.kind === 'file' ? await captureFile(request.file) : await captureScreenAudio();
+      } catch (err) {
+        // NotAllowedError = the user closed the share window; nothing to report.
+        if (err instanceof DOMException && err.name === 'NotAllowedError') return;
+        dispatch({ type: 'error', message: err instanceof Error ? err.message : 'Could not start listening.' });
+        return;
+      }
+
+      const recorder = startRecorder(
+        source.stream,
+        (chunk) => socket.current?.sendAudio(chunk),
+        () => {
+          // Sharing stopped or the file finished.
+          stopCapture();
+          socket.current?.send({ type: 'session.stop' });
+          dispatch({ type: 'listening.stopped' });
+        },
+      );
+      capture.current = { source, recorder, kind: request.kind };
+      backend.send({
+        type: 'session.start',
+        source: request.kind,
+        mimeType: recorder.mimeType,
+        preferences: toPreferences(settingsRef.current),
+      });
+      dispatch({ type: 'listening.started' });
+    },
+    [session.connection, stopCapture],
+  );
+
+  const stopListening = () => {
+    if (!capture.current) return;
+    stopCapture();
+    socket.current?.send({ type: 'session.stop' });
+    dispatch({ type: 'listening.stopped' });
+  };
+
+  /** Tab and system audio can restart in place; a file has to be picked again. */
+  const reconnect = () => {
+    const last = lastSource.current;
+    if (last.kind === 'file') dispatch({ type: 'phase', phase: 'start' });
+    else void startListening(last);
+  };
+
+  // ---- help and cards
+  const openHelp = (kind: HelpKind | null) => {
+    dispatch({ type: 'help.open', kind });
+    if (kind === 'what_said') {
+      const requestId = newRequestId();
+      dispatch({ type: 'what_said.requested', requestId });
+      socket.current?.send({ type: 'what_said.request', requestId, windowSec: WHAT_SAID_WINDOW_SEC });
+    } else if (kind === 'summary') {
+      const requestId = newRequestId();
+      dispatch({ type: 'summary.requested', requestId });
+      socket.current?.send({ type: 'summary.request', requestId });
+    }
+  };
+
+  const ask = (question: string) => {
+    const requestId = newRequestId();
+    dispatch({ type: 'ask.requested', requestId, question });
+    socket.current?.send({ type: 'ask', requestId, question });
+  };
+
+  const simplify = (card: Card) => {
+    const requestId = newRequestId();
+    dispatch({ type: 'simplify.requested', cardId: card.id, requestId });
+    socket.current?.send({ type: 'card.simplify', requestId, cardId: card.id });
+  };
+
+  const speak = (card: Card) => {
+    stopReading();
+    readAloud(`${card.term}. ${card.meaning} ${card.example}`, card.language, SPEECH_RATE[settings.readSpeed]);
+  };
+
+  const { startedAt, stoppedAt } = session;
+  return {
+    session,
+    settings,
+    setSettings,
+    elapsedSec: startedAt === null ? null : ((stoppedAt ?? now) - startedAt) / 1000,
+    stoppedAtSec: startedAt !== null && stoppedAt !== null ? (stoppedAt - startedAt) / 1000 : null,
+    startListening,
+    stopListening,
+    reconnect,
+    openHelp,
+    ask,
+    simplify,
+    speak,
+    toggleSaved: (card: Card) => dispatch({ type: 'card.toggleSaved', cardId: card.id }),
+    goTo: (phase: Phase) => dispatch({ type: 'phase', phase }),
+  };
+}
+
+export type Linaw = ReturnType<typeof useLinaw>;
+
+/** Current time, refreshed every second while `active`. */
+function useNow(active: boolean): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!active) return;
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [active]);
+  return now;
+}

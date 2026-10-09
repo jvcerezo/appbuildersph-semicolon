@@ -1,11 +1,15 @@
-/** Audio capture: a shared browser tab or a local file, recorded in small chunks. */
+/** Audio capture: a shared tab, all system audio (desktop overlay) or a local file, recorded in small chunks. */
 
 const PREFERRED_MIME = 'audio/webm;codecs=opus';
 const CHUNK_MS = 1000;
 
-export class NoTabAudioError extends Error {
+export class NoAudioError extends Error {
   constructor() {
-    super('The shared tab has no audio. Turn on “Share tab audio” and try again.');
+    super(
+      window.linawDesktop
+        ? 'Linaw could not hear this computer’s sound. System audio capture works on Windows only for now.'
+        : 'The shared tab has no audio. Turn on “Share tab audio” and try again.',
+    );
   }
 }
 
@@ -15,8 +19,11 @@ export interface AudioSource {
   release: () => void;
 }
 
-/** Opens the browser's share picker. Must be called from a click handler. */
-export async function captureTab(): Promise<AudioSource> {
+/**
+ * In the browser: opens the share picker for a tab (call from a click handler).
+ * In the desktop overlay: the main process answers with all system audio, no picker.
+ */
+export async function captureScreenAudio(): Promise<AudioSource> {
   // Chrome only offers tab audio together with video, so ask for both and drop the video.
   const display = await navigator.mediaDevices.getDisplayMedia({
     video: true,
@@ -29,7 +36,7 @@ export async function captureTab(): Promise<AudioSource> {
   const audioTracks = display.getAudioTracks();
   if (audioTracks.length === 0) {
     display.getTracks().forEach((track) => track.stop());
-    throw new NoTabAudioError();
+    throw new NoAudioError();
   }
   const stream = new MediaStream(audioTracks);
   return { stream, release: () => stream.getTracks().forEach((track) => track.stop()) };
