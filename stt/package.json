@@ -1,0 +1,11 @@
+{
+  "name": "@linaw/stt",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Linaw's speech service (Python, run with uv): Soniox online, local Whisper offline. See README.md.",
+  "scripts": {
+    "start": "uv run main.py",
+    "dev": "uv run main.py",
+    "setup": "uv sync && uv run scripts/download_models.py"
+  }
+}
