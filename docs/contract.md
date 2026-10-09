@@ -55,7 +55,7 @@ Notes:
 
 | type | when | key fields |
 |---|---|---|
-| `session.start` | The user starts listening to a tab or file | `source`: `tab` \| `file`, `mimeType`, `preferences` {`level`: `simple` \| `detailed`, `language`: `tl` \| `en`} |
+| `session.start` | The user starts listening | `source`: `tab` \| `file` \| `system` (all computer audio, from the desktop overlay), `mimeType`, `preferences` {`level`: `simple` \| `detailed`, `language`: `tl` \| `en`} |
 | `session.stop` | Sharing stopped, or the file ended | – |
 | `preferences.update` | The user changed the level or language | `preferences` |
 | `what_said.request` | "What did they say?" button | `requestId`, `windowSec` (120) |

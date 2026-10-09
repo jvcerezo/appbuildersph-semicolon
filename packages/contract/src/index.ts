@@ -156,7 +156,8 @@ export type ServerMessage = z.infer<typeof ServerMessageSchema>;
 export const SessionStartMessageSchema = z.object({
   v,
   type: z.literal('session.start'),
-  source: z.enum(['tab', 'file']),
+  /** `tab` = a shared browser tab, `file` = a local recording, `system` = everything playing on the computer (desktop overlay). */
+  source: z.enum(['tab', 'file', 'system']),
   /** Encoding of the binary audio frames that follow, e.g. "audio/webm;codecs=opus". */
   mimeType: z.string().min(1),
   preferences: PreferencesSchema,
