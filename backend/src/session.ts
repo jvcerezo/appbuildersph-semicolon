@@ -8,6 +8,7 @@ import { TermFinder, type FoundTerm } from './terms/finder';
 import { answerQuestion, LINES_PER_EVENT, Summarizer, whatWasSaid } from './help';
 import { AiUnavailableError } from './llm/ollama';
 import { briefContext } from './briefs';
+import { asContext, ground, type Grounding } from './grounding';
 import type { Services } from './services';
 import { Translator } from './translate';
 import { decodeClip, stripHeard, transcribeClip } from './voice';
@@ -24,6 +25,9 @@ const SUPPORTED_AUDIO = /^(audio|video)\/(webm|ogg)\b/i;
 const SPEAKER = 'Speaker';
 
 const CONTEXT_LINES = 2;
+
+/** Law passages given to the AI when it explains a term on the spot. */
+const CARD_LAWS = 3;
 
 /** Hearing lines from this far back can have leaked into a spoken question through the speakers. */
 const LEAK_WINDOW_SEC = 60;
@@ -89,7 +93,7 @@ export class Session {
     private readonly services: Services,
     private readonly send: Send,
   ) {
-    this.summarizer = new Summarizer(services.ai, (language) => briefContext(services.briefs, language));
+    this.summarizer = new Summarizer(services.ai, (language, text = '') => asContext(ground(services, text, language), language));
     this.translator = new Translator(services.ai);
     this.setStatus('waiting');
   }
@@ -393,7 +397,16 @@ export class Session {
     this.send({ type: 'card.pending', id, term, t: line.t });
     const { epoch } = this;
     const startedAt = Date.now();
-    const job = aiCard({ id, term, t: line.t, before: this.linesBefore(line), line: line.text, preferences: this.preferences, ai: this.services.ai })
+    const job = aiCard({
+      id,
+      term,
+      t: line.t,
+      before: this.linesBefore(line),
+      line: line.text,
+      preferences: this.preferences,
+      ai: this.services.ai,
+      grounding: ground(this.services, `${term} ${line.text}`, this.preferences.language, { laws: CARD_LAWS, term }),
+    })
       .then(({ card }) => {
         this.aiFailing = false;
         if (this.disposed || epoch !== this.epoch) return;
@@ -444,6 +457,7 @@ export class Session {
           line: line.text,
           preferences: this.preferences,
           ai: this.services.ai,
+          grounding: ground(this.services, `${text} ${line.text}`, this.preferences.language, { laws: CARD_LAWS, term: text }),
         });
         console.log(`[backend] spotted "${text}"${jargon ? '' : ' (not jargon, dropped)'}`);
         if (!jargon || this.disposed || epoch !== this.epoch || this.explained.has(entryId)) return;
@@ -475,7 +489,7 @@ export class Session {
 
     const { epoch } = this;
     const startedAt = Date.now();
-    const job = nowLine(card, this.linesBefore(line), line.text, this.services.ai, this.brief(card.language))
+    const job = nowLine(card, this.linesBefore(line), line.text, this.services.ai, asContext(this.grounded(`${card.term} ${line.text}`, card.language), card.language))
       .then((now) => {
         this.aiFailing = false;
         // "Simpler" may have rewritten the card meanwhile; keep its text.
@@ -514,7 +528,7 @@ export class Session {
     const lines = this.recentLines(windowSec);
     const { language } = this.preferences;
     const startedAt = Date.now();
-    const job = whatWasSaid(lines, language, this.services.ai, this.brief(language))
+    const job = whatWasSaid(lines, language, this.services.ai, asContext(this.grounded(lines.map((l) => l.text).join(' '), language), language))
       .then(({ points, sources }) => {
         this.aiFailing = false;
         if (this.disposed) return;
@@ -581,6 +595,11 @@ export class Session {
   /** The case brief for prompts, in `language`. */
   private brief(language: Language): string {
     return briefContext(this.services.briefs, language);
+  }
+
+  /** Law passages, glossary meanings and case brief for `text`: every AI request is grounded in them. */
+  private grounded(text: string, language: Language, laws = 2): Grounding {
+    return ground(this.services, text, language, { laws });
   }
 
   private cardId(entryId: string): string {

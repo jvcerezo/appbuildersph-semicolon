@@ -301,8 +301,12 @@ export function aiCard(args: {
   line: string;
   language: Language;
   level: ExplanationLevel;
+  /** Law passages for the term (law library); the explanation should rest on them when they apply. */
+  laws?: { cite: string; text: string }[];
+  /** Case brief and glossary meanings, as background. */
+  context?: string;
 }): JsonRequest<AiCardText> {
-  const { term, before, line, language, level } = args;
+  const { term, before, line, language, level, laws = [], context } = args;
   const tl = language === 'tl';
   const meaningRule =
     level === 'detailed'
@@ -329,15 +333,26 @@ export function aiCard(args: {
         '- example: an everyday comparison starting with "Like".',
         '- now: ONE short sentence on what it means in the sentence where it was said.',
       ];
-  const ask = (t: string, b: string[], l: string): string =>
-    tl
-      ? [`Termino: ${t}`, b.length > 0 ? `Bago nito: ${b.join(' ')}` : '', `Pangungusap na may termino: ${l}`].filter(Boolean).join('\n')
-      : [`Term: ${t}`, b.length > 0 ? `Just before: ${b.join(' ')}` : '', `Sentence with the term: ${l}`].filter(Boolean).join('\n');
+  if (laws.length > 0) {
+    task.push(
+      tl
+        ? 'Kung may bahagi ng batas sa ibaba na tungkol sa termino, ibatay doon ang english at meaning. Huwag mag-imbento ng batas o numero ng seksyon.'
+        : 'If a law passage below is about the term, base english and meaning on it. Never invent laws or section numbers.',
+    );
+  }
+  const lawBlock = laws.map((l) => `[${l.cite}] ${l.text}`).join('\n');
+  const ask = (t: string, b: string[], l: string, withLaw = false): string =>
+    (tl
+      ? [`Termino: ${t}`, b.length > 0 ? `Bago nito: ${b.join(' ')}` : '', `Pangungusap na may termino: ${l}`, withLaw && lawBlock ? `Mga bahagi ng batas:\n${lawBlock}` : '']
+      : [`Term: ${t}`, b.length > 0 ? `Just before: ${b.join(' ')}` : '', `Sentence with the term: ${l}`, withLaw && lawBlock ? `Law passages:\n${lawBlock}` : '']
+    )
+      .filter(Boolean)
+      .join('\n');
   const shot = CARD_EXAMPLE.card[language];
   const text = { type: 'string', minLength: 5, maxLength: level === 'detailed' ? 450 : 250 };
   return {
     messages: [
-      { role: 'system', content: [...RULES[language], ...task].join('\n') },
+      { role: 'system', content: [...RULES[language], ...background(context, language), ...task].join('\n') },
       { role: 'user', content: ask(CARD_EXAMPLE.term, [], CARD_EXAMPLE.line) },
       {
         role: 'assistant',
@@ -348,7 +363,7 @@ export function aiCard(args: {
           now: shot.now,
         }),
       },
-      { role: 'user', content: ask(term, before, line) },
+      { role: 'user', content: ask(term, before, line, true) },
     ],
     format: {
       type: 'object',

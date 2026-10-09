@@ -10,8 +10,9 @@ import { writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import type { ExplanationLevel, Language } from '@linaw/contract';
 import { loadConfig } from '../src/config';
-import { OllamaClient } from '../src/llm/ollama';
+import { asContext, basisFor, ground } from '../src/grounding';
 import { aiCard } from '../src/llm/prompts';
+import { createServices } from '../src/services';
 import { DRAFTS_FILE, loadDrafts, loadGlossary, loadWatchlist, type DraftEntry, type WatchEntry } from '../src/terms/glossary';
 
 const { values } = parseArgs({ options: { all: { type: 'boolean', default: false } } });
@@ -22,7 +23,9 @@ try {
 }
 
 const config = loadConfig();
-const ai = new OllamaClient(config.ollamaUrl, config.ollamaModel);
+// The same law library, glossary and case brief the live app grounds every request in.
+const services = createServices(config);
+const { ai } = services;
 const watchlist = loadWatchlist(loadGlossary());
 const kept = values.all ? [] : loadDrafts(watchlist);
 const drafts = new Map(kept.map((draft) => [draft.id, draft]));
@@ -35,10 +38,23 @@ await ai.warmUp();
 const line = (term: string, language: Language): string =>
   language === 'tl' ? `Nabanggit ang "${term}" sa isang pagdinig sa Senado.` : `"${term}" was said in a Senate hearing.`;
 
-async function text(entry: WatchEntry, language: Language, level: ExplanationLevel): Promise<{ meaning: string; example: string }> {
-  const card = await ai.json(aiCard({ term: entry.term, before: [], line: line(entry.term, language), language, level }), 'card');
-  return { meaning: card.meaning, example: card.example };
+/** Law passages per term, looked up once in English (the laws' language) and reused for every version. */
+const LAWS = 3;
+
+async function text(
+  entry: WatchEntry,
+  language: Language,
+  level: ExplanationLevel,
+): Promise<{ meaning: string; example: string; english: string }> {
+  const g = ground(services, entry.term, language, { laws: LAWS, term: entry.term });
+  const card = await ai.json(
+    aiCard({ term: entry.term, before: [], line: line(entry.term, language), language, level, laws: g.laws, context: asContext({ ...g, laws: [] }, language) }),
+    'card',
+  );
+  return { meaning: card.meaning, example: card.example, english: card.english };
 }
+
+const pick = ({ meaning, example }: { meaning: string; example: string }) => ({ meaning, example });
 
 function save(): void {
   const ordered = watchlist.flatMap((entry) => drafts.get(entry.id) ?? []);
@@ -49,16 +65,20 @@ let failed = 0;
 for (const [i, entry] of todo.entries()) {
   const startedAt = Date.now();
   try {
+    const enDetailed = await text(entry, 'en', 'detailed');
+    // The citation comes from the passage the English explanation actually matches, never from the model.
+    const basis = basisFor(`${enDetailed.english} ${enDetailed.meaning}`, ground(services, entry.term, 'en', { laws: LAWS, term: entry.term }), entry.term);
     const draft: DraftEntry = {
       id: entry.id,
       term: entry.term,
-      tl: { simple: await text(entry, 'tl', 'simple'), detailed: await text(entry, 'tl', 'detailed') },
-      en: { simple: await text(entry, 'en', 'simple'), detailed: await text(entry, 'en', 'detailed') },
-      source: `AI draft (${ai.model}), not checked`,
+      tl: { simple: pick(await text(entry, 'tl', 'simple')), detailed: pick(await text(entry, 'tl', 'detailed')) },
+      en: { simple: pick(await text(entry, 'en', 'simple')), detailed: pick(enDetailed) },
+      source: `AI draft (${ai.model}) from the law library, not checked`,
+      ...(basis ? { basis } : {}),
     };
     drafts.set(entry.id, draft);
     save();
-    console.log(`  ✓ ${i + 1}/${todo.length} ${entry.term} (${((Date.now() - startedAt) / 1000).toFixed(1)} s): ${draft.tl.simple.meaning}`);
+    console.log(`  ✓ ${i + 1}/${todo.length} ${entry.term} (${((Date.now() - startedAt) / 1000).toFixed(1)} s) [${draft.basis ?? 'no law passage'}]: ${draft.tl.simple.meaning}`);
   } catch (err) {
     failed++;
     console.error(`  ✗ ${entry.term}: ${err instanceof Error ? err.message : String(err)}`);

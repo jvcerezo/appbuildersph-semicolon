@@ -57,7 +57,8 @@ export class Summarizer {
   constructor(
     private readonly ai: OllamaClient,
     /** The case brief in each language (backend/briefs/), or "". */
-    private readonly context: (language: Language) => string = () => '',
+    /** Grounding (case brief, glossary, law) for prompts, from the text they are about. */
+    private readonly context: (language: Language, text?: string) => string = () => '',
   ) {}
 
   async summarize(lines: Line[], language: Language): Promise<Summary> {
@@ -90,7 +91,7 @@ export class Summarizer {
     // A background job may sit behind every card in the queue; a person waiting gets a fresh one instead.
     if (known && priority === 'background') return known;
     const job = this.ai
-      .json(summaryEvent({ lines: stretch.map((line) => line.text), language, context: this.context(language) }), priority)
+      .json(summaryEvent({ lines: stretch.map((line) => line.text), language, context: this.context(language, stretch.map((line) => line.text).join(' ')) }), priority)
       .then(({ title, detail }): SummaryEvent => ({ t: first.t, title, detail, sources: [longest(stretch).id] }));
     if (stretch.length === LINES_PER_EVENT) {
       this.events.set(key, job);

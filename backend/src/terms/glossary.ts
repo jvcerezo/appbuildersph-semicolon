@@ -14,6 +14,8 @@ export const GlossaryEntrySchema = z.object({
   tl: TextSchema,
   en: TextSchema.optional(),
   source: z.string().optional(),
+  /** The law or rule the meaning is based on, shown on the card (e.g. "Rules of Court, Rule 21, Sec. 1"). */
+  basis: z.string().optional(),
 });
 export type GlossaryEntry = z.infer<typeof GlossaryEntrySchema>;
 
@@ -90,6 +92,8 @@ export const DraftEntrySchema = z.object({
   tl: LevelsSchema,
   en: LevelsSchema,
   source: z.string().optional(),
+  /** The law passage the draft was written from, when one matched. */
+  basis: z.string().optional(),
 });
 export type DraftEntry = z.infer<typeof DraftEntrySchema>;
 

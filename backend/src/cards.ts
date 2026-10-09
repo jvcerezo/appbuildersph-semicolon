@@ -1,4 +1,5 @@
 import type { Card, Language, Preferences } from '@linaw/contract';
+import { asContext, basisFor, type Grounding } from './grounding';
 import type { OllamaClient } from './llm/ollama';
 import { aiCard as aiCardPrompt, rightNow, simpler } from './llm/prompts';
 import type { DraftEntry, GlossaryEntry } from './terms/glossary';
@@ -24,6 +25,7 @@ export function checkedCard(args: { id: string; t: number; entry: GlossaryEntry;
     now: FALLBACK_NOW[language],
     t: args.t,
     language,
+    ...(entry.basis ? { basis: entry.basis } : {}),
   };
 }
 
@@ -40,6 +42,7 @@ export function draftCard(args: { id: string; t: number; entry: DraftEntry; pref
     now: FALLBACK_NOW[language],
     t: args.t,
     language,
+    ...(args.entry.basis ? { basis: args.entry.basis } : {}),
   };
 }
 
@@ -52,14 +55,19 @@ export async function aiCard(args: {
   line: string;
   preferences: Preferences;
   ai: OllamaClient;
+  /** Law passages, glossary meanings and case brief for the term (grounding.ts). */
+  grounding: Grounding;
 }): Promise<{ card: Card; jargon: boolean }> {
   const { language, level } = args.preferences;
+  const g = args.grounding;
   const text = await args.ai.json(
-    aiCardPrompt({ term: args.term, before: args.before, line: args.line, language, level }),
+    aiCardPrompt({ term: args.term, before: args.before, line: args.line, language, level, laws: g.laws, context: asContext({ ...g, laws: [] }, language) }),
     'card',
   );
+  // The English legal meaning is the best match for the (English) law text.
+  const basis = basisFor(`${text.english} ${text.meaning}`, g, args.term);
   return {
-    card: { id: args.id, term: args.term, kind: 'ai', meaning: text.meaning, example: text.example, now: text.now, t: args.t, language },
+    card: { id: args.id, term: args.term, kind: 'ai', meaning: text.meaning, example: text.example, now: text.now, t: args.t, language, ...(basis ? { basis } : {}) },
     jargon: text.jargon,
   };
 }
