@@ -75,6 +75,10 @@ function print(message: Outgoing): void {
   const at = `[${((Date.now() - startedAt) / 1000).toFixed(1).padStart(6)} s]`;
   switch (message.type) {
     case 'transcript.segment': {
+      if (message.translation) {
+        console.log(`${at} translated @${message.t}s (${message.translation.language}): ${message.translation.text}`);
+        break;
+      }
       const terms = message.terms.map((term) => term.text).join(', ');
       console.log(`${at} line @${message.t}s: ${message.text}${terms ? `   [terms: ${terms}]` : ''}`);
       break;

@@ -1,4 +1,4 @@
-import type { Card, ClientMessage, Language, Preferences, Status, TermRef } from '@linaw/contract';
+import type { Card, ClientMessage, Language, Preferences, Status, TermRef, Translation } from '@linaw/contract';
 import { PauseCutter, type Utterance } from './audio/cutter';
 import { FfmpegDecoder, SAMPLE_RATE } from './audio/decoder';
 import { toWav } from './audio/wav';
@@ -9,6 +9,7 @@ import { answerQuestion, LINES_PER_EVENT, Summarizer, whatWasSaid } from './help
 import { AiUnavailableError } from './llm/ollama';
 import { briefContext } from './briefs';
 import type { Services } from './services';
+import { Translator } from './translate';
 import { SttStream, type HeardLine, type SttStatus } from './stt/stream';
 import type { Outgoing } from './wire';
 
@@ -69,6 +70,7 @@ export class Session {
   private readonly explained = new Set<string>();
   private readonly cards = new Map<string, Card>();
   private readonly lineTerms = new Map<string, FoundTerm[]>();
+  private readonly lineTranslations = new Map<string, Translation>();
   private readonly spotted = new Map<string, string>();
   private spottedFinder: TermFinder | null = null;
   private readonly work = new Set<Promise<unknown>>();
@@ -77,12 +79,14 @@ export class Session {
   private aiFailing = false;
   private status: Status = 'waiting';
   private readonly summarizer: Summarizer;
+  private readonly translator: Translator;
 
   constructor(
     private readonly services: Services,
     private readonly send: Send,
   ) {
     this.summarizer = new Summarizer(services.ai, (language) => briefContext(services.briefs, language));
+    this.translator = new Translator(services.ai);
     this.setStatus('waiting');
   }
 
@@ -190,6 +194,7 @@ export class Session {
     this.explained.clear();
     this.cards.clear();
     this.lineTerms.clear();
+    this.lineTranslations.clear();
     this.spotted.clear();
     this.spottedFinder = null;
     this.summarizer.clear();
@@ -312,6 +317,7 @@ export class Session {
       else this.explainWithAi(entryId, this.services.watchlist.get(entryId)?.term ?? text, line);
     }
     this.spot(line, found);
+    this.translate(line, found);
   }
 
   private findTerms(text: string): FoundTerm[] {
@@ -326,7 +332,23 @@ export class Session {
   private sendLine(line: Line, found: FoundTerm[]): void {
     this.lineTerms.set(line.id, found);
     const terms: TermRef[] = found.map((term) => ({ text: term.text, cardId: this.cardId(term.entryId) }));
-    this.send({ type: 'transcript.segment', id: line.id, t: line.t, speaker: SPEAKER, text: line.text, terms, final: true });
+    const translation = this.lineTranslations.get(line.id);
+    this.send({ type: 'transcript.segment', id: line.id, t: line.t, speaker: SPEAKER, text: line.text, terms, final: true, ...(translation ? { translation } : {}) });
+  }
+
+  /** Sends the line again with a translation into the user's language, when the AI has idle time for it. */
+  private translate(line: Line, found: FoundTerm[]): void {
+    const { epoch } = this;
+    const language = this.preferences.language;
+    const job = this.translator
+      .translate(line.text, language, found.map((term) => term.text))
+      .then((text) => {
+        if (text === null || this.disposed || epoch !== this.epoch) return;
+        this.lineTranslations.set(line.id, { language, text });
+        this.sendLine(line, this.lineTerms.get(line.id) ?? found);
+      })
+      .catch((err: unknown) => console.warn(`[backend] translation skipped: ${describe(err)}`));
+    this.track(job);
   }
 
   /** Watch-list terms: "Explaining…" at once, then the AI's card, or card.failed. */

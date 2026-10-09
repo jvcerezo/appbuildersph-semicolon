@@ -469,3 +469,45 @@ export function rightNow(args: {
     maxTokens: 90,
   };
 }
+
+/** Worked examples: hearing English into the Taglish Filipinos use for legal talk (terms stay in English). */
+const TRANSLATE_EXAMPLES: { en: string; tl: string }[] = [
+  {
+    en: 'Objection, Your Honor. The question calls for hearsay.',
+    tl: 'Tumututol po kami, Your Honor. Hearsay ang hinihingi ng tanong.',
+  },
+  {
+    en: 'The chair will take the motion under advisement.',
+    tl: 'Pag-iisipan muna ng namumuno ang motion bago magpasya.',
+  },
+  {
+    en: 'Ang testigo ay hindi personal na nakakita sa nangyari.',
+    tl: 'The witness did not personally see what happened.',
+  },
+];
+
+/** One transcript line in `language`. Legal terms stay as said, so a term reads the same on every line and card. */
+export function translateLine(args: { line: string; keep: string[]; language: Language }): JsonRequest<{ text: string }> {
+  const { line, keep, language } = args;
+  const task =
+    language === 'tl'
+      ? [
+          'Isalin ang linya ng pagdinig sa simpleng Tagalog na ginagamit ng karaniwang Pilipino. Huwag isalin ang mga legal na termino at pangalan; iwan sa Ingles (hal. subpoena, impeachment, hearsay, motion, Your Honor).',
+          'Isalin lang. Huwag magdagdag ng paliwanag. Isulat ang "text".',
+        ]
+      : ['Translate the hearing line into plain English. Keep names and legal terms as they are.', 'Only translate. Add no explanation. Write "text".'];
+  if (keep.length > 0) task.push(language === 'tl' ? `Iwan sa Ingles: ${keep.join(', ')}.` : `Keep as is: ${keep.join(', ')}.`);
+  const examples = TRANSLATE_EXAMPLES.filter((example) => (language === 'tl' ? !/\b(ang|ay|ng)\b/.test(example.en) : /\b(ang|ay|ng)\b/.test(example.en)));
+  const messages: ChatMessage[] = [{ role: 'system', content: task.join('\n') }];
+  for (const example of examples) {
+    messages.push({ role: 'user', content: example.en });
+    messages.push({ role: 'assistant', content: JSON.stringify({ text: example.tl }) });
+  }
+  messages.push({ role: 'user', content: line });
+  return {
+    messages,
+    format: { type: 'object', properties: { text: { type: 'string', minLength: 1, maxLength: 600 } }, required: ['text'] },
+    schema: z.object({ text: z.string().trim().min(1) }),
+    maxTokens: 200,
+  };
+}
