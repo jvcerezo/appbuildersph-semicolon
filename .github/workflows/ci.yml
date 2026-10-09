@@ -23,6 +23,9 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+        env:
+          # CI only type-checks the desktop shell; skip the ~100 MB Electron download.
+          ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
 
       - name: Typecheck
         run: pnpm typecheck

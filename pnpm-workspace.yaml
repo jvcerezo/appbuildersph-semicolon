@@ -3,6 +3,7 @@ packages:
   - packages/*
   - tools/*
 
-# esbuild (used by Vite and tsx) needs its postinstall to fetch the platform binary.
+# esbuild (Vite, tsx) and electron need their postinstall to fetch platform binaries.
 allowBuilds:
+  electron: true
   esbuild: true

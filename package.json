@@ -9,6 +9,7 @@
     "dev": "pnpm --filter @linaw/web dev",
     "mock": "pnpm --filter @linaw/mock-server start",
     "dev:mock": "pnpm --parallel --filter @linaw/web --filter @linaw/mock-server run dev",
+    "dev:overlay": "pnpm --parallel --filter @linaw/web --filter @linaw/mock-server --filter @linaw/desktop run dev",
     "validate": "pnpm -r validate",
     "typecheck": "pnpm -r typecheck",
     "build": "pnpm --filter @linaw/web build",
