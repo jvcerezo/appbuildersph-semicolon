@@ -14,6 +14,30 @@ export interface JsonRequest<T> {
   timeoutMs?: number;
 }
 
+/**
+ * gemma3 sometimes ends a JSON string with a curly quote, then rambles until the token limit
+ * (seconds wasted, junk in the text). Stopping there and closing the JSON ourselves keeps the answer.
+ */
+const CURLY_ENDINGS = ['”}', '”]'];
+
+/** Closes the strings and brackets a stop sequence left open. Complete JSON comes back unchanged. */
+function closeJson(text: string): string {
+  const closers: string[] = [];
+  let inString = false;
+  let escaped = false;
+  for (const char of text) {
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') inString = false;
+    } else if (char === '"') inString = true;
+    else if (char === '{') closers.push('}');
+    else if (char === '[') closers.push(']');
+    else if (char === '}' || char === ']') closers.pop();
+  }
+  return text + (inString ? '"' : '') + closers.reverse().join('');
+}
+
 /** Button presses go first: a person is waiting for them. */
 export type Priority = 'user' | 'card';
 
@@ -87,7 +111,7 @@ export class OllamaClient {
           stream: false,
           think: false,
           keep_alive: '30m',
-          options: { temperature: 0.2, num_predict: request.maxTokens },
+          options: { temperature: 0.2, num_predict: request.maxTokens, stop: CURLY_ENDINGS },
         }),
         signal: AbortSignal.timeout(request.timeoutMs ?? 30_000),
       });
@@ -98,12 +122,12 @@ export class OllamaClient {
     if (res.status === 404) throw new AiUnavailableError(`Ollama doesn't have the model "${this.model}". Run: ollama pull ${this.model}`);
     if (!res.ok) throw new Error(`Ollama answered ${res.status}: ${(await res.text()).slice(0, 200)}`);
 
-    const body = (await res.json()) as { message?: { content?: unknown } };
+    const body = (await res.json()) as { message?: { content?: unknown }; done_reason?: unknown };
     const content = body.message?.content;
     if (typeof content !== 'string') throw new Error('Ollama sent no answer');
     let data: unknown;
     try {
-      data = JSON.parse(content);
+      data = JSON.parse(body.done_reason === 'stop' ? closeJson(content) : content);
     } catch {
       throw new Error(`Ollama's answer is not JSON: ${content.slice(0, 120)}`);
     }
