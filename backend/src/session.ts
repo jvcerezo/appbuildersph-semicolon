@@ -2,7 +2,7 @@ import type { Card, ClientMessage, Language, Preferences, Status, TermRef, Trans
 import { PauseCutter, type Utterance } from './audio/cutter';
 import { FfmpegDecoder, SAMPLE_RATE } from './audio/decoder';
 import { toWav } from './audio/wav';
-import { aiCard, checkedCard, nowLine, simplerText } from './cards';
+import { aiCard, checkedCard, draftCard, nowLine, simplerText } from './cards';
 import { spot } from './llm/prompts';
 import { TermFinder, type FoundTerm } from './terms/finder';
 import { answerQuestion, LINES_PER_EVENT, Summarizer, whatWasSaid } from './help';
@@ -313,7 +313,7 @@ export class Session {
     for (const { entryId, text } of found) {
       if (this.explained.has(entryId)) continue;
       this.explained.add(entryId);
-      if (this.services.glossary.has(entryId)) this.explain(entryId, line);
+      if (this.services.glossary.has(entryId) || this.services.drafts.has(entryId)) this.explain(entryId, line);
       else this.explainWithAi(entryId, this.services.watchlist.get(entryId)?.term ?? text, line);
     }
     this.spot(line, found);
@@ -423,10 +423,17 @@ export class Session {
     this.track(job);
   }
 
+  /** Glossary terms and drafted watch-list terms: the card at once, then the AI's "Right now". */
   private explain(entryId: string, line: Line): void {
+    const id = this.cardId(entryId);
     const entry = this.services.glossary.get(entryId);
-    if (!entry) return;
-    const card = checkedCard({ id: this.cardId(entryId), t: line.t, entry, preferences: this.preferences });
+    const draft = this.services.drafts.get(entryId);
+    const card = entry
+      ? checkedCard({ id, t: line.t, entry, preferences: this.preferences })
+      : draft
+        ? draftCard({ id, t: line.t, entry: draft, preferences: this.preferences })
+        : null;
+    if (!card) return;
     this.cards.set(card.id, card);
     this.send({ type: 'card', card });
 

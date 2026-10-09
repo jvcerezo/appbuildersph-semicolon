@@ -1,7 +1,7 @@
 import type { Card, Language, Preferences } from '@linaw/contract';
 import type { OllamaClient } from './llm/ollama';
 import { aiCard as aiCardPrompt, rightNow, simpler } from './llm/prompts';
-import type { GlossaryEntry } from './terms/glossary';
+import type { DraftEntry, GlossaryEntry } from './terms/glossary';
 
 const FALLBACK_NOW: Record<Language, string> = {
   tl: 'Nabanggit ito ngayon sa pagdinig.',
@@ -19,6 +19,22 @@ export function checkedCard(args: { id: string; t: number; entry: GlossaryEntry;
     id: args.id,
     term: entry.term,
     kind: 'checked',
+    meaning: text.meaning,
+    example: text.example,
+    now: FALLBACK_NOW[language],
+    t: args.t,
+    language,
+  };
+}
+
+/** A watch-list term the AI explained ahead of time (D14): ready at once like a Checked card, but still AI-explained. */
+export function draftCard(args: { id: string; t: number; entry: DraftEntry; preferences: Preferences }): Card {
+  const { language, level } = args.preferences;
+  const text = args.entry[language][level];
+  return {
+    id: args.id,
+    term: args.entry.term,
+    kind: 'ai',
     meaning: text.meaning,
     example: text.example,
     now: FALLBACK_NOW[language],

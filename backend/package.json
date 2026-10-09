@@ -10,7 +10,8 @@
     "replay": "tsx scripts/replay.ts",
     "validate": "tsx scripts/validate-glossary.ts && tsx scripts/check-finder.ts",
     "typecheck": "tsc -p tsconfig.json",
-    "build-law": "tsx scripts/build-law.ts"
+    "build-law": "tsx scripts/build-law.ts",
+    "draft-cards": "tsx scripts/draft-cards.ts"
   },
   "dependencies": {
     "@linaw/contract": "workspace:*",

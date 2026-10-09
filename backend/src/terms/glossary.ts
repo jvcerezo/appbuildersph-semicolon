@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
@@ -79,6 +79,37 @@ export function loadWatchlist(glossary: readonly GlossaryEntry[], file = WATCHLI
   });
   if (problems.length > 0) throw new Error(`The watch list (${file}) has problems:\n  ${problems.join('\n  ')}`);
   return entries;
+}
+
+const LevelsSchema = z.object({ simple: TextSchema, detailed: TextSchema });
+
+export const DraftEntrySchema = z.object({
+  /** The watch-list id (`w-…`) this draft explains. */
+  id: z.string().min(1),
+  term: z.string().min(1),
+  tl: LevelsSchema,
+  en: LevelsSchema,
+  source: z.string().optional(),
+});
+export type DraftEntry = z.infer<typeof DraftEntrySchema>;
+
+/** AI drafts for watch-list terms, written ahead of time by scripts/draft-cards.ts (D14). Optional. */
+export const DRAFTS_FILE = fileURLToPath(new URL('../../glossary/drafts.json', import.meta.url));
+
+export function loadDrafts(watchlist: readonly WatchEntry[], file = DRAFTS_FILE): DraftEntry[] {
+  if (!existsSync(file)) return [];
+  const raw: unknown = JSON.parse(readFileSync(file, 'utf8'));
+  const result = z.object({ drafts: z.array(DraftEntrySchema) }).safeParse(raw);
+  if (!result.success) {
+    const problems = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('\n  ');
+    throw new Error(`The drafts (${file}) have problems:\n  ${problems}`);
+  }
+  const watched = new Set(watchlist.map((entry) => entry.id));
+  const stale = result.data.drafts.filter((draft) => !watched.has(draft.id)).map((draft) => `"${draft.term}" (${draft.id})`);
+  if (stale.length > 0) {
+    throw new Error(`The drafts (${file}) have terms that aren't on the watch list any more; remove them or run draft-cards again:\n  ${stale.join('\n  ')}`);
+  }
+  return result.data.drafts;
 }
 
 export function phrasesOf(entry: Pick<GlossaryEntry, 'term' | 'aliases'>): string[] {
