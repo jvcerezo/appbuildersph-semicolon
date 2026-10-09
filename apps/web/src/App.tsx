@@ -61,6 +61,8 @@ function FullLive({ linaw }: { linaw: Linaw }) {
         onShowTranscript={(show) => linaw.setSettings((s) => ({ ...s, showTranscript: show }))}
         onOpenHelp={linaw.openHelp}
         onAsk={linaw.ask}
+        onAskAloud={(clip, mimeType) => void linaw.askAloud(clip, mimeType)}
+        onError={linaw.reportError}
         onShowSegment={linaw.showSegment}
         onReadAloud={linaw.speak}
         onSimplify={linaw.simplify}

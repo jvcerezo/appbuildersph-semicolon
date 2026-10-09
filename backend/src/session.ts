@@ -10,6 +10,7 @@ import { AiUnavailableError } from './llm/ollama';
 import { briefContext } from './briefs';
 import type { Services } from './services';
 import { Translator } from './translate';
+import { decodeClip, stripHeard, transcribeClip } from './voice';
 import { SttStream, type HeardLine, type SttStatus } from './stt/stream';
 import type { Outgoing } from './wire';
 
@@ -23,6 +24,9 @@ const SUPPORTED_AUDIO = /^(audio|video)\/(webm|ogg)\b/i;
 const SPEAKER = 'Speaker';
 
 const CONTEXT_LINES = 2;
+
+/** Hearing lines from this far back can have leaked into a spoken question through the speakers. */
+const LEAK_WINDOW_SEC = 60;
 
 // Keeps the prompt small enough for a quick answer from a 4B model.
 const MAX_HELP_LINES = 40;
@@ -123,7 +127,39 @@ export class Session {
       case 'ask':
         this.ask(message.requestId, message.question);
         break;
+
+      case 'ask.audio':
+        this.askAloud(message.requestId, message.audio);
+        break;
     }
+  }
+
+  /** Push to talk: hear the question, take out what leaked in from the hearing, then answer it like `ask`. */
+  private askAloud(requestId: string, audio: string): void {
+    const startedAt = Date.now();
+    const job = decodeClip(this.services.config.ffmpegPath, audio)
+      .then((pcm) => transcribeClip(this.services, pcm))
+      .then((raw) => {
+        if (this.disposed) return;
+        const heard = stripHeard(raw, this.recentLines(LEAK_WINDOW_SEC).map((line) => line.text));
+        console.log(`[backend] voice question (${((Date.now() - startedAt) / 1000).toFixed(1)} s): "${raw}"${heard !== raw ? ` -> "${heard}"` : ''}`);
+        if (heard.split(/\s+/).filter(Boolean).length < 2) {
+          this.send({
+            type: 'error',
+            code: 'unsupported_audio',
+            message: 'Linaw didn’t catch a question. Hold the button and speak a little closer.',
+            requestId,
+          });
+          return;
+        }
+        this.ask(requestId, heard.slice(0, 500));
+      })
+      .catch((err: unknown) => {
+        console.error(`[backend] voice question failed: ${describe(err)}`);
+        if (this.disposed) return;
+        this.send({ type: 'error', code: 'unsupported_audio', message: 'Linaw couldn’t hear that. Try again, or type your question.', requestId });
+      });
+    this.track(job);
   }
 
   audio(chunk: Buffer): void {

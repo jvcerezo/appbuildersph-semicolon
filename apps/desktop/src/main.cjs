@@ -21,6 +21,7 @@ const {
   session,
   shell,
 } = require('electron');
+const volume = require('./volume.cjs');
 
 const DEV_URL = process.env.LINAW_URL ?? 'http://127.0.0.1:5173/';
 const PROD_FILE = path.join(__dirname, '..', '..', 'web', 'dist', 'index.html');
@@ -174,6 +175,10 @@ function handleDisplayMedia() {
 
 app.whenReady().then(() => {
   handleDisplayMedia();
+  volume.warmUp();
+
+  // Push to talk: lower the speakers while the user speaks (true), give the volume back (false).
+  ipcMain.handle('volume:duck', (_event, on) => (on ? volume.duck() : volume.restore().then(() => true)));
 
   ipcMain.on('ghost:set', (_event, on) => setGhost(Boolean(on)));
   ipcMain.on('window:mode', (_event, next) => setMode(next === 'overlay' ? 'overlay' : 'app'));
@@ -196,5 +201,14 @@ app.whenReady().then(() => {
   });
 });
 
-app.on('will-quit', () => globalShortcut.unregisterAll());
+// Never leave the user's speakers turned down.
+app.on('before-quit', (event) => {
+  if (!volume.isDucked()) return;
+  event.preventDefault();
+  void volume.restore().finally(() => app.quit());
+});
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
+  volume.stop();
+});
 app.on('window-all-closed', () => app.quit());

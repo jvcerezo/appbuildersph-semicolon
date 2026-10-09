@@ -10,6 +10,7 @@ Routes
   WS   /ws/session               unified transcript/status/metrics bus (browser posts, everyone receives)
   WS   /ws/stt-local             PCM in, local engine segments out (via /ws/session)
   WS   /ws/stream                for backends: PCM in, Soniox or local transcripts out, with fallback
+  POST /api/transcribe           one short clip (a spoken question), local engine only
 """
 
 from __future__ import annotations
@@ -28,12 +29,12 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 
 import httpx  # noqa: E402
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect  # noqa: E402
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect  # noqa: E402
 from fastapi.responses import FileResponse  # noqa: E402
 
 from .config import ROOT_DIR, load_settings, load_stt_terms  # noqa: E402
 from .local_engine import LocalSTTEngine, TranscriptEvent, create_local_engine  # noqa: E402
-from .local_stt import ModelUnavailableError  # noqa: E402
+from .local_stt import ModelUnavailableError, create_engine  # noqa: E402
 from .session import SessionHub  # noqa: E402
 from .stream import StreamSession  # noqa: E402
 
@@ -103,6 +104,8 @@ async def lifespan(_app: FastAPI):
         if name.startswith(("whisperlivekit", "faster_whisper")):
             logging.getLogger(name).setLevel(logging.WARNING)
     _print_summary()
+    clip_warmup = asyncio.create_task(_clip_engine())
+    clip_warmup.add_done_callback(lambda t: t.exception() and log.warning("Spoken questions unavailable: %s", t.exception()))
     yield
     if state["engine"]:
         await state["engine"].aclose()
@@ -337,6 +340,38 @@ async def ws_stt_local(ws: WebSocket):
     # Socket dropped without "stop": still transcribe what we have.
     if sid:
         await engine.end_session(sid, flush=True)
+
+
+@app.post("/api/transcribe")
+async def transcribe(request: Request):
+    """One short clip (a spoken question): body is PCM s16le mono 16 kHz, reply is {"text": ...}.
+    Always local Whisper, so a user's own voice never leaves this computer. It uses a batch model
+    (the chunked engine's), which reads the whole clip at once instead of at real-time pace."""
+    pcm = await request.body()
+    if not pcm or len(pcm) > 16000 * 2 * 60:
+        raise HTTPException(400, "Send 0-60 s of PCM s16le mono 16 kHz")
+    try:
+        batch = await _clip_engine()
+    except ModelUnavailableError as e:
+        raise HTTPException(503, str(e))
+    t0 = time.perf_counter()
+    segments = await asyncio.get_running_loop().run_in_executor(
+        executor, batch.transcribe, pcm[: len(pcm) - len(pcm) % 2], 0.0
+    )
+    text = " ".join(" ".join(seg.text.split()) for seg in segments).strip()
+    log.info("clip of %.1f s transcribed in %.1f s: %s", len(pcm) / 32000, time.perf_counter() - t0, text)
+    return {"text": text}
+
+
+_clip_lock = asyncio.Lock()
+
+
+async def _clip_engine():
+    """The batch model for spoken questions, loaded once (in the background at startup)."""
+    async with _clip_lock:
+        if state.get("clip_engine") is None:
+            state["clip_engine"] = await asyncio.get_running_loop().run_in_executor(executor, create_engine, settings)
+        return state["clip_engine"]
 
 
 @app.websocket("/ws/stream")

@@ -35,4 +35,4 @@ The contract in `packages/contract/src/index.ts` is the only agreement between t
 - Never parse socket JSON outside `lib/socket.ts`, and never cast unvalidated data to a contract type.
 - Never add fields "just in case". Each field must have a consumer.
 - Content strings (`meaning`, `example`, `now`, answers) are for the user. They are in `preferences.language`, plain and short, and never legal advice.
-- Audio stays binary frames, not JSON. Don't base64 audio into messages.
+- The live hearing audio stays binary frames, never JSON. The one exception is `ask.audio`: a single short question clip (≤ 30 s), base64 in its own message so it can't be mixed up with the hearing stream. Don't add other base64 audio.
