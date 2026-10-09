@@ -8,6 +8,7 @@ import { TermFinder, type FoundTerm } from './terms/finder';
 import { answerQuestion, LINES_PER_EVENT, Summarizer, whatWasSaid } from './help';
 import { AiUnavailableError } from './llm/ollama';
 import type { Services } from './services';
+import { SttStream, type HeardLine, type SttStatus } from './stt/stream';
 import type { Outgoing } from './wire';
 
 export type Send = (message: Outgoing) => void;
@@ -33,6 +34,17 @@ interface Stream {
   epoch: number;
   startedAt: number;
   offsetSec: number;
+  /** Set when the speech service transcribes this stream (STT=service). */
+  stt: SttStream | null;
+  /** Id of the line the speech service is still hearing, reused when it turns final. */
+  liveId: string | null;
+}
+
+/** Where decoded audio goes: the speech service, or the pause cutter feeding whisper-server. */
+interface PcmSink {
+  push: (samples: Int16Array) => void;
+  end: () => void;
+  stt: SttStream | null;
 }
 
 export interface Line {
@@ -116,6 +128,7 @@ export class Session {
   dispose(): void {
     this.disposed = true;
     this.stream?.decoder.kill();
+    this.stream?.stt?.kill();
     this.stream = null;
   }
 
@@ -139,13 +152,13 @@ export class Session {
 
     const now = Date.now();
     this.clockZero ??= now;
+    const offsetSec = (now - this.clockZero) / 1000;
     let stream: Stream | null = null;
-    const cutter = new PauseCutter((utterance) => {
-      if (stream) this.heard(utterance, stream);
-    });
+    const current = (): Stream | null => stream;
+    const sink = this.services.config.stt === 'service' ? this.serviceSink(offsetSec, current) : this.whisperSink(current);
     const decoder = new FfmpegDecoder(this.services.config.ffmpegPath, {
-      onPcm: (samples) => cutter.push(samples),
-      onClose: () => cutter.flush(),
+      onPcm: sink.push,
+      onClose: sink.end,
       onError: (problem) => {
         console.error(`[backend] ${problem}`);
         if (stream === this.stream) {
@@ -153,9 +166,10 @@ export class Session {
         }
       },
     });
-    stream = { decoder, epoch: this.epoch, startedAt: now, offsetSec: (now - this.clockZero) / 1000 };
+    stream = { decoder, epoch: this.epoch, startedAt: now, offsetSec, stt: sink.stt, liveId: null };
     this.stream = stream;
     this.track(decoder.closed);
+    if (sink.stt) this.track(sink.stt.closed);
 
     console.log(`[backend] listening to ${message.source} (${message.mimeType}), ${this.describePreferences()}`);
     this.setStatus('listening');
@@ -185,9 +199,76 @@ export class Session {
     this.stream = null;
   }
 
+  /** STT=service: the speech service hears the stream and picks Soniox or local Whisper itself. */
+  private serviceSink(offsetSec: number, current: () => Stream | null): PcmSink {
+    const stt = new SttStream(this.services.config.sttUrl, offsetSec, {
+      onLine: (line) => {
+        const stream = current();
+        if (stream) this.streamed(line, stream);
+      },
+      onStatus: (status) => {
+        const stream = current();
+        if (stream) this.sttStatus(status, stream);
+      },
+      onError: (problem) => this.sttProblem(problem),
+    });
+    return { push: (samples) => stt.push(samples), end: () => stt.finish(), stt };
+  }
+
+  /** STT=whisper-server: cut at pauses and send each utterance to whisper.cpp. */
+  private whisperSink(current: () => Stream | null): PcmSink {
+    const cutter = new PauseCutter((utterance) => {
+      const stream = current();
+      if (stream) this.heard(utterance, stream);
+    });
+    return { push: (samples) => cutter.push(samples), end: () => cutter.flush(), stt: null };
+  }
+
+  private nextLineId(): string {
+    return `${RUN}.${this.epoch}-s${++this.lineCount}`;
+  }
+
+  private streamed(line: HeardLine, stream: Stream): void {
+    if (this.disposed || stream.epoch !== this.epoch) return;
+    this.sttFailing = false;
+    const text = line.text.trim();
+    const t = Math.round(line.startSec * 10) / 10;
+    stream.liveId ??= this.nextLineId();
+    const id = stream.liveId;
+    if (!line.final) {
+      // The line still being spoken: no terms yet, cards come with the final.
+      if (text) this.send({ type: 'transcript.segment', id, t, speaker: SPEAKER, text, terms: [], final: false });
+      return;
+    }
+    stream.liveId = null;
+    if (!text) return;
+    this.addLine({ id, t, text });
+    const behind = (Date.now() - stream.startedAt) / 1000 + stream.offsetSec - line.endSec;
+    console.log(`[backend] ${id} @${t}s (${behind.toFixed(1)} s behind, ${line.engine}): ${text}`);
+  }
+
+  private sttStatus(status: SttStatus, stream: Stream): void {
+    if (this.disposed || stream.epoch !== this.epoch) return;
+    console.log(`[backend] speech: ${status.state} on ${status.engine}${status.message ? ` (${status.message})` : ''}`);
+    if (status.state === 'offline') this.send({ type: 'status', status: 'offline' });
+    else if (status.state === 'listening' && status.engine === 'soniox' && status.message) this.send({ type: 'status', status: 'listening' });
+    else if (status.state === 'error') this.sttProblem(status.message);
+  }
+
+  private sttProblem(problem: string): void {
+    console.error(`[backend] speech service: ${problem}`);
+    if (this.sttFailing || this.disposed) return;
+    this.sttFailing = true;
+    this.send({
+      type: 'error',
+      code: 'model_unavailable',
+      message: 'Linaw can’t turn speech into text right now. Check that the speech service is running (pnpm stt).',
+    });
+  }
+
   private heard(utterance: Utterance, stream: Stream): void {
     if (this.disposed || stream.epoch !== this.epoch) return;
-    const id = `${RUN}.${this.epoch}-s${++this.lineCount}`;
+    const id = this.nextLineId();
     const t = Math.round((stream.offsetSec + utterance.startSec) * 10) / 10;
     const cutAt = Date.now();
     const wav = toWav(utterance.samples, SAMPLE_RATE);

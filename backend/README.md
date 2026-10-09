@@ -1,6 +1,6 @@
 # Linaw backend
 
-Hears the hearing and explains its legal terms, all on this computer. ffmpeg decodes the UI's audio, whisper.cpp turns speech into text, and Ollama writes the explanations. It serves the contract on `ws://localhost:8765`, so the UI works with it unchanged.
+Hears the hearing and explains its legal terms. ffmpeg decodes the UI's audio, the speech service in [`stt/`](../stt/README.md) turns it into text (Soniox when online, local Whisper when not), and Ollama writes the explanations. It serves the contract on `ws://localhost:8765`, so the UI works with it unchanged.
 
 Plan, decisions and the glossary format: [`docs/backend-plan.md`](../docs/backend-plan.md).
 
@@ -9,17 +9,21 @@ Plan, decisions and the glossary format: [`docs/backend-plan.md`](../docs/backen
 1. Node 20+ and pnpm 12 (`npm i -g pnpm@12.10.1`), then `pnpm install` at the repo root.
 2. ffmpeg: `winget install Gyan.FFmpeg`, then open a new terminal.
 3. Ollama, in PowerShell: `irm https://ollama.com/install.ps1 | iex`, then `ollama pull gemma4:e4b`.
-4. whisper.cpp: download `whisper-bin-x64.zip` from the [whisper.cpp releases](https://github.com/ggml-org/whisper.cpp/releases) and the `ggml-small.bin` model from [Hugging Face](https://huggingface.co/ggml-org/whisper.cpp). Keep both outside the repo.
+4. The speech service: install [uv](https://docs.astral.sh/uv/getting-started/installation/), run `pnpm stt:setup` (Python packages and the ~1 GB Whisper model, once), then copy `stt/.env.example` to `stt/.env` and set `SONIOX_API_KEY`. Without a key it runs on local Whisper only.
 
 ## Run
 
 ```sh
-whisper-server -m ggml-small.bin --host 127.0.0.1 --port 8178   # speech to text; leave it running
+pnpm stt                     # speech service; leave it running
 pnpm backend                 # prints a checklist of what it found
-pnpm dev:overlay:backend     # or overlay window + UI + backend together
+pnpm dev:overlay:backend     # or overlay window + UI + speech service + backend together
 ```
 
-Settings live in `.env` (copy `.env.example`): ports, the ffmpeg path, the Whisper language, and the Ollama model. For faster but less accurate answers, `ollama pull gemma3:4b` and set `OLLAMA_MODEL=gemma3:4b`.
+Settings live in `.env` (copy `.env.example`): ports, the ffmpeg path, the speech engine, and the Ollama model. For faster but less accurate answers, `ollama pull gemma3:4b` and set `OLLAMA_MODEL=gemma3:4b`. `STT=whisper-server` switches back to whisper.cpp only (download `whisper-bin-x64.zip` from the [whisper.cpp releases](https://github.com/ggml-org/whisper.cpp/releases) and `ggml-small.bin` from [Hugging Face](https://huggingface.co/ggml-org/whisper.cpp), then run `whisper-server -m ggml-small.bin --host 127.0.0.1 --port 8178`).
+
+## Speech to text
+
+The backend streams each session's audio to the speech service and gets lines back as they are spoken: draft text while a sentence is in progress (`final: false`), then the final line, which is what glossary terms and cards are found in. If the internet drops, the service switches to local Whisper on its own and the UI shows "Offline mode — still working"; it switches back when the internet returns. Details: [`stt/README.md`](../stt/README.md).
 
 ## Check it
 

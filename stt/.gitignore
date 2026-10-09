@@ -1,0 +1,43 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+venv/
+
+# Secrets: never commit real keys. Only the template is tracked.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Whisper models (hundreds of MB; each person runs scripts/download_models.py)
+models/
+.cache/
+
+# Test media (large, and broadcast clips may be copyrighted)
+samples/
+*.wav
+*.mp3
+*.m4a
+*.mp4
+*.webm
+*.ogg
+
+# Logs and tooling
+*.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linaw STT Harness</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #111111; --muted: #6b6b6b; --line: #e3e3e3;
+    --soft: #f5f5f5; --strong: #000000; --inv: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 14px/1.5 -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 14px 24px; border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+  header h1 span { color: var(--muted); font-weight: 400; }
+  main { display: grid; grid-template-columns: 340px 1fr; gap: 0; min-height: calc(100vh - 57px); }
+  aside { border-right: 1px solid var(--line); padding: 20px 24px; display: flex; flex-direction: column; gap: 22px; }
+  section h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+    margin: 0 0 8px; font-weight: 600; }
+  svg.i { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round; }
+  button, select { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 6px; padding: 7px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  button:hover:not(:disabled), select:hover { border-color: var(--fg); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .sources { display: flex; flex-direction: column; gap: 6px; }
+  .sources button { justify-content: flex-start; width: 100%; }
+  .sources button[aria-pressed="true"] { border-color: var(--strong); box-shadow: inset 0 0 0 1px var(--strong); }
+  .sources small { color: var(--muted); margin-left: auto; }
+  #fileBox { display: none; margin-top: 8px; }
+  #fileBox.show { display: block; }
+  #fileBox input { font-size: 12px; width: 100%; }
+  #player { width: 100%; max-height: 160px; margin-top: 8px; background: #000; border-radius: 6px; display: none; }
+  #player.show { display: block; }
+  select { width: 100%; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; justify-content: center; }
+  button.primary { background: var(--strong); color: var(--inv); border-color: var(--strong); }
+  button.primary:hover:not(:disabled) { opacity: 0.85; }
+  #simBtn[aria-pressed="true"] { background: var(--fg); color: var(--inv); border-color: var(--fg); }
+  .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--fg); border-radius: 999px;
+    padding: 4px 12px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .pill[data-state="listening"] .dot { background: var(--fg); animation: pulse 1.4s infinite; }
+  .pill[data-state="offline"] .dot { background: transparent; border: 1.5px solid var(--fg); }
+  .pill[data-state="error"], .pill[data-state="audio_lost"] { background: var(--fg); color: var(--inv); }
+  .pill[data-state="error"] .dot, .pill[data-state="audio_lost"] .dot { background: var(--inv); }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+  .hdr-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 6px;
+    padding: 4px 10px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--muted); white-space: nowrap; }
+  .badge[data-engine="soniox"], .badge[data-engine="local"] { border-color: var(--fg); color: var(--fg); }
+  .badge[data-engine="local"] { background: var(--fg); color: var(--inv); }
+  .badge svg.i { width: 14px; height: 14px; }
+  .badge .ic-local, .badge[data-engine="local"] .ic-cloud { display: none; }
+  .badge[data-engine="local"] .ic-local { display: inline; }
+  .badge.flip { animation: flip 0.5s ease; }
+  @keyframes flip { 0% { transform: scaleY(1); } 40% { transform: scaleY(0.1); } 100% { transform: scaleY(1); } }
+  .note { color: var(--muted); font-size: 11px; margin-top: 6px; line-height: 1.4; }
+  #statusMsg { color: var(--muted); font-size: 12px; margin-top: 6px; min-height: 18px; overflow-wrap: anywhere; }
+  dl { display: grid; grid-template-columns: 1fr auto; margin: 0; row-gap: 4px; font-size: 13px; }
+  dt { color: var(--muted); }
+  dd { margin: 0; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+  .meter { height: 6px; background: var(--soft); border-radius: 3px; overflow: hidden; margin: 2px 0 10px; }
+  .meter div { height: 100%; width: 0; background: var(--fg); transition: width 80ms linear; }
+  .transcript { padding: 20px 28px; display: flex; flex-direction: column; min-width: 0; }
+  .transcript-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .transcript-head a { color: var(--muted); font-size: 12px; }
+  #lines { flex: 1; overflow-y: auto; max-height: calc(100vh - 140px); padding-right: 8px; }
+  .seg { display: grid; grid-template-columns: 92px 64px 1fr; gap: 12px; padding: 7px 0;
+    border-bottom: 1px solid var(--soft); align-items: baseline; }
+  .seg .t { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .seg .e { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid var(--line);
+    border-radius: 4px; padding: 0 5px; text-align: center; color: var(--muted); }
+  .seg .e.local { border-color: var(--fg); color: var(--fg); }
+  .seg .x { color: var(--fg); font-size: 15px; }
+  .seg.partial .x { color: var(--muted); font-style: italic; }
+  .empty { color: var(--muted); padding: 40px 0; text-align: center; }
+  .sys { color: var(--muted); font-size: 12px; padding: 6px 0 6px 168px; border-bottom: 1px solid var(--soft); }
+  @media (max-width: 800px) {
+    main { grid-template-columns: 1fr; }
+    aside { border-right: 0; border-bottom: 1px solid var(--line); }
+    header { padding: 12px 16px; flex-wrap: wrap; }
+    .transcript { padding: 16px; }
+    .seg { grid-template-columns: 80px 1fr; }
+    .seg .e { grid-row: 1; grid-column: 2; justify-self: start; }
+    .seg .x { grid-column: 1 / -1; }
+    .sys { padding-left: 0; }
+    #lines { max-height: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Linaw <span>speech pipeline test harness</span></h1>
+  <div class="hdr-right">
+    <span class="badge" id="badge" data-engine="none" title="Engine producing the transcript">
+      <svg class="i ic-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg>
+      <svg class="i ic-local" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>
+      <span id="badgeText">No engine</span>
+    </span>
+    <div class="pill" id="pill" data-state="idle"><span class="dot"></span><span id="pillText">Idle</span></div>
+  </div>
+</header>
+
+<main>
+<aside>
+  <section>
+    <h2>Source</h2>
+    <div class="sources" id="sources">
+      <button data-src="tab" aria-pressed="true">
+        <svg class="i" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Share a tab <small>Chrome</small>
+      </button>
+      <button data-src="file" aria-pressed="false">
+        <svg class="i" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><circle cx="10" cy="16" r="2"/><path d="M12 16v-5l3 1"/></svg>
+        Use a test file
+      </button>
+      <button data-src="mic" aria-pressed="false">
+        <svg class="i" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></svg>
+        Use microphone <small>optional</small>
+      </button>
+    </div>
+    <div id="fileBox"><input type="file" id="fileInput" accept="audio/*,video/*"></div>
+    <video id="player" controls playsinline></video>
+  </section>
+
+  <section>
+    <h2>Engine mode</h2>
+    <select id="modeSel">
+      <option value="auto">Auto (Soniox if online, else local)</option>
+      <option value="soniox">Soniox (cloud)</option>
+      <option value="local">Local (offline engine)</option>
+      <option value="local_only">Local only (never contacts the cloud)</option>
+    </select>
+    <div id="engineInfo" style="color:var(--muted);font-size:12px;margin-top:6px"></div>
+  </section>
+
+  <section>
+    <div class="row">
+      <button class="primary" id="startBtn">
+        <svg class="i" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg> Start
+      </button>
+      <button id="stopBtn" disabled>
+        <svg class="i" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1"/></svg> Stop
+      </button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="simBtn" aria-pressed="false">
+        <svg class="i" viewBox="0 0 24 24"><path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M2 8.8a15 15 0 0 1 4.2-2.6M10.7 5.1A15 15 0 0 1 22 8.8M5 12.9a10 10 0 0 1 5.2-2.7M16.8 13.4a10 10 0 0 0-2.2-1.6M12 20h.01"/></svg>
+        <span id="simText">Simulate offline</span>
+      </button>
+    </div>
+    <div id="statusMsg"></div>
+  </section>
+
+  <section>
+    <h2>Cloud meter</h2>
+    <dl>
+      <dt>Cloud bytes sent</dt><dd id="mBytes">0 B</dd>
+      <dt>Session time</dt><dd id="mTime">0:00</dd>
+      <dt>First-word latency</dt><dd id="mLat">-</dd>
+      <dt>Cloud-only estimate</dt><dd id="mCost">$0.0000</dd>
+    </dl>
+    <div class="note" id="mNote">What a cloud-only version would have cost for this session, at CLOUD_COST_PER_HOUR_ESTIMATE.</div>
+  </section>
+
+  <section>
+    <h2>Debug</h2>
+    <div style="font-size:13px;color:var(--muted)">Audio level</div>
+    <div class="meter"><div id="meter"></div></div>
+    <dl>
+      <dt>Engine</dt><dd id="dEngine">-</dd>
+      <dt>Audio clock</dt><dd id="dClock">0.0 s</dd>
+      <dt>Chunks sent</dt><dd id="dChunks">0</dd>
+      <dt>Avg latency / segment</dt><dd id="dLatency">-</dd>
+      <dt>Last latency</dt><dd id="dLastLat">-</dd>
+      <dt>Local real-time factor</dt><dd id="dRtf">-</dd>
+      <dt>Local backlog</dt><dd id="dLag">-</dd>
+      <dt>Local audio skipped</dt><dd id="dDrop">-</dd>
+      <dt>Local engine</dt><dd id="dLocalEngine">-</dd>
+      <dt>Local model</dt><dd id="dLocalModel">-</dd>
+      <dt>Local backend</dt><dd id="dLocalBackend">-</dd>
+      <dt>Integration</dt><dd id="dLocalIntegration">-</dd>
+      <dt>Local standby socket</dt><dd id="dStandby">-</dd>
+      <dt>Bus</dt><dd id="dBus">connecting</dd>
+    </dl>
+  </section>
+</aside>
+
+<section class="transcript">
+  <div class="transcript-head">
+    <h2 style="margin:0">Live transcript</h2>
+    <a href="/api/session/transcript" target="_blank" rel="noopener">GET /api/session/transcript</a>
+  </div>
+  <div id="lines"><div class="empty" id="empty">Pick a source and press Start.</div></div>
+</section>
+</main>
+
+<script>
+"use strict";
+const SR = 16000;                 // output sample rate
+const CHUNK = 1600;               // 100 ms at 16 kHz
+const RING_SECONDS = 20;          // audio kept for replay when switching engines
+const SEGMENT_MAX_S = 8;          // Soniox: cut a segment after ~8 s without an endpoint
+const LOCAL_REPLAY_MAX_S = 6;     // on fallback, replay at most this much audio so local partials resume fast
+const METRICS_EVERY_MS = 2000;    // cloud meter report cadence
+const SONIOX_STALL_MS = 5000;     // no Soniox message for this long: probe connectivity
+const SONIOX_DEAD_BUFFER = 320000; // ~10 s of unsent audio queued on the socket: treat it as dead
+const RECONNECT_MIN_MS = 5000;    // while on local after a fallback, retry Soniox this often...
+const RECONNECT_MAX_MS = 60000;   // ...backing off to this after failed attempts
+const $ = (id) => document.getElementById(id);
+
+// ---------------------------------------------------------------- AudioWorklet
+// Downmix to mono, resample to 16 kHz (box-filter decimation), emit Int16 PCM
+// in 100 ms chunks. Inlined via Blob so the harness stays a single file.
+const WORKLET_SRC = `
+class PcmChunker extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.ratio = sampleRate / ${SR};
+    this.acc = 0; this.accN = 0; this.t = 0;
+    this.out = new Int16Array(${CHUNK}); this.n = 0; this.sq = 0;
+  }
+  process(inputs) {
+    const input = inputs[0];
+    if (!input || input.length === 0) return true;
+    const chs = input.length, len = input[0].length;
+    for (let i = 0; i < len; i++) {
+      let x = 0;
+      for (let c = 0; c < chs; c++) x += input[c][i];
+      this.acc += x / chs; this.accN++; this.t += 1;
+      if (this.t >= this.ratio) {
+        this.t -= this.ratio;
+        let y = this.acc / this.accN; this.acc = 0; this.accN = 0;
+        y = y > 1 ? 1 : y < -1 ? -1 : y;
+        this.sq += y * y;
+        this.out[this.n++] = y < 0 ? y * 0x8000 : y * 0x7fff;
+        if (this.n === ${CHUNK}) {
+          const buf = this.out.buffer;
+          this.port.postMessage({ pcm: buf, rms: Math.sqrt(this.sq / ${CHUNK}) }, [buf]);
+          this.out = new Int16Array(${CHUNK}); this.n = 0; this.sq = 0;
+        }
+      }
+    }
+    return true;
+  }
+}
+registerProcessor("pcm-chunker", PcmChunker);
+`;
+
+// ---------------------------------------------------------------- state
+const S = {
+  cfg: null,
+  source: "tab",
+  running: false,
+  engine: null,              // "soniox" | "local" | null while switching
+  fellBack: false,
+  mode: "auto",              // mode chosen at Start
+  wantCloud: false,          // on local only because Soniox was unreachable: switch back when it returns
+  retryAt: 0, retryDelay: RECONNECT_MIN_MS, probing: false, switching: false,
+  simulatedOffline: false,
+  media: null, ctx: null, node: null,
+  samples: 0,                // total 16 kHz samples captured this session (audio clock)
+  ring: [],                  // [{start, pcm}] recent chunks for replay
+  chunkTimes: [],            // [{end, wall}] maps audio time -> capture wall time
+  chunksSent: 0,
+  lastChunkWall: 0, lastSoundWall: 0, audioLost: false,
+  latencies: [],
+  lastFinalEnd: 0,
+  sonioxWs: null, sx: null,
+  localWs: null, localReady: false, localDone: null,
+  localStandby: null,        // pre-opened /ws/stt-local socket while Soniox runs (instant fallback)
+  cloudDisabled: false,      // "Local only": no connectivity check, no temp key, no Soniox socket
+  lastEngine: null,
+  cloudBytes: 0, sessionWall: 0, coveredUntil: 0, fwSum: 0, fwN: 0, metricsTimer: null,
+  watchdog: null,
+};
+
+const audioClock = () => S.samples / SR;
+
+// ---------------------------------------------------------------- session bus
+let bus = null; const busQueue = [];
+function connectBus() {
+  bus = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/session`);
+  bus.onopen = () => { $("dBus").textContent = "connected"; while (busQueue.length) bus.send(busQueue.shift()); };
+  bus.onclose = () => { $("dBus").textContent = "reconnecting"; setTimeout(connectBus, 1000); };
+  bus.onmessage = (ev) => {
+    let m; try { m = JSON.parse(ev.data); } catch { return; }
+    if (m.type === "transcript") renderSegment(m);
+    else if (m.type === "status") renderStatus(m);
+    else if (m.type === "metrics") renderMetrics(m);
+  };
+}
+function busSend(obj) {
+  const data = JSON.stringify(obj);
+  if (bus && bus.readyState === WebSocket.OPEN) bus.send(data);
+  else if (busQueue.length < 500) busQueue.push(data);
+}
+function status(state, engine, message = "") { busSend({ type: "status", state, engine, message }); }
+
+// ---------------------------------------------------------------- rendering
+const ENGINE_LABEL = { soniox: "Soniox", local: "Local Whisper" };
+const STATE_LABEL = { listening: "Listening", processing: "Processing", offline: "Offline",
+                      audio_lost: "Audio lost", error: "Error", idle: "Idle" };
+function setPill(state, engine) {
+  $("pill").dataset.state = state;
+  $("pillText").textContent = STATE_LABEL[state] + (engine ? " · " + (ENGINE_LABEL[engine] || engine) : "");
+}
+function localName() {
+  return S.cfg && S.cfg.local.engine === "whisperlivekit" ? "WhisperLiveKit" : "Whisper (chunked)";
+}
+function setBadge(engine) {
+  const b = $("badge"), key = engine === "soniox" || engine === "local" ? engine : "none";
+  if (b.dataset.engine === key) return;
+  b.dataset.engine = key;
+  $("badgeText").textContent = key === "soniox" ? "Soniox cloud" : key === "local" ? "Local \u00b7 " + localName() : "No engine";
+  b.classList.remove("flip"); void b.offsetWidth; b.classList.add("flip");
+}
+function fmtBytes(n) {
+  if (n < 1024) return `${n} B`;
+  if (n < 1048576) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / 1048576).toFixed(2)} MB`;
+}
+function renderMetrics(m) {
+  $("mBytes").textContent = fmtBytes(m.cloud_bytes_sent);
+  const t = m.session_seconds;
+  $("mTime").textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
+  $("mLat").textContent = m.avg_first_word_latency_ms == null ? "-" : `${m.avg_first_word_latency_ms} ms`;
+  $("mCost").textContent = `$${m.cloud_cost_estimate.toFixed(4)}`;
+}
+function renderStatus(m) {
+  setPill(m.state, m.engine);
+  if (S.running) setBadge(m.engine);
+  $("statusMsg").textContent = m.message || "";
+  if (m.message) sysLine(`${STATE_LABEL[m.state] || m.state}: ${m.message}`);
+}
+const fmt = (s) => { s = Math.max(0, s); const m = Math.floor(s / 60); return `${m}:${(s % 60).toFixed(1).padStart(4, "0")}`; };
+let partialEl = null;
+function linesEl() { $("empty")?.remove(); return $("lines"); }
+function stickToBottom(fn) {
+  const box = $("lines"); const atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+  fn(); if (atEnd) box.scrollTop = box.scrollHeight;
+}
+function sysLine(text) {
+  stickToBottom(() => { const d = document.createElement("div"); d.className = "sys"; d.textContent = text;
+    linesEl().insertBefore(d, partialEl && partialEl.isConnected ? partialEl : null); });
+}
+function renderSegment(m) {
+  stickToBottom(() => {
+    let el = document.getElementById("seg-" + m.id);
+    if (!m.final && !m.text) { if (el && el.classList.contains("partial")) el.remove(); return; }
+    if (!el) {
+      el = document.createElement("div"); el.id = "seg-" + m.id;
+      el.innerHTML = '<span class="t"></span><span class="e"></span><span class="x"></span>';
+      linesEl().appendChild(el);
+    }
+    if (!m.final && partialEl && partialEl !== el && partialEl.classList.contains("partial")) partialEl.remove();
+    el.className = "seg" + (m.final ? "" : " partial");
+    el.querySelector(".t").textContent = `${fmt(m.start)}–${fmt(m.end)}`;
+    const e = el.querySelector(".e"); e.textContent = m.engine; e.className = "e " + m.engine;
+    el.querySelector(".x").textContent = m.text;
+    if (S.running && m.text) recordFirstWord(m.end);
+    if (m.final) {
+      if (partialEl === el) partialEl = null;
+      S.lastFinalEnd = Math.max(S.lastFinalEnd, m.end);
+      if (S.running) recordLatency(m.end);
+    } else partialEl = el;
+  });
+}
+// Capture wall time (performance.now) of the chunk holding audio time `sec`, or null.
+function wallAt(sec) {
+  const a = S.chunkTimes; if (!a.length || sec > a[a.length - 1].end + 1) return null;
+  let lo = 0, hi = a.length - 1;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid].end < sec) lo = mid + 1; else hi = mid; }
+  return a[lo].end < sec - 1 ? null : a[lo].wall;
+}
+// First-word latency: whenever any text (partial or final) first covers new
+// audio, i.e. its `end` moves past what was covered before, measure the time
+// since that audio chunk was captured and sent. Averaged over the session.
+function recordFirstWord(endSec) {
+  if (endSec <= S.coveredUntil) return;
+  S.coveredUntil = endSec;
+  const w = wallAt(endSec); if (w == null) return;
+  S.fwSum += performance.now() - w; S.fwN++;
+}
+function reportMetrics() {
+  busSend({ type: "metrics_report", engine: S.engine || S.lastEngine || "local",
+    cloud_bytes_sent: S.cloudBytes, session_seconds: (performance.now() - S.sessionWall) / 1000,
+    avg_first_word_latency_ms: S.fwN ? S.fwSum / S.fwN : null });
+}
+function recordLatency(endSec) {
+  // Wall time between capturing the segment's last audio and receiving it final.
+  const w = wallAt(endSec); if (w == null) return;
+  const lat = performance.now() - w;
+  S.latencies.push(lat); if (S.latencies.length > 200) S.latencies.shift();
+  const avg = S.latencies.reduce((x, y) => x + y, 0) / S.latencies.length;
+  $("dLatency").textContent = `${(avg / 1000).toFixed(2)} s`;
+  $("dLastLat").textContent = `${(lat / 1000).toFixed(2)} s`;
+}
+
+// ---------------------------------------------------------------- audio capture
+async function acquireStream() {
+  if (S.source === "tab") {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    stream.getVideoTracks().forEach((t) => { t.stop(); stream.removeTrack(t); });
+    if (!stream.getAudioTracks().length)
+      throw new Error('No audio in the shared tab. Share a Chrome tab and tick "Share tab audio".');
+    return stream;
+  }
+  if (S.source === "file") {
+    const el = $("player");
+    if (!el.src) throw new Error("Choose a test file first.");
+    await el.play();
+    const stream = el.captureStream ? el.captureStream() : el.mozCaptureStream();
+    if (!stream.getAudioTracks().length)
+      await new Promise((res, rej) => { stream.onaddtrack = res; setTimeout(() => rej(new Error("The file has no audio track.")), 3000); });
+    return stream;
+  }
+  return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: true } });
+}
+
+async function startAudio(stream) {
+  S.ctx = new AudioContext();
+  await S.ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([WORKLET_SRC], { type: "application/javascript" })));
+  const src = S.ctx.createMediaStreamSource(new MediaStream(stream.getAudioTracks()));
+  S.node = new AudioWorkletNode(S.ctx, "pcm-chunker", { numberOfOutputs: 1, outputChannelCount: [1] });
+  const mute = S.ctx.createGain(); mute.gain.value = 0;   // keep the graph pulled without double playback
+  src.connect(S.node).connect(mute).connect(S.ctx.destination);
+  S.node.port.onmessage = (ev) => onChunk(new Int16Array(ev.data.pcm), ev.data.rms);
+  stream.getAudioTracks()[0].addEventListener("ended", () => {
+    if (!S.running) return;
+    status("audio_lost", S.engine || "local", "The audio source ended (tab sharing stopped).");
+    stop();
+  });
+}
+
+function onChunk(pcm, rms) {
+  const start = S.samples;
+  S.samples += pcm.length;
+  const now = performance.now();
+  S.lastChunkWall = now;
+  if (rms > 0.001) S.lastSoundWall = now;
+  S.ring.push({ start, pcm });
+  while (S.ring.length && S.ring[0].start < S.samples - RING_SECONDS * SR) S.ring.shift();
+  S.chunkTimes.push({ end: S.samples / SR, wall: now });
+  if (S.chunkTimes.length > 3000) S.chunkTimes.splice(0, 1000);
+  $("meter").style.width = Math.min(100, Math.max(0, (20 * Math.log10(rms + 1e-9) + 60) / 60 * 100)) + "%";
+  $("dClock").textContent = audioClock().toFixed(1) + " s";
+
+  if (S.engine === "soniox" && S.sx && S.sx.ready) sendAudio(S.sonioxWs, pcm);
+  else if (S.engine === "local" && S.localReady) sendAudio(S.localWs, pcm);
+  // otherwise an engine is connecting; the ring buffer replays this chunk on attach
+}
+function sendAudio(ws, pcm) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(pcm.buffer);
+  S.chunksSent++; $("dChunks").textContent = S.chunksSent;
+  if (S.sx && ws === S.sonioxWs) { S.sx.lastAudioWall = performance.now(); S.cloudBytes += pcm.byteLength; }
+}
+// Send buffered audio from `fromSec` onward. Returns the actual start time used.
+function replayRing(ws, fromSec) {
+  const from = Math.round(fromSec * SR);
+  const oldest = S.ring.length ? S.ring[0].start : S.samples;
+  const startSample = Math.min(Math.max(from, oldest), S.samples);
+  return { startSample, send: () => {
+    for (const c of S.ring) {
+      const end = c.start + c.pcm.length;
+      if (end <= startSample) continue;
+      sendAudio(ws, c.start >= startSample ? c.pcm : c.pcm.slice(startSample - c.start));
+    }
+  } };
+}
+
+// ---------------------------------------------------------------- Soniox engine
+async function fetchTempKey() {
+  if (S.cloudDisabled) throw new Error("Local only mode: cloud transcription is disabled");
+  const r = await fetch("/api/soniox/temp-key", { method: "POST" });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || `temp key HTTP ${r.status}`);
+  return (await r.json()).api_key;
+}
+async function startSoniox(fromSec, key = null) {
+  const api_key = key ?? await fetchTempKey();
+  if (!S.running || S.engine !== "soniox") return;    // stopped or fell back while fetching the key
+  const ws = new WebSocket(S.cfg.soniox.ws_url, ["soniox-api-key", api_key]);
+  ws.binaryType = "arraybuffer";
+  S.sonioxWs = ws;
+  S.sx = { ready: false, offset: 0, final: [], nonFinal: [], segWall: 0, finalProcMs: 0,
+           lastAudioWall: performance.now(), lastMsgWall: performance.now(), closing: false, finished: null, partialTimer: null, lastPartial: "" };
+  await new Promise((resolve, reject) => {
+    ws.onopen = () => {
+      if (ws !== S.sonioxWs || !S.running) { ws.close(); return resolve(); }
+      // Auth is the subprotocol only; the start message carries no api_key.
+      ws.send(JSON.stringify(S.cfg.soniox.start_config));
+      const rp = replayRing(ws, fromSec);
+      S.sx.offset = rp.startSample / SR;
+      rp.send();
+      S.sx.ready = true;
+      resolve();
+    };
+    ws.onerror = () => {};            // details arrive via onclose
+    ws.onclose = (ev) => reject(new Error(`Soniox connection failed (code ${ev.code})`));
+  });
+  ws.onmessage = (ev) => onSonioxMessage(ws, ev);
+  ws.onclose = (ev) => {
+    if (ws !== S.sonioxWs) return;
+    S.sx.finished?.();
+    if (S.running && S.engine === "soniox" && !S.sx.closing)
+      fallbackToLocal(`Soniox connection closed (code ${ev.code}${ev.reason ? ", " + ev.reason : ""})`, false);
+  };
+}
+
+const tokStart = (t) => (t.start_ms ?? null);
+const tokEnd = (t) => (t.end_ms ?? null);
+function onSonioxMessage(ws, ev) {
+  if (ws !== S.sonioxWs) return;
+  S.sx.lastMsgWall = performance.now();
+  let m; try { m = JSON.parse(ev.data); } catch { return; }
+  const sx = S.sx;
+  if (m.error_code != null || m.error_type) {        // error frames arrive after open
+    const code = String(m.error_code ?? m.error_type);
+    const why = {
+      "401": "Soniox rejected the temporary key (401)",
+      "429": "Soniox rate or concurrency limit reached (429)",
+      "temp_api_key_session_expired": "Soniox session reached its maximum duration",
+    }[code] || `Soniox error ${code}`;
+    sx.closing = true;
+    fallbackToLocal(`${why}${m.error_message ? ": " + m.error_message : ""}`, false);
+    return;
+  }
+  const nonFinal = [];
+  for (const t of m.tokens || []) {
+    if (t.is_final) {
+      if (t.text === "<end>") { flushSoniox(); continue; }   // endpoint marker: final, not part of text
+      if (sx.final.length && /^\s/.test(t.text) && sonioxSegLength() >= SEGMENT_MAX_S) flushSoniox();
+      if (!sx.final.length) sx.segWall = performance.now();
+      sx.final.push(t);
+    } else if (t.text !== "<end>") nonFinal.push(t);
+  }
+  sx.nonFinal = nonFinal;                                    // non-final tokens are replaced every message
+  if (m.final_audio_proc_ms != null) sx.finalProcMs = m.final_audio_proc_ms;
+  schedulePartial();
+  if (m.finished) sx.finished?.();
+}
+function sonioxSegLength() {
+  const f = S.sx.final, a = tokStart(f[0]), b = tokEnd(f[f.length - 1]);
+  if (a != null && b != null) return (b - a) / 1000;
+  return (performance.now() - S.sx.segWall) / 1000;
+}
+function sonioxSpan(tokens) {
+  const sx = S.sx, a = tokStart(tokens[0]), b = tokEnd(tokens[tokens.length - 1]);
+  const start = a != null ? sx.offset + a / 1000 : S.lastFinalEnd;
+  const end = b != null ? sx.offset + b / 1000 : Math.max(start, sx.offset + sx.finalProcMs / 1000);
+  return { start, end };
+}
+function flushSoniox() {
+  const sx = S.sx; if (!sx || !sx.final.length) return null;
+  const text = sx.final.map((t) => t.text).join("").trim();
+  const { start, end } = sonioxSpan(sx.final);
+  sx.final = [];
+  if (!text) return null;
+  S.lastFinalEnd = Math.max(S.lastFinalEnd, end);
+  busSend({ type: "transcript", text, start, end, final: true, engine: "soniox" });
+  sx.lastPartial = "";
+  return end;
+}
+function schedulePartial() {
+  const sx = S.sx; if (sx.partialTimer) return;
+  sx.partialTimer = setTimeout(() => {
+    sx.partialTimer = null;
+    if (S.sx !== sx || S.engine !== "soniox") return;
+    const toks = sx.final.concat(sx.nonFinal);
+    const text = toks.map((t) => t.text).join("").trim();
+    if (text === sx.lastPartial) return;
+    sx.lastPartial = text;
+    const span = toks.length ? sonioxSpan(toks) : { start: S.lastFinalEnd, end: S.lastFinalEnd };
+    busSend({ type: "transcript", text, start: span.start, end: span.end, final: false, engine: "soniox" });
+  }, 150);
+}
+async function stopSoniox() {
+  const ws = S.sonioxWs, sx = S.sx; if (!ws) return;
+  sx.closing = true;
+  if (ws.readyState === WebSocket.OPEN) {
+    const done = new Promise((res) => { sx.finished = res; });
+    ws.send("");                                   // empty frame = end of audio
+    await Promise.race([done, new Promise((r) => setTimeout(r, 4000))]);
+  }
+  flushSoniox();
+  clearTimeout(sx.partialTimer);
+  try { ws.close(); } catch {}
+  S.sonioxWs = null;
+}
+
+// ---------------------------------------------------------------- local engine
+const num = (x, d) => (x == null ? "-" : x.toFixed(d));
+// Open a /ws/stt-local socket. It stays idle (standby) until startLocal sends "start".
+function openLocalSocket() {
+  return new Promise((resolve, reject) => {
+    const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/stt-local`);
+    ws.binaryType = "arraybuffer";
+    let opened = false;
+    ws.onopen = () => { opened = true; resolve(ws); };
+    ws.onmessage = (ev) => {
+      let m; try { m = JSON.parse(ev.data); } catch { return; }
+      if (m.type === "stats") {
+        $("dRtf").textContent = m.rtf == null && m.avg_rtf == null ? "-" : `${num(m.rtf, 2)} (avg ${num(m.avg_rtf, 2)})`;
+        $("dLag").textContent = `${num(m.lag_seconds, 1)} s`;
+        $("dDrop").textContent = `${num(m.dropped_seconds, 1)} s`;
+      } else if (m.type === "error") {
+        ws.fatal = m.message;
+      } else if (m.type === "done") S.localDone?.();
+    };
+    ws.onclose = () => {
+      if (ws === S.localStandby) { S.localStandby = null; $("dStandby").textContent = "closed"; }
+      if (ws !== S.localWs) return;
+      S.localDone?.();
+      if (!opened) return reject(new Error("Could not connect to the local engine"));
+      if (S.running && S.engine === "local" && !ws.fatal) {
+        S.localReady = false;
+        status("error", "local", "Lost connection to the local engine; reconnecting");
+        setTimeout(() => { if (S.running && S.engine === "local")
+          startLocal(Math.max(S.lastFinalEnd, audioClock() - 10)).catch((e) => status("error", "local", e.message)); }, 1000);
+      }
+    };
+    setTimeout(() => { if (!opened) { try { ws.close(); } catch {} reject(new Error("Could not connect to the local engine")); } }, 5000);
+  });
+}
+// Start (or resume) local transcription from audio time `fromSec`, replaying
+// at most `maxReplay` seconds from the ring buffer. Uses the standby socket if open.
+async function startLocal(fromSec, maxReplay = Infinity) {
+  let ws = S.localStandby; S.localStandby = null;
+  if (!ws || ws.readyState !== WebSocket.OPEN || ws.fatal) ws = await openLocalSocket();
+  if (ws.fatal) throw new Error(ws.fatal);
+  S.localWs = ws; S.localReady = false;
+  $("dStandby").textContent = "in use";
+  const rp = replayRing(ws, Math.max(fromSec, audioClock() - maxReplay));
+  ws.send(JSON.stringify({ type: "start", offset_seconds: rp.startSample / SR }));
+  rp.send();
+  S.localReady = true;
+}
+function preopenLocal() {
+  if (S.cloudDisabled || !S.cfg.local.available || S.localStandby) return;
+  openLocalSocket().then((ws) => {
+    if (!S.running || S.engine !== "soniox") { try { ws.close(); } catch {} return; }
+    S.localStandby = ws; $("dStandby").textContent = "open (standby)";
+  }).catch(() => { $("dStandby").textContent = "failed"; });
+}
+// End the local session without flushing; Soniox re-transcribes from the last final.
+async function abortLocal() {
+  if (S.localStandby) { try { S.localStandby.close(); } catch {} S.localStandby = null; }
+  const ws = S.localWs; if (!ws) return;
+  S.localReady = false; S.localWs = null;
+  if (ws.readyState === WebSocket.OPEN) {
+    const done = new Promise((res) => { S.localDone = res; });
+    ws.send(JSON.stringify({ type: "abort" }));
+    await Promise.race([done, new Promise((r) => setTimeout(r, 3000))]);
+  }
+  try { ws.close(); } catch {}
+}
+async function stopLocal() {
+  if (S.localStandby) { try { S.localStandby.close(); } catch {} S.localStandby = null; }
+  const ws = S.localWs; if (!ws) return;
+  S.localReady = false; S.localWs = null;
+  if (ws.readyState === WebSocket.OPEN) {
+    status("processing", "local", "Finishing local transcription");
+    const done = new Promise((res) => { S.localDone = res; });
+    ws.send(JSON.stringify({ type: "stop" }));
+    await Promise.race([done, new Promise((r) => setTimeout(r, 30000))]);
+  }
+  try { ws.close(); } catch {}
+}
+
+// ---------------------------------------------------------------- mode switching
+async function fallbackToLocal(reason, offline) {
+  if (!S.running || S.fellBack || S.engine !== "soniox") return;
+  S.fellBack = true;
+  // Come back to Soniox when it is reachable again, unless the key itself was refused.
+  S.wantCloud = S.mode !== "local" && !/\b40[13]\b|rejected|lacks/.test(reason);
+  S.retryDelay = RECONNECT_MIN_MS; S.retryAt = performance.now() + RECONNECT_MIN_MS;
+  const ws = S.sonioxWs;
+  // Commit what Soniox has finalised; replay the rest of the audio to Whisper.
+  const resumeAt = flushSoniox() ?? S.lastFinalEnd;
+  if (S.sx) { S.sx.closing = true; clearTimeout(S.sx.partialTimer); }
+  if (ws) { ws.onmessage = null; ws.onclose = null; try { ws.close(); } catch {} }
+  S.sonioxWs = null;
+  busSend({ type: "transcript", text: "", start: resumeAt, end: resumeAt, final: false, engine: "soniox" });
+  S.engine = null;
+  S.coveredUntil = audioClock();     // first-word latency: only count audio captured after the switch
+  if (!S.cfg.local.available) {
+    status("error", "local", `${reason}. Local engine unavailable: ${S.cfg.local.error || "not loaded"}`);
+    return;
+  }
+  try {
+    await startLocal(resumeAt, LOCAL_REPLAY_MAX_S);
+    S.engine = S.lastEngine = "local";
+    $("dEngine").textContent = "local";
+    setBadge("local");
+    status(offline ? "offline" : "listening", "local", `Switched to ${localName()}: ${reason}`);
+  } catch (e) {
+    status("error", "local", `${reason}. ${e.message}`);
+  }
+}
+
+async function probeOnline() {
+  if (!navigator.onLine || S.simulatedOffline) return false;
+  try {
+    const ctl = new AbortController(); setTimeout(() => ctl.abort(), 5000);
+    return !!(await (await fetch("/api/connectivity", { signal: ctl.signal, cache: "no-store" })).json()).online;
+  } catch { return false; }
+}
+
+// Soniox has gone quiet or its socket is not draining. A dropped network often
+// fires neither the browser "offline" event (virtual adapters keep onLine true)
+// nor the socket's onclose, so probe and go local if the internet is gone.
+async function checkSonioxHealth() {
+  const ws = S.sonioxWs;
+  if (S.probing || !ws || !S.sx?.ready || S.engine !== "soniox") return;
+  const dead = ws.bufferedAmount > SONIOX_DEAD_BUFFER;
+  if (!dead && performance.now() - S.sx.lastMsgWall < SONIOX_STALL_MS) return;
+  S.probing = true;
+  const online = dead ? false : await probeOnline();
+  S.probing = false;
+  if (ws !== S.sonioxWs || S.engine !== "soniox") return;
+  if (online) S.sx.lastMsgWall = performance.now();    // just a quiet stretch
+  else fallbackToLocal(dead ? "Soniox stopped accepting audio" : "lost the internet connection", true);
+}
+
+// On local after a fallback: when the internet is back, hand over to Soniox again.
+async function tryReturnToSoniox() {
+  if (!S.running || !S.wantCloud || S.engine !== "local" || S.probing || S.switching) return;
+  if (performance.now() < S.retryAt) return;
+  S.probing = true;
+  let key = null;
+  try { if (await probeOnline()) key = await fetchTempKey(); } catch {}
+  S.probing = false;
+  if (!key || !S.running || !S.wantCloud || S.engine !== "local") {
+    S.retryDelay = Math.min(S.retryDelay * 2, RECONNECT_MAX_MS);
+    S.retryAt = performance.now() + S.retryDelay;
+    return;
+  }
+  S.switching = true;
+  S.engine = null;                    // audio waits in the ring buffer during the handover
+  await abortLocal();
+  const resumeAt = S.lastFinalEnd;
+  busSend({ type: "transcript", text: "", start: resumeAt, end: resumeAt, final: false, engine: "local" });
+  S.fellBack = false; S.wantCloud = false;
+  S.engine = "soniox";
+  S.coveredUntil = audioClock();
+  try {
+    await startSoniox(resumeAt, key);
+    if (S.engine === "soniox") {
+      S.lastEngine = "soniox";
+      $("dEngine").textContent = "soniox";
+      setBadge("soniox");
+      status("listening", "soniox", "Back online: switched to Soniox");
+      preopenLocal();
+    }
+  } catch (e) {
+    if (S.engine === "soniox") await fallbackToLocal(e.message, true);
+  } finally { S.switching = false; }
+}
+
+async function chooseEngine(mode) {
+  if (S.cloudDisabled) return { engine: "local", why: "Local only mode: no cloud calls" };
+  if (mode === "local") return { engine: "local", why: "" };
+  if (!S.cfg.soniox.available) return { engine: "local", why: "SONIOX_API_KEY not set", offline: false };
+  if (mode === "soniox") return { engine: "soniox" };
+  if (!navigator.onLine || S.simulatedOffline) return { engine: "local", why: "browser is offline", offline: true };
+  if (!await probeOnline()) return { engine: "local", why: "no internet connection", offline: true };
+  return { engine: "soniox" };
+}
+
+// ---------------------------------------------------------------- session lifecycle
+async function start() {
+  $("startBtn").disabled = true;
+  try {
+    const stream = await acquireStream();       // first, while the click still counts as a gesture
+    S.media = stream;
+    S.cfg = await (await fetch("/api/config")).json();
+    Object.assign(S, { running: true, fellBack: false, engine: null, mode: $("modeSel").value, wantCloud: false,
+      retryAt: 0, retryDelay: RECONNECT_MIN_MS, probing: false, switching: false, lastEngine: null, samples: 0, ring: [], chunkTimes: [],
+      chunksSent: 0, latencies: [], lastFinalEnd: 0, audioLost: false,
+      lastChunkWall: performance.now(), lastSoundWall: performance.now(),
+      cloudDisabled: $("modeSel").value === "local_only" || !S.cfg.cloud_allowed,
+      cloudBytes: 0, sessionWall: performance.now(), coveredUntil: 0, fwSum: 0, fwN: 0 });
+    S.metricsTimer = setInterval(reportMetrics, METRICS_EVERY_MS);
+    resetDebug();
+    clearTranscript();
+    busSend({ type: "session_start" });
+    await startAudio(stream);
+    $("stopBtn").disabled = false;
+
+    const choice = await chooseEngine($("modeSel").value);
+    if (choice.engine === "soniox") {
+      S.engine = "soniox";
+      try {
+        await startSoniox(0);
+        if (S.engine === "soniox") {
+          S.lastEngine = "soniox";
+          $("dEngine").textContent = "soniox";
+          setBadge("soniox");
+          status("listening", "soniox", "");
+          preopenLocal();
+        }
+      } catch (e) {
+        if (S.engine === "soniox") await fallbackToLocal(e.message, false);
+      }
+    } else {
+      if (!S.cfg.local.available) throw new Error(`Local engine unavailable: ${S.cfg.local.error}`);
+      await startLocal(0);
+      S.engine = S.lastEngine = "local";
+      $("dEngine").textContent = "local";
+      setBadge("local");
+      status(choice.offline ? "offline" : "listening", "local", choice.why ? `Using ${localName()}: ${choice.why}` : "");
+      if (choice.offline) { S.wantCloud = true; S.retryAt = performance.now() + RECONNECT_MIN_MS; }
+    }
+    S.watchdog = setInterval(watchdog, 1000);
+  } catch (e) {
+    status("error", S.engine || "local", e.message || String(e));
+    await stop();
+  } finally {
+    if (!S.running) $("startBtn").disabled = false;
+  }
+}
+
+function watchdog() {
+  if (!S.running) return;
+  const now = performance.now();
+  const silentFor = (now - Math.max(S.lastSoundWall, 0)) / 1000;
+  const noDataFor = (now - S.lastChunkWall) / 1000;
+  if (!S.audioLost && (noDataFor > 3 || silentFor > 15)) {
+    S.audioLost = true;
+    status("audio_lost", S.engine || "local", noDataFor > 3 ? "No audio frames from the source" : "No audio signal for 15 s");
+  } else if (S.audioLost && noDataFor < 1 && silentFor < 1) {
+    S.audioLost = false;
+    status("listening", S.engine || "local", "Audio is back");
+  }
+  // Soniox keepalive when audio is paused (docs: at least every 20 s).
+  const ws = S.sonioxWs;
+  if (ws && ws.readyState === WebSocket.OPEN && S.sx.ready && now - S.sx.lastAudioWall > 8000) {
+    ws.send(JSON.stringify({ type: "keepalive" }));
+    S.sx.lastAudioWall = now;
+  }
+  checkSonioxHealth();
+  tryReturnToSoniox();
+}
+
+async function stop() {
+  const wasRunning = S.running;
+  if (wasRunning) reportMetrics();     // final cloud meter numbers for this session
+  S.running = false;
+  S.wantCloud = false;
+  clearInterval(S.watchdog);
+  clearInterval(S.metricsTimer);
+  $("stopBtn").disabled = true;
+  if (S.media) S.media.getTracks().forEach((t) => t.stop());
+  if (S.source === "file") $("player").pause();
+  if (S.node) S.node.port.onmessage = null;
+  if (S.ctx) S.ctx.close().catch(() => {});
+  S.media = S.ctx = S.node = null;
+  await Promise.all([stopSoniox(), stopLocal()]);
+  S.engine = null; S.sx = null;
+  if (wasRunning) { setPill("idle"); setBadge(null); $("statusMsg").textContent = "Stopped."; }
+  $("meter").style.width = "0";
+  $("startBtn").disabled = false;
+}
+
+function clearTranscript() { $("lines").innerHTML = ""; partialEl = null; }
+function resetDebug() {
+  for (const id of ["dLatency", "dLastLat", "dRtf", "dLag", "dDrop", "dEngine", "dStandby", "mLat"]) $(id).textContent = "-";
+  $("mBytes").textContent = "0 B"; $("mTime").textContent = "0:00"; $("mCost").textContent = "$0.0000";
+  $("dChunks").textContent = "0"; $("dClock").textContent = "0.0 s";
+}
+
+// ---------------------------------------------------------------- UI wiring
+$("sources").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-src]"); if (!b || S.running) return;
+  S.source = b.dataset.src;
+  for (const x of $("sources").children) x.setAttribute("aria-pressed", String(x === b));
+  $("fileBox").classList.toggle("show", S.source === "file");
+  $("player").classList.toggle("show", S.source === "file" && !!$("player").src);
+});
+$("fileInput").addEventListener("change", (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const p = $("player"); if (p.src) URL.revokeObjectURL(p.src);
+  p.src = URL.createObjectURL(f); p.classList.add("show");
+});
+$("startBtn").addEventListener("click", start);
+$("stopBtn").addEventListener("click", stop);
+$("simBtn").addEventListener("click", () => {
+  S.simulatedOffline = !S.simulatedOffline;
+  $("simBtn").setAttribute("aria-pressed", String(S.simulatedOffline));
+  $("simText").textContent = S.simulatedOffline ? "Simulated offline: on" : "Simulate offline";
+  if (S.simulatedOffline && S.running && S.engine === "soniox") fallbackToLocal("simulated offline", true);
+  if (!S.simulatedOffline) { S.retryAt = 0; S.retryDelay = RECONNECT_MIN_MS; }
+});
+window.addEventListener("offline", () => {
+  if (S.running && S.engine === "soniox") fallbackToLocal("browser went offline", true);
+});
+window.addEventListener("online", () => { S.retryAt = 0; S.retryDelay = RECONNECT_MIN_MS; });
+
+(async function init() {
+  connectBus();
+  try {
+    S.cfg = await (await fetch("/api/config")).json();
+    $("modeSel").value = S.cfg.stt_mode;
+    if (!S.cfg.cloud_allowed)          // STT_MODE=local_only on the server: cloud modes are not offered
+      for (const o of $("modeSel").options) if (o.value === "auto" || o.value === "soniox") o.disabled = true;
+    const L = S.cfg.local;
+    $("engineInfo").textContent =
+      `Soniox: ${!S.cfg.cloud_allowed ? "disabled (local only)" : S.cfg.soniox.available ? "configured" : "no API key"}` +
+      ` \u00b7 Local: ${L.available ? localName() : "unavailable"}`;
+    $("dLocalEngine").textContent = L.engine || "-";
+    $("dLocalModel").textContent = L.model || "-";
+    $("dLocalBackend").textContent = L.backend || "-";
+    $("dLocalIntegration").textContent = L.integration || "-";
+    if (!L.available) $("statusMsg").textContent = L.error || "";
+  } catch { $("engineInfo").textContent = "Could not load /api/config"; }
+})();
+</script>
+</body>
+</html>
