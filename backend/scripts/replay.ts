@@ -57,6 +57,8 @@ session.handle({ v: 1, type: 'session.stop' });
 await session.drained();
 session.handle({ v: 1, type: 'what_said.request', requestId: 'replay-what-said', windowSec: 120 });
 await session.drained();
+session.handle({ v: 1, type: 'summary.request', requestId: 'replay-summary' });
+await session.drained();
 session.dispose();
 
 console.log(`\nDone in ${((Date.now() - startedAt) / 1000).toFixed(1)} s:`, Object.fromEntries(counts));
@@ -72,7 +74,10 @@ function print(message: Outgoing): void {
       break;
     }
     case 'status':
-      console.log(`${at} status: ${message.status}`);
+      console.log(`${at} status: ${message.status}${message.title ? `, title "${message.title}"` : ''}`);
+      break;
+    case 'summary.result':
+      console.log(`${at} summary: ${message.overview}\n${message.events.map((e) => `           @${e.t}s ${e.title}: ${e.detail}`).join('\n')}${message.openIssue ? `\n           still open: ${message.openIssue}` : ''}`);
       break;
     case 'card.pending':
       console.log(`${at} explaining "${message.term}"…`);

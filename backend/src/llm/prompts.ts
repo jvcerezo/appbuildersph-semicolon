@@ -88,6 +88,73 @@ export function whatSaid(args: { lines: string[]; language: Language }): JsonReq
   };
 }
 
+const EVENT_EXAMPLE = {
+  lines: [
+    'Mr. President, may we ask for a ten-minute recess?',
+    'Granted. The session is suspended for ten minutes.',
+    'The session is resumed.',
+  ],
+  event: {
+    tl: { title: 'Sampung minutong pahinga', detail: 'Humiling ang isang panig ng pahinga, pinayagan ito, at itinuloy ang sesyon pagkatapos.' },
+    en: { title: 'Ten-minute break', detail: 'One side asked for a break, it was granted, and the session resumed afterwards.' },
+  },
+};
+
+/** One stretch of the hearing as a Summary timeline event. */
+export function summaryEvent(args: { lines: string[]; language: Language }): JsonRequest<{ title: string; detail: string }> {
+  const { lines, language } = args;
+  const task =
+    language === 'tl'
+      ? 'Isulat ang nangyari sa bahaging ito ng pagdinig: "title" (hanggang 6 na salita) at "detail" (ISANG maikling pangungusap). Banggitin kung sino ang nagsalita kung malinaw. Huwag sabihing may desisyon kung walang sinabing desisyon.'
+      : 'Write what happened in this stretch of the hearing: "title" (up to 6 words) and "detail" (ONE short sentence). Say who spoke when it is clear. Never say something was decided unless a decision was said.';
+  const text = { type: 'string', minLength: 3, maxLength: 250 };
+  return {
+    messages: [
+      { role: 'system', content: [...RULES[language], task].join('\n') },
+      { role: 'user', content: EVENT_EXAMPLE.lines.join('\n') },
+      { role: 'assistant', content: JSON.stringify(EVENT_EXAMPLE.event[language]) },
+      { role: 'user', content: lines.join('\n') },
+    ],
+    format: { type: 'object', properties: { title: text, detail: text }, required: ['title', 'detail'] },
+    schema: z.object({ title: z.string().trim().min(3), detail: z.string().trim().min(5) }),
+    maxTokens: 120,
+  };
+}
+
+export interface Overview {
+  /** Short name for the session (top bar, library). */
+  title: string;
+  overview: string;
+  /** Empty when nothing is left unresolved. */
+  openIssue: string;
+}
+
+/** The whole hearing so far, from its timeline events. */
+export function summaryOverview(args: { events: { title: string; detail: string }[]; language: Language }): JsonRequest<Overview> {
+  const { events, language } = args;
+  const task =
+    language === 'tl'
+      ? 'Mula sa mga pangyayaring ito sa pagdinig, isulat: "overview" (2 hanggang 3 maiikling pangungusap tungkol sa buong pagdinig hanggang ngayon), "openIssue" (ISANG pangungusap tungkol sa isang usaping hindi pa napagpapasyahan, o "" kung wala), at "title" (pangalan ng pagdinig, hanggang 6 na salita).'
+      : 'From these events in the hearing, write: "overview" (2 to 3 short sentences about the whole hearing so far), "openIssue" (ONE sentence about an issue not yet decided, or "" if none), and "title" (a name for the hearing, up to 6 words).';
+  return {
+    messages: [
+      { role: 'system', content: [...RULES[language], task].join('\n') },
+      { role: 'user', content: events.map((event, i) => `${i + 1}. ${event.title}: ${event.detail}`).join('\n') },
+    ],
+    format: {
+      type: 'object',
+      properties: {
+        overview: { type: 'string', minLength: 10, maxLength: 500 },
+        openIssue: { type: 'string', maxLength: 250 },
+        title: { type: 'string', minLength: 3, maxLength: 60 },
+      },
+      required: ['overview', 'openIssue', 'title'],
+    },
+    schema: z.object({ overview: z.string().trim().min(10), openIssue: z.string().trim(), title: z.string().trim().min(3) }),
+    maxTokens: 260,
+  };
+}
+
 /** "Simpler": the same meaning and example in easier words. */
 export function simpler(args: {
   term: string;

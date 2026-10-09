@@ -1,9 +1,9 @@
-import type { Card, ClientMessage, Preferences, TermRef } from '@linaw/contract';
+import type { Card, ClientMessage, Preferences, Status, TermRef } from '@linaw/contract';
 import { PauseCutter, type Utterance } from './audio/cutter';
 import { FfmpegDecoder, SAMPLE_RATE } from './audio/decoder';
 import { toWav } from './audio/wav';
 import { checkedCard, nowLine, simplerText } from './cards';
-import { whatWasSaid } from './help';
+import { LINES_PER_EVENT, Summarizer, whatWasSaid } from './help';
 import { AiUnavailableError } from './llm/ollama';
 import type { Services } from './services';
 import type { Outgoing } from './wire';
@@ -57,12 +57,15 @@ export class Session {
   private disposed = false;
   private sttFailing = false;
   private aiFailing = false;
+  private status: Status = 'waiting';
+  private readonly summarizer: Summarizer;
 
   constructor(
     private readonly services: Services,
     private readonly send: Send,
   ) {
-    this.send({ type: 'status', status: 'waiting' });
+    this.summarizer = new Summarizer(services.ai);
+    this.setStatus('waiting');
   }
 
   handle(message: ClientMessage): void {
@@ -74,7 +77,7 @@ export class Session {
       case 'session.stop':
         this.endStream();
         console.log('[backend] stopped');
-        this.send({ type: 'status', status: 'stopped' });
+        this.setStatus('stopped');
         break;
 
       case 'preferences.update':
@@ -84,7 +87,7 @@ export class Session {
 
       case 'summary.request':
         if (this.stream === null && this.lines.length > 0) this.finished = true;
-        this.notReady(message.requestId);
+        this.summary(message.requestId);
         break;
 
       case 'card.simplify':
@@ -150,7 +153,12 @@ export class Session {
     this.track(decoder.closed);
 
     console.log(`[backend] listening to ${message.source} (${message.mimeType}), ${this.describePreferences()}`);
-    this.send({ type: 'status', status: 'listening' });
+    this.setStatus('listening');
+  }
+
+  private setStatus(status: Status, title?: string): void {
+    this.status = status;
+    this.send(title === undefined ? { type: 'status', status } : { type: 'status', status, title });
   }
 
   private reset(): void {
@@ -161,6 +169,7 @@ export class Session {
     this.lineCount = 0;
     this.explained.clear();
     this.cards.clear();
+    this.summarizer.clear();
   }
 
   private endStream(): void {
@@ -204,6 +213,9 @@ export class Session {
 
   private addLine(line: Line): void {
     this.lines.push(line);
+    if (this.lines.length % LINES_PER_EVENT === 0) {
+      this.summarizer.prepare(this.lines.slice(-LINES_PER_EVENT), this.preferences.language);
+    }
     const found = this.services.finder.find(line.text);
     const terms: TermRef[] = found.map((term) => ({ text: term.text, cardId: this.cardId(term.entryId) }));
     this.send({ type: 'transcript.segment', id: line.id, t: line.t, speaker: SPEAKER, text: line.text, terms, final: true });
@@ -271,6 +283,25 @@ export class Session {
         console.log(`[backend] what was said (${lines.length} lines, ${((Date.now() - startedAt) / 1000).toFixed(1)} s): ${points.join(' / ')}`);
       })
       .catch((err: unknown) => this.helpFailed(err, requestId, 'Linaw couldn’t look back right now. Try again.'));
+    this.track(job);
+  }
+
+  /** Reads the whole transcript. The final summary after Stop is still sent if a new session has begun: the UI saves it. */
+  private summary(requestId: string): void {
+    const lines = [...this.lines];
+    const { language } = this.preferences;
+    const { epoch } = this;
+    const startedAt = Date.now();
+    const job = this.summarizer
+      .summarize(lines, language)
+      .then(({ overview, events, openIssue, title }) => {
+        this.aiFailing = false;
+        if (this.disposed) return;
+        this.send({ type: 'summary.result', requestId, overview, events, ...(openIssue ? { openIssue } : {}) });
+        if (title && epoch === this.epoch) this.setStatus(this.status, title);
+        console.log(`[backend] summary "${title ?? ''}" (${lines.length} lines, ${events.length} events, ${((Date.now() - startedAt) / 1000).toFixed(1)} s): ${overview}`);
+      })
+      .catch((err: unknown) => this.helpFailed(err, requestId, 'Linaw couldn’t write the summary. Try again.'));
     this.track(job);
   }
 
