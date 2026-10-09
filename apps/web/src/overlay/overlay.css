@@ -415,10 +415,24 @@ kbd {
   border-color: var(--fg);
 }
 
-.ov-row__term {
+.ov-row__text {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-block: 0.375rem;
+}
+
+.ov-row__term {
   font-size: 1.0625rem;
   font-weight: 700;
+}
+
+/* Rows with a basis grow a second line; rows without one look as before. */
+.ov-row__basis {
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: var(--muted);
 }
 
 .ov-row__time {

@@ -19,7 +19,7 @@ import {
 import type { Card, Status } from '@linaw/contract';
 import { ActionBar } from '../components/ActionBar';
 import { HelpPanel } from '../components/HelpPanel';
-import { JargonCard } from '../components/JargonCard';
+import { CardBasis, JargonCard } from '../components/JargonCard';
 import { ListeningAnimation } from '../components/ListeningAnimation';
 import { SettingsDialog } from '../components/SettingsDialog';
 import { highlightTerms } from '../components/SegmentLine';
@@ -324,7 +324,10 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
                       ) : (
                         <ShieldCheck size={18} aria-label="Checked" />
                       )}
-                      <span className="ov-row__term">{card.term}</span>
+                      <span className="ov-row__text">
+                        <span className="ov-row__term">{card.term}</span>
+                        <CardBasis card={card} className="ov-row__basis" />
+                      </span>
                       <span className="ov-row__time">{formatClock(card.t)}</span>
                       {open ? <ChevronUp size={18} aria-hidden="true" /> : <ChevronDown size={18} aria-hidden="true" />}
                     </button>

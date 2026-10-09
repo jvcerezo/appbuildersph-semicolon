@@ -586,6 +586,20 @@ svg {
   text-wrap: pretty;
 }
 
+/* The law the meaning rests on: small and muted, under the meaning. */
+.card__basis {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.basis__label {
+  font-weight: 700;
+}
+
 .card__example {
   font-size: 1.1875rem;
   line-height: 1.55;

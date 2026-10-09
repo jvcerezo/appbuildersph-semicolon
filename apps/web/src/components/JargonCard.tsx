@@ -50,6 +50,7 @@ export const JargonCard = forwardRef<HTMLElement, JargonCardProps>(function Jarg
         <p lang={card.language} className="card__meaning">
           {card.meaning}
         </p>
+        {card.basis && <CardBasis card={card} className="card__basis" />}
       </section>
       <section className="card__section">
         <div className="eyebrow">Example</div>
@@ -81,6 +82,24 @@ export const JargonCard = forwardRef<HTMLElement, JargonCardProps>(function Jarg
     </article>
   );
 });
+
+const BASIS_LABEL: Record<Card['language'], string> = { tl: 'Batayan:', en: 'Based on:' };
+
+/**
+ * The law a card's meaning rests on, e.g. "Rules on Evidence, Rule 130, Sec. 37". The label is in the
+ * card's language; the citation is left as the backend wrote it (Philippine laws are cited in English).
+ */
+export function CardBasis({ card, className }: { card: Card; className: string }) {
+  if (!card.basis) return null;
+  return (
+    <span className={className}>
+      <span lang={card.language} className="basis__label">
+        {BASIS_LABEL[card.language]}
+      </span>{' '}
+      {card.basis}
+    </span>
+  );
+}
 
 export function PendingCard({ term }: { term: string }) {
   return (
