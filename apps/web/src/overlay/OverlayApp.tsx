@@ -28,6 +28,8 @@ import { desktop } from '../lib/desktop';
 import { formatClock } from '../lib/format';
 import type { Linaw } from '../state/useLinaw';
 import './overlay.css';
+import { Logo } from '../components/Logo';
+import { APP_NAME } from '../lib/brand';
 
 const STATUS: Record<Status, { label: string; icon: typeof Headphones }> = {
   listening: { label: 'Listening', icon: Headphones },
@@ -87,7 +89,10 @@ function OverlayBar({ linaw, ghost, onOpenSettings }: { linaw: Linaw; ghost: boo
 
   return (
     <header className="ov-bar">
-      <div className="ov-bar__brand">Linaw</div>
+      <div className="ov-bar__brand brand">
+        <Logo size={26} />
+        {APP_NAME}
+      </div>
       <div className="ov-bar__actions">
         {live && session.status !== 'stopped' && (
           <button type="button" className="ov-icon" aria-label="Stop listening" title="Stop listening" onClick={linaw.stopListening}>

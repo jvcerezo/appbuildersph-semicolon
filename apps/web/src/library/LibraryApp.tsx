@@ -26,6 +26,8 @@ import { formatClock } from '../lib/format';
 import { historyStore, useSessionHistory, type SessionRecord } from '../lib/history';
 import type { Linaw } from '../state/useLinaw';
 import './library.css';
+import { Logo } from '../components/Logo';
+import { APP_NAME } from '../lib/brand';
 
 /**
  * The app when nothing is live: start a session, browse past sessions, and
@@ -53,7 +55,10 @@ export function LibraryApp({ linaw }: { linaw: Linaw }) {
   return (
     <div className="lib">
       <header className="lib-bar">
-        <div className="lib-bar__brand">Linaw</div>
+        <div className="lib-bar__brand brand">
+          <Logo size={30} />
+          {APP_NAME}
+        </div>
         <div className="lib-bar__spacer" />
         <button type="button" className="ov-icon" aria-label="Settings" title="Settings" onClick={() => setSettingsOpen(true)}>
           <SettingsIcon size={18} aria-hidden="true" />

@@ -1,6 +1,8 @@
 import { AudioLines, CircleStop, Clock, Headphones, Settings, VolumeX, WifiOff } from 'lucide-react';
 import type { Status } from '@linaw/contract';
 import { formatClock } from '../lib/format';
+import { Logo } from './Logo';
+import { APP_NAME } from '../lib/brand';
 
 const STATUS_PILL: Record<Status, { label: string; icon: typeof Clock; variant: string }> = {
   listening: { label: 'Listening', icon: Headphones, variant: 'pill' },
@@ -22,7 +24,10 @@ export function TopBar({ title, elapsedSec, status, onOpenSettings, onFinish }: 
   const pill = status ? STATUS_PILL[status] : null;
   return (
     <header className="topbar">
-      <div className="topbar__brand">Linaw</div>
+      <div className="topbar__brand brand">
+        <Logo size={30} />
+        {APP_NAME}
+      </div>
       <div className="topbar__divider" aria-hidden="true" />
       <h1 className="topbar__title">{title}</h1>
       {elapsedSec !== null && (

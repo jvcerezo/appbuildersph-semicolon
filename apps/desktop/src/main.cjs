@@ -87,6 +87,8 @@ function createWindow() {
     frame: false,
     backgroundColor: '#ffffff',
     title: 'Linaw',
+    // Taskbar and window icon (build/icon.ico has every Windows size; PNG elsewhere).
+    icon: path.join(__dirname, '..', 'build', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),

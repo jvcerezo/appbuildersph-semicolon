@@ -28,10 +28,19 @@
   --font: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif;
   --radius-pill: 999px;
 
+  /* The logo: navy bubble, white sound waves, sun-yellow text lines. */
+  --logo-bubble: #13224a;
+  --logo-wave: #fff;
+  --logo-text: #f5b800;
+
   color-scheme: light;
 }
 
 :root[data-theme='hc'] {
+  --logo-bubble: #fff;
+  --logo-wave: #000;
+  --logo-text: #000;
+
   --bg: #000;
   --surface: #000;
   --fg: #fff;
@@ -1478,4 +1487,37 @@ button.term:hover {
   .start__headline {
     font-size: 2rem;
   }
+}
+
+/* ------------------------------------------------------------ logo */
+
+.logo {
+  flex: none;
+  display: block;
+}
+
+.logo__bubble {
+  fill: var(--logo-bubble);
+}
+
+.logo__wave,
+.logo__text {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+
+.logo__wave {
+  stroke: var(--logo-wave);
+}
+
+.logo__text {
+  stroke: var(--logo-text);
+}
+
+/* Logo and name side by side in the title bars. */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
