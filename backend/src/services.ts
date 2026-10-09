@@ -1,4 +1,6 @@
+import { loadBriefs, type Brief } from './briefs';
 import type { Config } from './config';
+import { loadLawLibrary, type LawLibrary } from './law/library';
 import { OllamaClient } from './llm/ollama';
 import { whisperPrompt } from './stt/vocabulary';
 import { WhisperClient } from './stt/whisper';
@@ -14,6 +16,10 @@ export interface Services {
   watchlist: ReadonlyMap<string, WatchEntry>;
   /** Glossary and watch-list terms; on a tie the glossary wins. */
   finder: TermFinder;
+  /** Philippine laws and rules for Ask, built by scripts/build-law.ts. */
+  law: LawLibrary;
+  /** Background on the hearing for the AI (CASE_BRIEF). */
+  briefs: Brief[];
 }
 
 export function createServices(config: Config): Services {
@@ -27,5 +33,7 @@ export function createServices(config: Config): Services {
     glossary: new Map(glossary.map((entry) => [entry.id, entry])),
     watchlist: new Map(watchlist.map((entry) => [entry.id, entry])),
     finder: new TermFinder([...glossary, ...watchlist].map((entry) => ({ id: entry.id, phrases: phrasesOf(entry) }))),
+    law: loadLawLibrary(),
+    briefs: loadBriefs(config.caseBriefs),
   };
 }

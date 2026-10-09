@@ -38,10 +38,12 @@ function closeJson(text: string): string {
   return text + (inString ? '"' : '') + closers.reverse().join('');
 }
 
-/** Button presses go first: a person is waiting for them. Then cards showing "Explaining…", then work with a fallback. */
-export type Priority = 'user' | 'card' | 'background';
+/** Button presses go first: a person is waiting for them. Then cards showing "Explaining…", then work with a fallback.
+ * Idle work (translations) runs only when nothing else is waiting.
+ */
+export type Priority = 'user' | 'card' | 'background' | 'idle';
 
-const ORDER: Priority[] = ['user', 'card', 'background'];
+const ORDER: Priority[] = ['user', 'card', 'background', 'idle'];
 
 /** Maps to the contract's `model_unavailable`. */
 export class AiUnavailableError extends Error {}
@@ -82,6 +84,11 @@ export class OllamaClient {
       signal: AbortSignal.timeout(180_000),
     });
     if (!res.ok) throw new Error(`Ollama answered ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  }
+
+  /** How many requests of `priority` are waiting, so background work can give up instead of piling up. */
+  waitingCount(priority: Priority): number {
+    return this.waiting.filter((job) => job.priority === priority).length;
   }
 
   private next(): void {

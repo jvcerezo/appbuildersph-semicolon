@@ -30,7 +30,7 @@ Order follows the team's task list: "What did they say?" matters most for the de
 | 4 | Instant cards: the glossary card shows at once, "Right now" fills in a moment later | cards with no wait | must | done |
 | 5 | What did they say? | help panel answers | must | done (~11 s on gemma4:e4b; up to 3 points, one AI call each) |
 | 6 | Summary, including the final one saved after Stop | Summary panel, library | must | done (~6.5 s; events for every 6 lines are written in the background) |
-| 7 | Ask, with RAG over the rules | Ask panel answers | should | done from the transcript and glossary; rules search waits for the rules text |
+| 7 | Ask, with RAG over the rules | Ask panel answers | should | done: transcript, glossary and the law library (6 sources, 610 cited passages, offline keyword search); Linaw adds the citation |
 | 8 | Fuzzy term matching | terms found even when misheard | should | done (re-check on the real clips) |
 | 9 | AI-explained cards for terms not in the glossary | more cards | could | done (watch list ~5–9 s per card; spotter when the AI is idle) |
 | 10 | Demo prep: real clips, D7 test, glossary from the clips, disclosures, two clean rehearsals, backup video | ready to present | must | |

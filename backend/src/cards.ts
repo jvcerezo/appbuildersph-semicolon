@@ -49,9 +49,9 @@ export async function aiCard(args: {
 }
 
 /** What the term means at this moment of the hearing. */
-export async function nowLine(card: Card, before: string[], line: string, ai: OllamaClient): Promise<string> {
+export async function nowLine(card: Card, before: string[], line: string, ai: OllamaClient, context = ''): Promise<string> {
   const { now } = await ai.json(
-    rightNow({ term: card.term, meaning: card.meaning, before, line, language: card.language }),
+    rightNow({ term: card.term, meaning: card.meaning, before, line, language: card.language, context }),
     'background',
   );
   return now;

@@ -19,6 +19,19 @@ const RULES: Record<Language, string[]> = {
   ],
 };
 
+/**
+ * The case brief (backend/briefs/), as background only: it helps the model read the lines, but what
+ * happened must still come from the lines, so the rule against inventing details keeps holding.
+ */
+function background(context: string | undefined, language: Language): string[] {
+  if (!context) return [];
+  return [
+    language === 'tl'
+      ? `Konteksto ng pagdinig (background lang; ang nangyari ay galing LAMANG sa mga linya): ${context}`
+      : `About this hearing (background only; what happened comes ONLY from the lines): ${context}`,
+  ];
+}
+
 interface NowExample {
   term: string;
   before: string[];
@@ -70,13 +83,13 @@ const WHAT_SAID_EXAMPLE = {
  * One call per stretch, because a 4B model given the whole window summed up
  * only the start, or mixed stretches up and invented rulings.
  */
-export function whatSaid(args: { lines: string[]; language: Language }): JsonRequest<{ point: string }> {
-  const { lines, language } = args;
+export function whatSaid(args: { lines: string[]; language: Language; context?: string }): JsonRequest<{ point: string }> {
+  const { lines, language, context } = args;
   const task =
     language === 'tl'
       ? 'Para sa taong hindi nakasunod sa pagdinig, isulat ang "point": ISANG maikling pangungusap lang (hanggang 25 salita) kung ano ang sinabi sa mga linyang ito. Banggitin kung sino ang nagsalita kung malinaw (hal. ang depensa, ang prosekusyon, ang namumuno). Huwag sabihing may desisyon kung walang sinabing desisyon.'
       : 'For someone who lost track of the hearing, write "point": just ONE short sentence (up to 25 words) on what was said in these lines. Say who spoke when it is clear (e.g. the defense, the prosecution, the presiding officer). Never say something was decided unless a decision was said.';
-  const messages: ChatMessage[] = [{ role: 'system', content: [...RULES[language], task].join('\n') }];
+  const messages: ChatMessage[] = [{ role: 'system', content: [...RULES[language], ...background(context, language), task].join('\n') }];
   WHAT_SAID_EXAMPLE.parts.forEach((part, i) => {
     messages.push({ role: 'user', content: part.join('\n') });
     messages.push({ role: 'assistant', content: JSON.stringify({ point: WHAT_SAID_EXAMPLE.points[language][i] }) });
@@ -103,8 +116,12 @@ const EVENT_EXAMPLE = {
 };
 
 /** One stretch of the hearing as a Summary timeline event. */
-export function summaryEvent(args: { lines: string[]; language: Language }): JsonRequest<{ title: string; detail: string }> {
-  const { lines, language } = args;
+export function summaryEvent(args: {
+  lines: string[];
+  language: Language;
+  context?: string;
+}): JsonRequest<{ title: string; detail: string }> {
+  const { lines, language, context } = args;
   const task =
     language === 'tl'
       ? 'Isulat ang nangyari sa bahaging ito ng pagdinig: "title" (hanggang 6 na salita) at "detail" (ISANG maikling pangungusap). Banggitin kung sino ang nagsalita kung malinaw. Huwag sabihing may desisyon kung walang sinabing desisyon.'
@@ -112,7 +129,7 @@ export function summaryEvent(args: { lines: string[]; language: Language }): Jso
   const text = { type: 'string', minLength: 3, maxLength: 250 };
   return {
     messages: [
-      { role: 'system', content: [...RULES[language], task].join('\n') },
+      { role: 'system', content: [...RULES[language], ...background(context, language), task].join('\n') },
       { role: 'user', content: EVENT_EXAMPLE.lines.join('\n') },
       { role: 'assistant', content: JSON.stringify(EVENT_EXAMPLE.event[language]) },
       { role: 'user', content: lines.join('\n') },
@@ -132,15 +149,19 @@ export interface Overview {
 }
 
 /** The whole hearing so far, from its timeline events. */
-export function summaryOverview(args: { events: { title: string; detail: string }[]; language: Language }): JsonRequest<Overview> {
-  const { events, language } = args;
+export function summaryOverview(args: {
+  events: { title: string; detail: string }[];
+  language: Language;
+  context?: string;
+}): JsonRequest<Overview> {
+  const { events, language, context } = args;
   const task =
     language === 'tl'
       ? 'Mula sa mga pangyayaring ito sa pagdinig, isulat: "overview" (2 hanggang 3 maiikling pangungusap tungkol sa buong pagdinig hanggang ngayon), "openIssue" (ISANG pangungusap tungkol sa isang usaping hindi pa napagpapasyahan, o "" kung wala), at "title" (pangalan ng pagdinig, hanggang 6 na salita).'
       : 'From these events in the hearing, write: "overview" (2 to 3 short sentences about the whole hearing so far), "openIssue" (ONE sentence about an issue not yet decided, or "" if none), and "title" (a name for the hearing, up to 6 words).';
   return {
     messages: [
-      { role: 'system', content: [...RULES[language], task].join('\n') },
+      { role: 'system', content: [...RULES[language], ...background(context, language), task].join('\n') },
       { role: 'user', content: events.map((event, i) => `${i + 1}. ${event.title}: ${event.detail}`).join('\n') },
     ],
     format: {
@@ -162,6 +183,8 @@ export interface AskAnswer {
   answer: string;
   /** 1-based numbers of the hearing lines the answer is based on. */
   lines: number[];
+  /** 1-based numbers of the law passages the answer is based on. */
+  laws: number[];
 }
 
 /** Ask: answers from the hearing lines and glossary meanings only. */
@@ -169,23 +192,28 @@ export function ask(args: {
   question: string;
   lines: string[];
   meanings: { term: string; meaning: string }[];
+  /** Passages of Philippine law found for the question (law/passages.json). */
+  laws: { cite: string; text: string }[];
   advice: boolean;
   language: Language;
+  context?: string;
 }): JsonRequest<AskAnswer> {
-  const { question, lines, meanings, advice, language } = args;
+  const { question, lines, meanings, laws, advice, language, context } = args;
   const tl = language === 'tl';
   const task = tl
     ? [
-        'Sagutin ang tanong gamit LAMANG ang mga linya ng pagdinig at ang mga kahulugan sa ibaba. Isulat:',
-        '- "onTopic": true kung tungkol ang tanong sa pagdinig, sa mga tao rito, o sa isang legal na termino o proseso; false kung hindi.',
-        '- "answer": 1 hanggang 3 maiikling pangungusap. Kung wala sa mga linya ang sagot, sabihing hindi pa ito nabanggit sa pagdinig.',
+        'Sagutin ang tanong gamit LAMANG ang mga linya ng pagdinig, ang mga kahulugan, at ang mga bahagi ng batas sa ibaba. Isulat:',
+        '- "onTopic": true kung tungkol ang tanong sa pagdinig, sa mga tao rito, sa isang legal na termino o proseso, o sa batas ng Pilipinas; false kung hindi. Hinanap ang mga bahagi ng batas para sa tanong na ito: kung may kaugnay sa tanong, true ang onTopic.',
+        '- "answer": 1 hanggang 3 maiikling pangungusap sa simpleng Tagalog. Sagutin mismo ang itinanong: kung "ilan", magbigay ng bilang; kung "sino", magbigay ng tao o opisina. Kung tungkol sa nangyari sa pagdinig, gamitin ang mga linya; kung hindi pa ito nabanggit, sabihin iyon. Kung tungkol sa batas o proseso, ipaliwanag ang bahagi ng batas sa simpleng salita. Huwag isulat ang numero ng seksyon; idadagdag namin ito.',
         '- "lines": ang numero ng mga linyang pinagbatayan ng sagot.',
+        '- "laws": ang numero ng mga bahagi ng batas na pinagbatayan ng sagot (walang laman kung wala).',
       ]
     : [
-        'Answer the question using ONLY the hearing lines and the meanings below. Write:',
-        '- "onTopic": true if the question is about the hearing, its people, or a legal term or procedure; false if not.',
-        '- "answer": 1 to 3 short sentences. If the lines do not say, say it has not come up in the hearing yet.',
+        'Answer the question using ONLY the hearing lines, the meanings, and the law passages below. Write:',
+        '- "onTopic": true if the question is about the hearing, its people, a legal term or procedure, or Philippine law; false if not. The law passages were looked up for this question: if one relates to it, onTopic is true.',
+        '- "answer": 1 to 3 short, plain sentences. Answer exactly what was asked: "how many" needs a number, "who" needs a person or office. About what happened in the hearing: use the lines, and if they do not say, say it has not come up yet. About the law or procedure: explain the passage in plain words. Do not write section numbers; we add them.',
         '- "lines": the numbers of the lines the answer is based on.',
+        '- "laws": the numbers of the law passages the answer is based on (empty if none).',
       ];
   if (advice) {
     task.push(
@@ -196,12 +224,14 @@ export function ask(args: {
   }
   const heard = lines.map((text, i) => `[${i + 1}] ${text}`).join('\n') || (tl ? '(wala pa)' : '(none yet)');
   const known = meanings.map((m) => `- ${m.term}: ${m.meaning}`).join('\n');
+  // Law passages stay in English, as written; the answer explains them in the user's language.
+  const law = laws.map((l, i) => `[${i + 1}] ${l.cite}: ${l.text}`).join('\n');
   const content = tl
-    ? `Mga linya ng pagdinig:\n${heard}${known ? `\n\nMga kahulugan:\n${known}` : ''}\n\nTanong: ${question}`
-    : `Hearing lines:\n${heard}${known ? `\n\nMeanings:\n${known}` : ''}\n\nQuestion: ${question}`;
+    ? `Mga linya ng pagdinig:\n${heard}${known ? `\n\nMga kahulugan:\n${known}` : ''}${law ? `\n\nMga bahagi ng batas:\n${law}` : ''}\n\nTanong: ${question}`
+    : `Hearing lines:\n${heard}${known ? `\n\nMeanings:\n${known}` : ''}${law ? `\n\nLaw passages:\n${law}` : ''}\n\nQuestion: ${question}`;
   return {
     messages: [
-      { role: 'system', content: [...RULES[language], ...task].join('\n') },
+      { role: 'system', content: [...RULES[language], ...background(context, language), ...task].join('\n') },
       { role: 'user', content },
     ],
     format: {
@@ -210,10 +240,16 @@ export function ask(args: {
         onTopic: { type: 'boolean' },
         answer: { type: 'string', minLength: 5, maxLength: 500 },
         lines: { type: 'array', items: { type: 'integer' } },
+        laws: { type: 'array', items: { type: 'integer' } },
       },
-      required: ['onTopic', 'answer', 'lines'],
+      required: ['onTopic', 'answer', 'lines', 'laws'],
     },
-    schema: z.object({ onTopic: z.boolean(), answer: z.string().trim().min(5), lines: z.array(z.number().int()) }),
+    schema: z.object({
+      onTopic: z.boolean(),
+      answer: z.string().trim().min(5),
+      lines: z.array(z.number().int()),
+      laws: z.array(z.number().int()),
+    }),
     maxTokens: 220,
   };
 }
@@ -396,8 +432,9 @@ export function rightNow(args: {
   before: string[];
   line: string;
   language: Language;
+  context?: string;
 }): JsonRequest<{ now: string }> {
-  const { term, meaning, before, line, language } = args;
+  const { term, meaning, before, line, language, context } = args;
   const task =
     language === 'tl'
       ? 'Isulat ang "now": ISANG maikling pangungusap (hanggang 20 salita) kung ano ang ibig sabihin ng termino sa pangungusap kung saan ito nabanggit. Tungkol lang sa sandaling iyon, hindi sa buong pagdinig.'
@@ -418,7 +455,7 @@ export function rightNow(args: {
           `Sentence with the term: "${example.line}"`,
         ].filter(Boolean).join('\n');
 
-  const messages: ChatMessage[] = [{ role: 'system', content: [...RULES[language], task].join('\n') }];
+  const messages: ChatMessage[] = [{ role: 'system', content: [...RULES[language], ...background(context, language), task].join('\n') }];
   for (const example of NOW_EXAMPLES) {
     messages.push({ role: 'user', content: ask(example) });
     messages.push({ role: 'assistant', content: JSON.stringify({ now: example.now[language] }) });
@@ -430,5 +467,47 @@ export function rightNow(args: {
     format: { type: 'object', properties: { now: { type: 'string', minLength: 10, maxLength: 200 } }, required: ['now'] },
     schema: z.object({ now: z.string().trim().min(10) }),
     maxTokens: 90,
+  };
+}
+
+/** Worked examples: hearing English into the Taglish Filipinos use for legal talk (terms stay in English). */
+const TRANSLATE_EXAMPLES: { en: string; tl: string }[] = [
+  {
+    en: 'Objection, Your Honor. The question calls for hearsay.',
+    tl: 'Tumututol po kami, Your Honor. Hearsay ang hinihingi ng tanong.',
+  },
+  {
+    en: 'The chair will take the motion under advisement.',
+    tl: 'Pag-iisipan muna ng namumuno ang motion bago magpasya.',
+  },
+  {
+    en: 'Ang testigo ay hindi personal na nakakita sa nangyari.',
+    tl: 'The witness did not personally see what happened.',
+  },
+];
+
+/** One transcript line in `language`. Legal terms stay as said, so a term reads the same on every line and card. */
+export function translateLine(args: { line: string; keep: string[]; language: Language }): JsonRequest<{ text: string }> {
+  const { line, keep, language } = args;
+  const task =
+    language === 'tl'
+      ? [
+          'Isalin ang linya ng pagdinig sa simpleng Tagalog na ginagamit ng karaniwang Pilipino. Huwag isalin ang mga legal na termino at pangalan; iwan sa Ingles (hal. subpoena, impeachment, hearsay, motion, Your Honor).',
+          'Isalin lang. Huwag magdagdag ng paliwanag. Isulat ang "text".',
+        ]
+      : ['Translate the hearing line into plain English. Keep names and legal terms as they are.', 'Only translate. Add no explanation. Write "text".'];
+  if (keep.length > 0) task.push(language === 'tl' ? `Iwan sa Ingles: ${keep.join(', ')}.` : `Keep as is: ${keep.join(', ')}.`);
+  const examples = TRANSLATE_EXAMPLES.filter((example) => (language === 'tl' ? !/\b(ang|ay|ng)\b/.test(example.en) : /\b(ang|ay|ng)\b/.test(example.en)));
+  const messages: ChatMessage[] = [{ role: 'system', content: task.join('\n') }];
+  for (const example of examples) {
+    messages.push({ role: 'user', content: example.en });
+    messages.push({ role: 'assistant', content: JSON.stringify({ text: example.tl }) });
+  }
+  messages.push({ role: 'user', content: line });
+  return {
+    messages,
+    format: { type: 'object', properties: { text: { type: 'string', minLength: 1, maxLength: 600 } }, required: ['text'] },
+    schema: z.object({ text: z.string().trim().min(1) }),
+    maxTokens: 200,
   };
 }
