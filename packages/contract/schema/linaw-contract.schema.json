@@ -446,6 +446,57 @@
             "message"
           ],
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "tts.audio"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "mimeType": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "requestId",
+            "mimeType"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "tts.failed"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "requestId"
+          ],
+          "additionalProperties": false
         }
       ]
     },
@@ -709,6 +760,43 @@
             "type",
             "requestId",
             "cardId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "tts.request"
+            },
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            },
+            "language": {
+              "type": "string",
+              "enum": [
+                "tl",
+                "en"
+              ]
+            }
+          },
+          "required": [
+            "v",
+            "type",
+            "requestId",
+            "text",
+            "language"
           ],
           "additionalProperties": false
         }

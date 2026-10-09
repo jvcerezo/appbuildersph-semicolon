@@ -13,9 +13,10 @@ import type { Services } from './services';
 import { Translator } from './translate';
 import { decodeClip, stripHeard, transcribeClip } from './voice';
 import { SttStream, type HeardLine, type SttStatus } from './stt/stream';
+import { synthesizeSpeech } from './tts/client';
 import type { Outgoing } from './wire';
 
-export type Send = (message: Outgoing) => void;
+export type Send = (message: Outgoing, binary?: Buffer) => void;
 
 type StartMessage = Extract<ClientMessage, { type: 'session.start' }>;
 
@@ -135,7 +136,26 @@ export class Session {
       case 'ask.audio':
         this.askAloud(message.requestId, message.audio);
         break;
+
+      case 'tts.request':
+        this.readAloud(message.requestId, message.text, message.language);
+        break;
     }
+  }
+
+  /** Read aloud, via the speech service's Soniox TTS proxy. Silent fallback on any failure: the UI switches to its on-device voice without a user-visible error. */
+  private readAloud(requestId: string, text: string, language: Language): void {
+    const job = synthesizeSpeech(this.services.config.sttUrl, text, language)
+      .then(({ mimeType, audio }) => {
+        if (this.disposed) return;
+        this.send({ type: 'tts.audio', requestId, mimeType }, audio);
+      })
+      .catch((err: unknown) => {
+        console.warn(`[backend] read-aloud failed: ${describe(err)}`);
+        if (this.disposed) return;
+        this.send({ type: 'tts.failed', requestId });
+      });
+    this.track(job);
   }
 
   /** Push to talk: hear the question, take out what leaked in from the hearing, then answer it like `ask`. */

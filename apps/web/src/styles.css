@@ -931,6 +931,26 @@ svg {
 
 .segment--partial {
   font-style: italic;
+  color: var(--fg-2);
+}
+
+/* A blinking caret after text still being spoken, like a live caption mid-sentence. */
+.segment__cursor {
+  display: inline-block;
+  width: 0.1875rem;
+  height: 1em;
+  margin-left: 0.1875rem;
+  vertical-align: text-bottom;
+  background: currentColor;
+  animation: linaw-caret 1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Still visible, not blinking: italics and color already say "still being spoken". */
+  .segment__cursor {
+    animation: none;
+    opacity: 0.6;
+  }
 }
 
 .segment--highlighted {
@@ -1525,6 +1545,16 @@ button.term:hover {
 @keyframes linaw-shimmer {
   to {
     transform: translateX(100%);
+  }
+}
+
+@keyframes linaw-caret {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
   }
 }
 

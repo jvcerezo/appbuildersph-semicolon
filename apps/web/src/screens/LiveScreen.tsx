@@ -22,9 +22,11 @@ interface LiveScreenProps {
   onOpenHelp: (kind: HelpKind | null) => void;
   onAsk: (question: string) => void;
   onAskAloud: (clip: Blob, mimeType: string) => void;
+  preparingVoiceId: string | null;
   onError: (message: string) => void;
   onShowSegment: (segmentId: string) => void;
   onReadAloud: (card: Card) => void;
+  speakingCardId: string | null;
   onSimplify: (card: Card) => void;
   onToggleSaved: (card: Card) => void;
   onReconnect: () => void;
@@ -66,6 +68,7 @@ export function LiveScreen(props: LiveScreenProps) {
       card={card}
       saved={session.saved.includes(card.id)}
       simplifying={session.simplifying.some((s) => s.cardId === card.id)}
+      speaking={props.speakingCardId === card.id}
       highlighted={highlighted === card.id}
       onReadAloud={props.onReadAloud}
       onSimplify={props.onSimplify}
@@ -82,6 +85,7 @@ export function LiveScreen(props: LiveScreenProps) {
       onAskAloud={props.onAskAloud}
       onError={props.onError}
       onShowSegment={props.onShowSegment}
+      preparingVoiceId={props.preparingVoiceId}
       onClose={() => props.onOpenHelp(null)}
     />
   ) : showTranscript ? (

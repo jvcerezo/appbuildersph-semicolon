@@ -158,6 +158,10 @@ class DemoSession {
           requestId: message.requestId,
         });
         break;
+      case 'tts.request':
+        // The scripted demo has no Soniox key; fail at once so the UI's on-device voice speaks instead of waiting out the real timeout.
+        this.send({ type: 'tts.failed', requestId: message.requestId });
+        break;
       case 'card.simplify': {
         const card = this.cards.get(message.cardId);
         if (!card) {

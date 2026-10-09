@@ -31,6 +31,8 @@ interface HelpPanelProps {
   onError: (message: string) => void;
   onShowSegment: (segmentId: string) => void;
   onClose: () => void;
+  /** Question whose voice is being prepared (text held back until it's ready), or null. */
+  preparingVoiceId: string | null;
 }
 
 /** What each view needs to quote its sources. */
@@ -39,12 +41,14 @@ interface SourceProps {
   language: Language;
   segments: ReadonlyMap<string, Segment>;
   onShowSegment: (segmentId: string) => void;
+  /** Request whose voice is being prepared (text/points held back until it's ready), or null. */
+  preparingVoiceId: string | null;
 }
 
-export function HelpPanel({ kind, session, language, onAsk, onAskAloud, onError, onShowSegment, onClose }: HelpPanelProps) {
+export function HelpPanel({ kind, session, language, onAsk, onAskAloud, onError, onShowSegment, onClose, preparingVoiceId }: HelpPanelProps) {
   const segments = useMemo(() => new Map(session.segments.map((s) => [s.id, s])), [session.segments]);
-  const shared = { session, language, segments, onShowSegment };
-  const announcement = useAnnouncement(busyLabel(kind, session), DONE_LABELS[kind]);
+  const shared = { session, language, segments, onShowSegment, preparingVoiceId };
+  const announcement = useAnnouncement(busyLabel(kind, session, preparingVoiceId), DONE_LABELS[kind]);
   return (
     <aside className="help" aria-labelledby="help-title">
       <div className="panel-header">
@@ -74,10 +78,16 @@ const DONE_LABELS: Record<HelpKind, string> = {
 };
 
 /** What the panel is waiting on, in words, or null when nothing is loading. */
-function busyLabel(kind: HelpKind, session: SessionState): string | null {
-  if (kind === 'what_said') return session.whatSaid.state === 'done' ? null : 'Looking back at what was said…';
+function busyLabel(kind: HelpKind, session: SessionState, preparingVoiceId: string | null): string | null {
+  if (kind === 'what_said') {
+    const { whatSaid } = session;
+    if (whatSaid.state === 'done') return null;
+    return whatSaid.state === 'loading' && whatSaid.requestId === preparingVoiceId ? 'Getting ready to speak…' : 'Looking back at what was said…';
+  }
   if (kind === 'summary') return session.summary.state === 'done' ? null : 'Writing a summary…';
-  return session.questions.some((q) => q.answer === undefined) ? 'Thinking…' : null;
+  const waiting = session.questions.find((q) => q.answer === undefined);
+  if (!waiting) return null;
+  return waiting.requestId === preparingVoiceId ? 'Getting ready to speak…' : 'Thinking…';
 }
 
 /**
@@ -115,12 +125,13 @@ function Loading({ label }: { label: string }) {
   );
 }
 
-function WhatSaid({ session, language, segments, onShowSegment }: SourceProps) {
+function WhatSaid({ session, language, segments, onShowSegment, preparingVoiceId }: SourceProps) {
   const { whatSaid } = session;
   if (whatSaid.state !== 'done') {
+    const label = whatSaid.state === 'loading' && whatSaid.requestId === preparingVoiceId ? 'Getting ready to speak…' : 'Looking back at what was said…';
     return (
       <div className="help__body" aria-busy="true">
-        <Loading label="Looking back at what was said…" />
+        <Loading label={label} />
       </div>
     );
   }
@@ -184,6 +195,7 @@ function Ask({
   onAsk,
   onAskAloud,
   onError,
+  preparingVoiceId,
 }: SourceProps & Pick<HelpPanelProps, 'onAsk' | 'onAskAloud' | 'onError'>) {
   const [draft, setDraft] = useState('');
   const talk = usePushToTalk(onAskAloud, onError);
@@ -249,7 +261,7 @@ function Ask({
                     <Sources ids={q.sources} segments={segments} onShow={onShowSegment} preferTranslation />
                   </div>
                 ) : (
-                  !hearing && <Loading label="Thinking…" />
+                  !hearing && <Loading label={q.requestId === preparingVoiceId ? 'Getting ready to speak…' : 'Thinking…'} />
                 )}
               </div>
             );

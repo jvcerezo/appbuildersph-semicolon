@@ -84,6 +84,12 @@ class Settings:
     connectivity_check_url: str
     connectivity_timeout_seconds: float
 
+    soniox_tts_url: str
+    soniox_tts_model: str
+    soniox_tts_voice: str
+    soniox_tts_audio_format: str
+    soniox_tts_timeout_seconds: float
+
     local_stt_engine: str
     whisper_model: str
     whisper_model_dir: Path
@@ -137,6 +143,11 @@ def load_settings() -> Settings:
         stt_mode=_str("STT_MODE", "auto").lower(),
         connectivity_check_url=_str("CONNECTIVITY_CHECK_URL", "https://api.soniox.com"),
         connectivity_timeout_seconds=_float("CONNECTIVITY_TIMEOUT_SECONDS", 2.0),
+        soniox_tts_url=_str("SONIOX_TTS_URL", "https://tts-rt.soniox.com/tts"),
+        soniox_tts_model=_str("SONIOX_TTS_MODEL", "tts-rt-v2"),
+        soniox_tts_voice=_str("SONIOX_TTS_VOICE", "Adrian"),
+        soniox_tts_audio_format=_str("SONIOX_TTS_AUDIO_FORMAT", "mp3"),
+        soniox_tts_timeout_seconds=_float("SONIOX_TTS_TIMEOUT_SECONDS", 10.0),
         local_stt_engine=_str("LOCAL_STT_ENGINE", "whisperlivekit").lower(),
         whisper_model=_str("WHISPER_MODEL", "small"),
         whisper_model_dir=_resolve(_str("WHISPER_MODEL_DIR") or "./models"),
@@ -184,6 +195,8 @@ def _validate(s: Settings) -> None:
         errors.append("CLOUD_COST_PER_HOUR_ESTIMATE must be >= 0")
     if not 10 <= s.soniox_temp_key_ttl_seconds <= 3600:
         errors.append("SONIOX_TEMP_KEY_TTL_SECONDS should be between 10 and 3600")
+    if s.soniox_tts_timeout_seconds <= 0:
+        errors.append("SONIOX_TTS_TIMEOUT_SECONDS must be > 0")
     if errors:
         raise SystemExit("[config] Invalid configuration:\n  - " + "\n  - ".join(errors))
 

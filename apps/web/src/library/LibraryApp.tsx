@@ -14,6 +14,7 @@ import {
   Settings as SettingsIcon,
   Square,
   Trash2,
+  Upload,
   X,
 } from 'lucide-react';
 import { JargonCard } from '../components/JargonCard';
@@ -155,6 +156,7 @@ export function LibraryApp({ linaw }: { linaw: Linaw }) {
 function Home({ linaw, sessions }: { linaw: Linaw; sessions: SessionRecord[] }) {
   const ready = linaw.session.connection === 'open';
   const terms = sessions.reduce((sum, s) => sum + s.cards.length, 0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="lib-home">
@@ -181,6 +183,23 @@ function Home({ linaw, sessions }: { linaw: Linaw; sessions: SessionRecord[] }) 
           </span>
           <span className="choice__cta">Start listening</span>
         </button>
+        <button type="button" className="choice" disabled={!ready} onClick={() => fileInputRef.current?.click()}>
+          <Upload size={32} aria-hidden="true" />
+          <span className="choice__title">Upload a recording</span>
+          <span className="choice__hint">No live tab or system audio? Use an audio or video file instead.</span>
+          <span className="choice__cta">Choose a file</span>
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="audio/*,video/*"
+          className="visually-hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = '';
+            if (file) void linaw.startListening({ kind: 'file', file });
+          }}
+        />
       </div>
 
       {linaw.session.error && (
@@ -407,6 +426,7 @@ function SessionView({ record, linaw, onDeleted }: { record: SessionRecord; lina
                   card={card}
                   saved={record.saved.includes(card.id)}
                   simplifying={false}
+                  speaking={linaw.speakingCardId === card.id}
                   highlighted={false}
                   onReadAloud={linaw.speak}
                   onToggleSaved={(c) =>

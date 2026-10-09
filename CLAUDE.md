@@ -8,13 +8,13 @@ Linaw is a **standalone desktop app**. When idle it is a library of past session
   - **Full window** (`screens/LiveScreen`) — the original design's live layout, for a normal browser tab.
 - **Desktop shell** (`apps/desktop`) — Electron. One frameless window with two modes the UI switches: `app` (normal window, library) and `overlay` (always on top while listening). Captures system audio (Windows loopback, no picker) and has ghost mode (see-through + click-through, Ctrl+Shift+L) in overlay mode.
 - **Backend** (`backend/`) — TypeScript. Serves the contract: decodes the UI's audio (ffmpeg), streams it to the speech service, finds glossary terms and writes cards with Ollama. Integration guide: `docs/backend.md`. `pnpm conformance` checks any running backend against the contract.
-- **Speech service** (`stt/`) — Python (uv). Turns audio into text: Soniox when online, local Whisper (WhisperLiveKit) when offline, switching mid-session without losing words. The backend talks to it on `ws://127.0.0.1:8000/ws/stream`. Guide: `stt/README.md`.
+- **Speech service** (`stt/`) — Python (uv). Turns audio into text: Soniox when online, local Whisper (WhisperLiveKit) when offline, switching mid-session without losing words. Also turns text into speech for read-aloud: Soniox TTS when online (`POST /api/tts`), with the UI's on-device voice as the offline fallback. The backend talks to it on `ws://127.0.0.1:8000/ws/stream` and `http://127.0.0.1:8000/api/tts`. Guide: `stt/README.md`.
 - **Contract** (`packages/contract`) — zod schemas for every message between them. The single source of truth. A generated JSON Schema (`schema/`) serves non-TypeScript backends.
 
 ## Hard rules
 
 1. **The UI only speaks the contract.** All backend traffic goes through `apps/web/src/lib/socket.ts`, which validates every incoming message with `parseServerMessage`. Never `JSON.parse` socket data anywhere else, never invent fields, never send a message that isn't in `ClientMessageSchema`. Need something new? Change the contract first (use the `linaw-contract` skill).
-2. **No network beyond localhost, except Soniox in `stt/`.** The UI makes no outside calls: no CDNs, analytics, remote fonts, cloud APIs or cloud TTS voices. Fonts and icons are bundled npm packages. Read-aloud uses on-device voices only (`localService`). The UI's only socket is `ws://localhost:8765`. The one cloud call in the project is the speech service streaming to Soniox; its API key lives only in `stt/.env` and never reaches the UI or the backend. Everything must keep working offline (local Whisper), and `STT_MODE=local_only` turns the cloud off entirely.
+2. **No network beyond localhost, except Soniox in `stt/`.** The UI makes no outside calls: no CDNs, analytics, remote fonts, or other cloud APIs. Fonts and icons are bundled npm packages. The UI's only socket is `ws://localhost:8765`. The only cloud calls in the project are the speech service's calls to Soniox — streaming speech-to-text, and now also text-to-speech for read-aloud (`stt/app/tts.py`, proxied through the backend); its API key lives only in `stt/.env` and never reaches the UI or the backend. Everything must keep working offline: local Whisper for speech-to-text, and on-device voices (`localService`) as read-aloud's fallback when Soniox TTS isn't reachable. `STT_MODE=local_only` turns all cloud calls off entirely.
 3. **Not legal advice.** Copy explains terms; it never tells the user what to do legally.
 4. **Accessibility is the product.** Users may be older, low-vision or new to legal language. Follow the `linaw-ui` skill: big type, ≥44px targets, high-contrast theme, plain-English chrome, Tagalog content marked `lang="tl"`.
 
@@ -51,7 +51,7 @@ apps/web/src/
   lib/socket.ts        the only backend connection (validates with the contract)
   lib/audio.ts         tab/system capture (getDisplayMedia), MediaRecorder chunks
   lib/settings.ts      user settings + localStorage
-  lib/speech.ts        read-aloud with on-device voices
+  lib/speech.ts        read-aloud: Soniox TTS via the backend, on-device voices as the fallback
   state/session.ts     reducer: server messages -> UI state
   screens/             StartScreen (+ ShareHelper), LiveScreen
   components/          TopBar, JargonCard, TranscriptPanel, ActionBar, HelpPanel, SettingsDialog

@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Check, Contrast, Gauge, Globe, Info, Languages, Layers, PanelRightOpen, Type } from 'lucide-react';
+import { Check, Contrast, Gauge, Globe, Info, Languages, Layers, PanelRightOpen, Type, Volume2 } from 'lucide-react';
 import type { Settings } from '../lib/settings';
 
 interface SettingsDialogProps {
@@ -58,6 +58,9 @@ export function SettingsDialog({ open, settings, onChange, onClose }: SettingsDi
               { value: 'faster', label: 'Faster' },
             ]}
           />
+        </Row>
+        <Row icon={<Volume2 size={24} />} label="Read answers aloud automatically" hint="Ask a question and hear the answer, not just read it">
+          <Switch label="Read answers aloud automatically" checked={settings.autoVoiceAnswers} onChange={(v) => set('autoVoiceAnswers', v)} />
         </Row>
         <Row icon={<Layers size={24} />} label="Explanation level">
           <Segmented
