@@ -1,19 +1,16 @@
 {
-  "name": "@linaw/mock-server",
+  "name": "@linaw/conformance",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Stand-in for the Linaw backend: replays a scripted hearing over the contract.",
+  "description": "Checks that a Linaw backend speaks the contract correctly.",
   "scripts": {
-    "start": "tsx src/server.ts",
-    "dev": "tsx watch src/server.ts",
-    "validate": "tsx src/validate-scenarios.ts",
+    "start": "tsx src/conformance.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@linaw/contract": "workspace:*",
-    "ws": "^8.18.0",
-    "zod": "^3.23.8"
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^22.7.0",
