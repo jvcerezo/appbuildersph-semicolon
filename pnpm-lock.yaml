@@ -166,31 +166,6 @@ importers:
 
   .: {}
 
-  apps/backend:
-    dependencies:
-      '@linaw/contract':
-        specifier: workspace:*
-        version: link:../../packages/contract
-      ws:
-        specifier: ^8.18.0
-        version: 8.22.0
-      zod:
-        specifier: ^3.23.8
-        version: 3.25.76
-    devDependencies:
-      '@types/node':
-        specifier: ^22.7.0
-        version: 22.20.5
-      '@types/ws':
-        specifier: ^8.5.12
-        version: 8.18.2
-      tsx:
-        specifier: ^4.19.1
-        version: 4.23.15
-      typescript:
-        specifier: ~5.6.3
-        version: 5.6.3
-
   apps/desktop:
     devDependencies:
       '@types/node':
@@ -236,6 +211,31 @@ importers:
       vite:
         specifier: ^5.4.10
         version: 5.4.21(@types/node@22.20.5)
+
+  backend:
+    dependencies:
+      '@linaw/contract':
+        specifier: workspace:*
+        version: link:../packages/contract
+      ws:
+        specifier: ^8.18.0
+        version: 8.22.0
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.7.0
+        version: 22.20.5
+      '@types/ws':
+        specifier: ^8.5.12
+        version: 8.18.2
+      tsx:
+        specifier: ^4.19.1
+        version: 4.23.15
+      typescript:
+        specifier: ~5.6.3
+        version: 5.6.3
 
   packages/contract:
     dependencies:

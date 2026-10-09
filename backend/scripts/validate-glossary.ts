@@ -1,4 +1,4 @@
-/** Checks apps/backend/glossary/terms.json; part of `pnpm validate`, so CI catches a broken glossary. */
+/** Checks backend/glossary/terms.json; part of `pnpm validate`, so CI catches a broken glossary. */
 import { loadGlossary } from '../src/terms/glossary';
 
 console.log('backend glossary');

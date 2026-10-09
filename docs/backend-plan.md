@@ -7,7 +7,7 @@ Owner: Gabb. Demo deadline: under 24 hours from 2026-10-09 16:00 PHT.
 ## How it works
 
 ```
-UI / overlay  ──1-second webm/opus audio + JSON requests──▶  apps/backend (ws://127.0.0.1:8765)
+UI / overlay  ──1-second webm/opus audio + JSON requests──▶  backend (ws://127.0.0.1:8765)
                                                                ├─ ffmpeg      webm → 16 kHz PCM
                                                                ├─ cutter      splits at pauses
                                                                ├─ whisper.cpp clip → text      → transcript.segment
@@ -33,7 +33,7 @@ Everything runs locally: ffmpeg, `whisper-server` on 127.0.0.1:8178, and Ollama 
 
 | ID | Decision | Answer | Date |
 |---|---|---|---|
-| D1 | Backend language and location | TypeScript, `apps/backend` in this repo | 2026-10-09 |
+| D1 | Backend language and location | TypeScript, `backend` in this repo | 2026-10-09 |
 | D2 | How the demo plays the hearing | Desktop overlay listening to system audio while a saved hearing video plays (works with Wi-Fi off). Team picks 2 clips with many legal terms. | 2026-10-09 |
 | D3 | Who writes the glossary | A teammate writes the Tagalog entries (format below) | 2026-10-09 |
 | D4 | AI fails after "Explaining…" shows | Add a `card.failed` contract message and the UI change; Gabb's side writes it, UI teammate reviews | 2026-10-09 |
@@ -51,7 +51,7 @@ Defaults unless someone objects: the speaker is shown as "Speaker"; no live "typ
 
 ## Glossary format (for the teammate writing it)
 
-File: `apps/backend/glossary/terms.json`. Every entry here shows as a **Checked** card, so only add explanations someone has checked.
+File: `backend/glossary/terms.json`. Every entry here shows as a **Checked** card, so only add explanations someone has checked.
 
 ```json
 {

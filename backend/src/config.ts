@@ -1,6 +1,6 @@
 import { DEFAULT_PORT } from '@linaw/contract';
 
-/** From the environment or apps/backend/.env. Every URL must point at this computer. */
+/** From the environment or backend/.env. Every URL must point at this computer. */
 export interface Config {
   port: number;
   ffmpegPath: string;

@@ -2,6 +2,7 @@ packages:
   - apps/*
   - packages/*
   - tools/*
+  - backend
 
 # esbuild (Vite, tsx) and electron need their postinstall to fetch platform binaries.
 allowBuilds:
