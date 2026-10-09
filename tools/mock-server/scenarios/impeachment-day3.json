@@ -1,0 +1,209 @@
+{
+  "title": "Impeachment Trial — Day 3",
+  "timeline": [
+    {
+      "at": 2,
+      "message": {
+        "v": 1, "type": "transcript.segment", "id": "seg-01", "t": 0, "speaker": "THE CHAIR",
+        "text": "The Senate, sitting as an Impeachment Court, is now in session.",
+        "terms": [], "final": true
+      }
+    },
+    {
+      "at": 6,
+      "message": {
+        "v": 1, "type": "transcript.segment", "id": "seg-02", "t": 0, "speaker": "PROSECUTION",
+        "text": "The first two Articles of Impeachment were read in full yesterday.",
+        "terms": [{ "text": "Articles of Impeachment", "cardId": "card-articles" }], "final": true
+      }
+    },
+    { "at": 7, "message": { "v": 1, "type": "card.pending", "id": "card-articles", "term": "Articles of Impeachment", "t": 0 } },
+    {
+      "at": 10,
+      "message": {
+        "v": 1, "type": "card",
+        "card": {
+          "id": "card-articles", "term": "Articles of Impeachment", "kind": "checked", "t": 0, "language": "tl",
+          "meaning": "Ang listahan ng mga paratang laban sa opisyal na nililitis.",
+          "example": "Parang listahan ng mga reklamo na binabasa bago magsimula ang paglilitis.",
+          "now": "Tinutukoy ng prosekusyon ang mga paratang na binasa kahapon."
+        }
+      }
+    },
+    {
+      "at": 16,
+      "message": {
+        "v": 1, "type": "transcript.segment", "id": "seg-03", "t": 0, "speaker": "THE CHAIR",
+        "text": "The Presiding Officer recognizes counsel for the defense.",
+        "terms": [{ "text": "Presiding Officer", "cardId": "card-presiding" }], "final": true
+      }
+    },
+    { "at": 17, "message": { "v": 1, "type": "card.pending", "id": "card-presiding", "term": "Presiding Officer", "t": 0 } },
+    {
+      "at": 20,
+      "message": {
+        "v": 1, "type": "card",
+        "card": {
+          "id": "card-presiding", "term": "Presiding Officer", "kind": "checked", "t": 0, "language": "tl",
+          "meaning": "Ang namumuno sa paglilitis. Siya ang nagpapasya sa takbo ng sesyon.",
+          "example": "Parang referee sa laro na nagsasabi kung sino ang puwedeng magsalita.",
+          "now": "Binigyan ng namumuno ng pagkakataong magsalita ang depensa."
+        }
+      }
+    },
+    {
+      "at": 26,
+      "message": {
+        "v": 1, "type": "transcript.segment", "id": "seg-04", "t": 0, "speaker": "DEFENSE",
+        "text": "…we respectfully file a",
+        "terms": [], "final": false
+      }
+    },
+    {
+      "at": 29,
+      "message": {
+        "v": 1, "type": "transcript.segment", "id": "seg-04", "t": 0, "speaker": "DEFENSE",
+        "text": "…we respectfully file a motion to quash the subpoena issued to the witness.",
+        "terms": [
+          { "text": "motion to quash", "cardId": "card-quash" },
+          { "text": "subpoena", "cardId": "card-subpoena" }
+        ],
+        "final": true
+      }
+    },
+    { "at": 30, "message": { "v": 1, "type": "card.pending", "id": "card-quash", "term": "Motion to quash", "t": 0 } },
+    {
+      "at": 34,
+      "message": {
+        "v": 1, "type": "card",
+        "card": {
+          "id": "card-quash", "term": "Motion to quash", "kind": "ai", "t": 0, "language": "tl",
+          "meaning": "Pormal na hiling na ibasura o huwag tanggapin ang isang bagay, gaya ng subpoena.",
+          "example": "Parang sinabi mong, “Hindi ko po tatanggapin ang sulat na ito,” at hiniling sa namumuno na ipawalang-bisa ito.",
+          "now": "Hinihiling ng depensa na ibasura ang subpoena para sa isang testigo."
+        }
+      }
+    },
+    { "at": 35, "message": { "v": 1, "type": "card.pending", "id": "card-subpoena", "term": "Subpoena", "t": 0 } },
+    {
+      "at": 38,
+      "message": {
+        "v": 1, "type": "card",
+        "card": {
+          "id": "card-subpoena", "term": "Subpoena", "kind": "checked", "t": 0, "language": "tl",
+          "meaning": "Utos ng korte na humaharap ang isang tao o magdala ng dokumento.",
+          "example": "Parang opisyal na imbitasyon na hindi puwedeng tanggihan nang walang dahilan.",
+          "now": "Ito ang utos na gustong ipabasura ng depensa."
+        }
+      }
+    },
+    {
+      "at": 45,
+      "message": {
+        "v": 1, "type": "transcript.segment", "id": "seg-05", "t": 0, "speaker": "PROSECUTION",
+        "text": "Objection, Mr. President. The testimony of this witness is material to Article II.",
+        "terms": [{ "text": "Objection", "cardId": "card-objection" }], "final": true
+      }
+    },
+    { "at": 46, "message": { "v": 1, "type": "card.pending", "id": "card-objection", "term": "Objection", "t": 0 } },
+    {
+      "at": 49,
+      "message": {
+        "v": 1, "type": "card",
+        "card": {
+          "id": "card-objection", "term": "Objection", "kind": "checked", "t": 0, "language": "tl",
+          "meaning": "Pagtutol sa sinabi o hiniling ng kabilang panig.",
+          "example": "Parang pagtaas ng kamay para sabihing, “Hindi po kami sang-ayon diyan.”",
+          "now": "Tumutol ang prosekusyon sa hiling ng depensa na ibasura ang subpoena."
+        }
+      }
+    },
+    {
+      "at": 57,
+      "message": {
+        "v": 1, "type": "transcript.segment", "id": "seg-06", "t": 0, "speaker": "THE CHAIR",
+        "text": "The Chair will take the motion under advisement.",
+        "terms": [{ "text": "under advisement", "cardId": "card-advisement" }], "final": true
+      }
+    },
+    { "at": 58, "message": { "v": 1, "type": "card.pending", "id": "card-advisement", "term": "Under advisement", "t": 0 } },
+    {
+      "at": 62,
+      "message": {
+        "v": 1, "type": "card",
+        "card": {
+          "id": "card-advisement", "term": "Under advisement", "kind": "ai", "t": 0, "language": "tl",
+          "meaning": "Pinag-aaralan pa ang hiling bago magdesisyon.",
+          "example": "Parang sinabi mong, “Pag-iisipan ko muna, sasagutin kita mamaya.”",
+          "now": "Hindi pa nagpapasya ang namumuno kung ibabasura ang subpoena."
+        }
+      }
+    },
+    {
+      "at": 72,
+      "message": {
+        "v": 1, "type": "transcript.segment", "id": "seg-07", "t": 0, "speaker": "THE CHAIR",
+        "text": "If there are no further matters, the Chair will entertain a motion to adjourn sine die.",
+        "terms": [{ "text": "sine die", "cardId": "card-sine-die" }], "final": true
+      }
+    },
+    { "at": 73, "message": { "v": 1, "type": "card.pending", "id": "card-sine-die", "term": "Sine die", "t": 0 } },
+    {
+      "at": 76,
+      "message": {
+        "v": 1, "type": "card",
+        "card": {
+          "id": "card-sine-die", "term": "Sine die", "kind": "checked", "t": 0, "language": "tl",
+          "meaning": "Itinigil ang sesyon nang walang takdang petsa ng pagbabalik.",
+          "example": "Parang “Saka na lang ulit tayo magkita,” pero walang petsang napag-usapan.",
+          "now": "Nabanggit ito bilang posibleng hakbang sa pagtatapos ng araw."
+        }
+      }
+    }
+  ],
+  "replies": {
+    "whatSaid": [
+      "Humiling ang depensa na ibasura ang subpoena para sa isang testigo.",
+      "Tumutol ang prosekusyon. Sinabi nilang mahalaga ang sasabihin ng testigo.",
+      "Wala pang desisyon ang namumuno. Pinag-aaralan pa niya ang hiling."
+    ],
+    "summary": {
+      "overview": "Sa ikatlong araw ng paglilitis, binasa ang unang dalawang paratang. Nagsimulang magtanong ang prosekusyon sa unang testigo tungkol sa mga dokumento. Bandang huli, humiling ang depensa na ibasura ang isang subpoena at tumutol ang prosekusyon. Wala pang desisyon ang namumuno.",
+      "events": [
+        { "t": 0, "title": "Binuksan ang sesyon", "detail": "Sinimulan ng namumuno ang ikatlong araw ng paglilitis." },
+        { "t": 6, "title": "Binasa ang mga paratang", "detail": "Binasa nang malakas ang unang dalawang Articles of Impeachment." },
+        { "t": 16, "title": "Unang testigo", "detail": "Tinanong ng prosekusyon ang testigo tungkol sa mga dokumento." },
+        { "t": 29, "title": "Hiling na ibasura ang subpoena", "detail": "Humiling ang depensa; tumutol ang prosekusyon." }
+      ],
+      "openIssue": "Ayon sa depensa, hindi dapat tawagin ang testigo. Ayon naman sa prosekusyon, kailangan ang testigo para sa ikalawang paratang. Ang namumuno ang magpapasya."
+    },
+    "answers": [
+      {
+        "match": "objection",
+        "text": "Tumutol ang prosekusyon dahil gusto nilang marinig pa rin ang testigo. Ang “objection” ay paraan para sabihing hindi sila sang-ayon sa isang hiling. Ang namumuno ang magpapasya kung tatanggapin ito."
+      },
+      {
+        "match": "pagkatapos",
+        "text": "Kadalasan, pakikinggan muna ng namumuno ang dalawang panig. Pagkatapos, sasabihin niya kung tuloy ang subpoena o hindi."
+      },
+      {
+        "match": "nagsasalita",
+        "text": "Ang namumuno (Presiding Officer) ang huling nagsalita. Sinabi niyang pag-aaralan muna niya ang hiling ng depensa."
+      },
+      {
+        "match": "impeachment",
+        "text": "Ang impeachment ay proseso para litisin ang isang mataas na opisyal ng gobyerno. Kapag napatunayang nagkasala, puwede siyang alisin sa puwesto."
+      }
+    ],
+    "fallbackAnswer": "Hindi ko pa alam ang sagot diyan mula sa narinig ko. Subukang itanong ulit gamit ang ibang salita."
+  },
+  "simplified": {
+    "card-quash": {
+      "meaning": "Hiling na huwag ituloy ang isang utos ng korte.",
+      "example": "Parang pagsabi ng, “Huwag na po natin ituloy ito.”"
+    },
+    "card-advisement": {
+      "meaning": "Pag-iisipan pa ng namumuno."
+    }
+  }
+}
