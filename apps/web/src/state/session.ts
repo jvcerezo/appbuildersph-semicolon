@@ -185,6 +185,17 @@ function applyServerMessage(state: SessionState, message: ServerMessage): Sessio
       };
     }
 
+    case 'card.failed':
+      return {
+        ...state,
+        pending: state.pending.filter((p) => p.id !== message.id),
+        segments: state.segments.map((s) =>
+          s.terms.some((term) => term.cardId === message.id)
+            ? { ...s, terms: s.terms.filter((term) => term.cardId !== message.id) }
+            : s,
+        ),
+      };
+
     case 'what_said.result':
       if (state.whatSaid.state !== 'loading' || state.whatSaid.requestId !== message.requestId) return state;
       return { ...state, whatSaid: { state: 'done', value: { windowSec: message.windowSec, points: message.points, sources: message.sources } } };
