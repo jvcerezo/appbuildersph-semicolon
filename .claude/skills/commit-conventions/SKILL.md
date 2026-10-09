@@ -21,7 +21,7 @@ We use [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## Scopes
 
-`web` (apps/web), `desktop` (apps/desktop), `contract` (packages/contract), `conformance` (tools/conformance), `demo` (tools/demo-backend), `backend` (backend/), `ci`, `docs`, `agents` (CLAUDE.md, .claude/). Omit the scope for repo-wide changes.
+`web` (apps/web), `desktop` (apps/desktop), `contract` (packages/contract), `conformance` (tools/conformance), `demo` (tools/demo-backend), `backend` (apps/backend), `ci`, `docs`, `agents` (CLAUDE.md, .claude/). Omit the scope for repo-wide changes.
 
 ## Summary line
 
