@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+  - packages/*
+  - tools/*
+
+# esbuild (used by Vite and tsx) needs its postinstall to fetch the platform binary.
+allowBuilds:
+  esbuild: true
