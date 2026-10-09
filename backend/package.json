@@ -9,7 +9,8 @@
     "dev": "tsx watch src/server.ts",
     "replay": "tsx scripts/replay.ts",
     "validate": "tsx scripts/validate-glossary.ts && tsx scripts/check-finder.ts",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "build-law": "tsx scripts/build-law.ts"
   },
   "dependencies": {
     "@linaw/contract": "workspace:*",
