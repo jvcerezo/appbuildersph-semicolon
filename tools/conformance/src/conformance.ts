@@ -243,9 +243,13 @@ async function main(): Promise<void> {
 
   const pendingIds = new Set(received.filter(is('card.pending')).map((m) => m.id));
   const cardIds = new Set(received.filter(is('card')).map((m) => m.card.id));
-  const orphans = [...pendingIds].filter((id) => !cardIds.has(id));
-  if (pendingIds.size === 0) report('skip', 'Every `card.pending` is followed by a `card` with the same id');
-  else report(orphans.length === 0 ? 'pass' : 'warn', 'Every `card.pending` is followed by a `card` with the same id', orphans.length ? `never resolved: ${orphans.join(', ')}` : undefined);
+  const failedIds = new Set(received.filter(is('card.failed')).map((m) => m.id));
+  const orphans = [...pendingIds].filter((id) => !cardIds.has(id) && !failedIds.has(id));
+  const resolvedLabel = 'Every `card.pending` is followed by a `card` (or `card.failed`) with the same id';
+  if (pendingIds.size === 0) report('skip', resolvedLabel);
+  else report(orphans.length === 0 ? 'pass' : 'warn', resolvedLabel, orphans.length ? `never resolved: ${orphans.join(', ')}` : undefined);
+  const strayFailures = [...failedIds].filter((id) => !pendingIds.has(id));
+  if (strayFailures.length > 0) report('warn', '`card.failed` only follows a `card.pending`', `no card.pending for: ${strayFailures.join(', ')}`);
 
   const unknownTermCards = received
     .filter(is('transcript.segment'))
