@@ -47,7 +47,7 @@ for (const host of LOOPBACK) {
 }
 
 function ready(): void {
-  console.log(`Linaw backend on ws://localhost:${config.port} (${services.glossary.size} glossary terms)`);
+  console.log(`Linaw backend on ws://localhost:${config.port} (${services.glossary.size} glossary terms, ${services.law.size} law passages)`);
   void checkHealth(config).then((checks) => {
     printHealth(checks);
     // Avoid a cold start on the first card.

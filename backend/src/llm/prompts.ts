@@ -162,6 +162,8 @@ export interface AskAnswer {
   answer: string;
   /** 1-based numbers of the hearing lines the answer is based on. */
   lines: number[];
+  /** 1-based numbers of the law passages the answer is based on. */
+  laws: number[];
 }
 
 /** Ask: answers from the hearing lines and glossary meanings only. */
@@ -169,23 +171,27 @@ export function ask(args: {
   question: string;
   lines: string[];
   meanings: { term: string; meaning: string }[];
+  /** Passages of Philippine law found for the question (law/passages.json). */
+  laws: { cite: string; text: string }[];
   advice: boolean;
   language: Language;
 }): JsonRequest<AskAnswer> {
-  const { question, lines, meanings, advice, language } = args;
+  const { question, lines, meanings, laws, advice, language } = args;
   const tl = language === 'tl';
   const task = tl
     ? [
-        'Sagutin ang tanong gamit LAMANG ang mga linya ng pagdinig at ang mga kahulugan sa ibaba. Isulat:',
-        '- "onTopic": true kung tungkol ang tanong sa pagdinig, sa mga tao rito, o sa isang legal na termino o proseso; false kung hindi.',
-        '- "answer": 1 hanggang 3 maiikling pangungusap. Kung wala sa mga linya ang sagot, sabihing hindi pa ito nabanggit sa pagdinig.',
+        'Sagutin ang tanong gamit LAMANG ang mga linya ng pagdinig, ang mga kahulugan, at ang mga bahagi ng batas sa ibaba. Isulat:',
+        '- "onTopic": true kung tungkol ang tanong sa pagdinig, sa mga tao rito, sa isang legal na termino o proseso, o sa batas ng Pilipinas; false kung hindi. Hinanap ang mga bahagi ng batas para sa tanong na ito: kung may kaugnay sa tanong, true ang onTopic.',
+        '- "answer": 1 hanggang 3 maiikling pangungusap sa simpleng Tagalog. Sagutin mismo ang itinanong: kung "ilan", magbigay ng bilang; kung "sino", magbigay ng tao o opisina. Kung tungkol sa nangyari sa pagdinig, gamitin ang mga linya; kung hindi pa ito nabanggit, sabihin iyon. Kung tungkol sa batas o proseso, ipaliwanag ang bahagi ng batas sa simpleng salita. Huwag isulat ang numero ng seksyon; idadagdag namin ito.',
         '- "lines": ang numero ng mga linyang pinagbatayan ng sagot.',
+        '- "laws": ang numero ng mga bahagi ng batas na pinagbatayan ng sagot (walang laman kung wala).',
       ]
     : [
-        'Answer the question using ONLY the hearing lines and the meanings below. Write:',
-        '- "onTopic": true if the question is about the hearing, its people, or a legal term or procedure; false if not.',
-        '- "answer": 1 to 3 short sentences. If the lines do not say, say it has not come up in the hearing yet.',
+        'Answer the question using ONLY the hearing lines, the meanings, and the law passages below. Write:',
+        '- "onTopic": true if the question is about the hearing, its people, a legal term or procedure, or Philippine law; false if not. The law passages were looked up for this question: if one relates to it, onTopic is true.',
+        '- "answer": 1 to 3 short, plain sentences. Answer exactly what was asked: "how many" needs a number, "who" needs a person or office. About what happened in the hearing: use the lines, and if they do not say, say it has not come up yet. About the law or procedure: explain the passage in plain words. Do not write section numbers; we add them.',
         '- "lines": the numbers of the lines the answer is based on.',
+        '- "laws": the numbers of the law passages the answer is based on (empty if none).',
       ];
   if (advice) {
     task.push(
@@ -196,9 +202,11 @@ export function ask(args: {
   }
   const heard = lines.map((text, i) => `[${i + 1}] ${text}`).join('\n') || (tl ? '(wala pa)' : '(none yet)');
   const known = meanings.map((m) => `- ${m.term}: ${m.meaning}`).join('\n');
+  // Law passages stay in English, as written; the answer explains them in the user's language.
+  const law = laws.map((l, i) => `[${i + 1}] ${l.cite}: ${l.text}`).join('\n');
   const content = tl
-    ? `Mga linya ng pagdinig:\n${heard}${known ? `\n\nMga kahulugan:\n${known}` : ''}\n\nTanong: ${question}`
-    : `Hearing lines:\n${heard}${known ? `\n\nMeanings:\n${known}` : ''}\n\nQuestion: ${question}`;
+    ? `Mga linya ng pagdinig:\n${heard}${known ? `\n\nMga kahulugan:\n${known}` : ''}${law ? `\n\nMga bahagi ng batas:\n${law}` : ''}\n\nTanong: ${question}`
+    : `Hearing lines:\n${heard}${known ? `\n\nMeanings:\n${known}` : ''}${law ? `\n\nLaw passages:\n${law}` : ''}\n\nQuestion: ${question}`;
   return {
     messages: [
       { role: 'system', content: [...RULES[language], ...task].join('\n') },
@@ -210,10 +218,16 @@ export function ask(args: {
         onTopic: { type: 'boolean' },
         answer: { type: 'string', minLength: 5, maxLength: 500 },
         lines: { type: 'array', items: { type: 'integer' } },
+        laws: { type: 'array', items: { type: 'integer' } },
       },
-      required: ['onTopic', 'answer', 'lines'],
+      required: ['onTopic', 'answer', 'lines', 'laws'],
     },
-    schema: z.object({ onTopic: z.boolean(), answer: z.string().trim().min(5), lines: z.array(z.number().int()) }),
+    schema: z.object({
+      onTopic: z.boolean(),
+      answer: z.string().trim().min(5),
+      lines: z.array(z.number().int()),
+      laws: z.array(z.number().int()),
+    }),
     maxTokens: 220,
   };
 }

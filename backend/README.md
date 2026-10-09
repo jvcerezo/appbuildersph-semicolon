@@ -25,6 +25,21 @@ Settings live in `.env` (copy `.env.example`): ports, the ffmpeg path, the speec
 
 The backend streams each session's audio to the speech service and gets lines back as they are spoken: draft text while a sentence is in progress (`final: false`), then the final line, which is what glossary terms and cards are found in. If the internet drops, the service switches to local Whisper on its own and the UI shows "Offline mode — still working"; it switches back when the internet returns. Details: [`stt/README.md`](../stt/README.md).
 
+## Law library
+
+Ask answers questions about the law from `law/passages.json`: 610 short, cited passages of Philippine law and rules, searched offline (keyword ranking with a Tagalog-to-English word list, so "Sino ang puwedeng ma-impeach?" finds Const. Art. XI, Sec. 2). The answer explains the passage in plain words and Linaw adds the citation itself, from the passage the answer matches, so a section number is never invented.
+
+| Source | Version |
+|---|---|
+| 1987 Constitution | as ratified |
+| Revised Rules on Evidence (Rules 128-134) | 2019 amendments, in force since May 1, 2020 |
+| Rules of Court, Rule 21 (Subpoena) | 1997 Rules of Civil Procedure |
+| Senate Rules of Procedure on Impeachment Trials | 2011 (Resolution No. 39, 15th Congress); check for later revisions |
+| RA 3019, Anti-Graft and Corrupt Practices Act | as on LawPhil |
+| RA 6713, Code of Conduct and Ethical Standards | as enacted |
+
+The texts are Philippine government works, which carry no copyright (IP Code, Sec. 176); they are taken from LawPhil. To add a source or refresh the texts, edit `scripts/build-law.ts` and run `pnpm --filter @linaw/backend build-law` (needs internet; the result is committed so Linaw stays offline).
+
 ## Check it
 
 ```sh

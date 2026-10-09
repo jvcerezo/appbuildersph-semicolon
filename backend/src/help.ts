@@ -1,4 +1,5 @@
 import type { Language, SummaryEvent } from '@linaw/contract';
+import { LawLibrary, spellOutAcronyms } from './law/library';
 import type { OllamaClient, Priority } from './llm/ollama';
 import { ask, summaryEvent, summaryOverview, whatSaid } from './llm/prompts';
 import type { Line } from './session';
@@ -101,9 +102,15 @@ const NO_ADVICE: Record<Language, string> = {
 };
 
 const OFF_TOPIC: Record<Language, string> = {
-  tl: 'Ang pagdinig na ito lang ang alam ni Linaw. Magtanong tungkol sa sinabi rito o sa isang legal na termino.',
-  en: 'Linaw only knows about this hearing. Ask about what was said here or about a legal term.',
+  tl: 'Ang pagdinig na ito at ang mga batas tungkol dito lang ang alam ni Linaw. Magtanong tungkol sa sinabi rito, sa isang legal na termino, o sa batas.',
+  en: 'Linaw only knows about this hearing and the laws behind it. Ask about what was said here, a legal term, or the law.',
 };
+
+const BASIS: Record<Language, string> = { tl: 'Batayan', en: 'Based on' };
+
+// Four short passages keep the Ask prompt inside gemma's 4k-token context with the transcript lines.
+const LAW_PASSAGES = 4;
+const LAW_CHARS = 600;
 
 /** Advice and predictions, in Tagalog and English. The refusal must not depend on a 4B model noticing. */
 const ADVICE =
@@ -118,24 +125,45 @@ export interface Answer {
   sources: string[];
 }
 
-/** Ask, from the transcript and the glossary. Advice and off-topic questions get fixed lines (D11). */
+/**
+ * Ask, from the transcript, the glossary and the law library. Advice and off-topic questions get fixed
+ * lines (D11). The law citation is added here from the passages the model says it used, never written
+ * by the model, so a section number can't be invented.
+ */
 export async function answerQuestion(args: {
   question: string;
   lines: Line[];
   meanings: { term: string; meaning: string }[];
+  law: LawLibrary;
   language: Language;
   ai: OllamaClient;
 }): Promise<Answer> {
-  const { question, meanings, language, ai } = args;
-  const advice = ADVICE.test(question);
+  const { meanings, language, ai } = args;
+  const advice = ADVICE.test(args.question);
+  const question = spellOutAcronyms(args.question);
   const lines = relevantLines(question, args.lines);
+  const laws = args.law
+    .search([question, ...meanings.map((m) => m.term)].join(' '), LAW_PASSAGES)
+    .map(({ passage }) => ({ cite: language === 'tl' ? passage.citeTl : passage.cite, text: clip(passage.text, LAW_CHARS) }));
   const reply = await ai.json(
-    ask({ question, lines: lines.map((line) => line.text), meanings, advice, language }),
+    ask({ question, lines: lines.map((line) => line.text), meanings, laws, advice, language }),
     'user',
   );
   const sources = [...new Set(reply.lines.map((n) => lines[n - 1]?.id).filter((id): id is string => id !== undefined))];
   if (!reply.onTopic) return { text: advice ? NO_ADVICE[language] : OFF_TOPIC[language], sources: [] };
-  return { text: advice ? `${NO_ADVICE[language]} ${reply.answer}` : reply.answer, sources };
+  // Trust the model that it used the law, but check which passage: cite the one the answer matches best.
+  const closest = LawLibrary.closest(reply.answer, laws);
+  const used = reply.laws.length > 0 && closest >= 0 ? [closest] : [];
+  const cited = [...new Set(used.map((i) => laws[i]?.cite).filter((cite): cite is string => cite !== undefined))];
+  const basis = cited.length > 0 ? ` (${BASIS[language]}: ${cited.join('; ')})` : '';
+  const answer = `${reply.answer}${basis}`;
+  return { text: advice ? `${NO_ADVICE[language]} ${answer}` : answer, sources };
+}
+
+function clip(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('\n'), max * 0.6) + 1).trim()} …`;
 }
 
 /** The latest lines, plus older ones that share words with the question, in hearing order. */

@@ -486,7 +486,7 @@ export class Session {
       return [{ term: entry.term, meaning: (language === 'en' ? entry.en : undefined)?.meaning ?? entry.tl.meaning }];
     });
     const startedAt = Date.now();
-    const job = answerQuestion({ question, lines: [...this.lines], meanings, language, ai: this.services.ai })
+    const job = answerQuestion({ question, lines: [...this.lines], meanings, law: this.services.law, language, ai: this.services.ai })
       .then(({ text, sources }) => {
         this.aiFailing = false;
         if (this.disposed) return;
