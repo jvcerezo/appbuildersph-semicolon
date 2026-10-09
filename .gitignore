@@ -13,3 +13,6 @@ Thumbs.db
 *.log
 
 .claude/settings.local.json
+
+# Working copies for parallel agents
+.claude/worktrees/
