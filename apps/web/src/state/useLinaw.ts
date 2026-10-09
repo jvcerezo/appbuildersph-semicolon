@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import type { Card } from '@linaw/contract';
-import { captureScreenAudio, startRecorder, type AudioSource, type Recorder } from '../lib/audio';
+import { captureFileAudio, captureScreenAudio, startRecorder, type AudioSource, type Recorder } from '../lib/audio';
 import { newRequestId } from '../lib/format';
 import { historyStore, newId, type SessionRecord } from '../lib/history';
 import { loadSettings, saveSettings, SPEECH_RATE, TEXT_SCALE, toPreferences, type Settings } from '../lib/settings';
@@ -24,7 +24,7 @@ const MAX_PLAYBACK_MS = 20000;
 /** What the library shows when no session is live. */
 export type LibraryView = { page: 'home' } | { page: 'session'; id: string };
 
-export type SourceRequest = { kind: 'tab' } | { kind: 'system' };
+export type SourceRequest = { kind: 'tab' } | { kind: 'system' } | { kind: 'file'; file: File };
 type SourceKind = SourceRequest['kind'];
 
 /**
@@ -247,7 +247,7 @@ export function useLinaw() {
 
       let source: AudioSource;
       try {
-        source = await captureScreenAudio();
+        source = request.kind === 'file' ? await captureFileAudio(request.file) : await captureScreenAudio();
       } catch (err) {
         // NotAllowedError = the user closed the share window; nothing to report.
         if (err instanceof DOMException && err.name === 'NotAllowedError') return;

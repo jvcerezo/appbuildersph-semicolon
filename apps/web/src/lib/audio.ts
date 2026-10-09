@@ -1,5 +1,12 @@
 /** Audio capture: a shared tab or all system audio (desktop overlay), recorded in small chunks. */
 
+// captureStream() is widely supported (Chromium/Electron) but isn't in TypeScript's DOM lib yet.
+declare global {
+  interface HTMLMediaElement {
+    captureStream?(): MediaStream;
+  }
+}
+
 const PREFERRED_MIME = 'audio/webm;codecs=opus';
 const CHUNK_MS = 1000;
 
@@ -40,6 +47,51 @@ export async function captureScreenAudio(): Promise<AudioSource> {
   }
   const stream = new MediaStream(audioTracks);
   return { stream, release: () => stream.getTracks().forEach((track) => track.stop()) };
+}
+
+/**
+ * A local file (fallback when a live tab or system capture isn't available). Plays it in real
+ * time and captures its decoded audio, so everything downstream works exactly as it does for a
+ * live capture — including auto-stop when the file ends (captureScreenAudio's "ended" track event
+ * doubles as "stopped sharing" there; here it's "finished playing").
+ */
+export async function captureFileAudio(file: File): Promise<AudioSource> {
+  const url = URL.createObjectURL(file);
+  const el = document.createElement(file.type.startsWith('video/') ? 'video' : 'audio');
+  el.src = url;
+
+  if (typeof el.captureStream !== 'function') {
+    URL.revokeObjectURL(url);
+    throw new Error('This browser can’t read audio from an uploaded file. Use Chrome, Edge or the Linaw desktop app.');
+  }
+  try {
+    await el.play();
+  } catch {
+    URL.revokeObjectURL(url);
+    throw new Error('Linaw couldn’t play that file. Try a different audio or video file.');
+  }
+
+  const captured: MediaStream = el.captureStream();
+  captured.getVideoTracks().forEach((track) => track.stop());
+  const audioTracks = captured.getAudioTracks();
+  if (audioTracks.length === 0) {
+    el.pause();
+    URL.revokeObjectURL(url);
+    throw new Error('That file doesn’t have any sound Linaw can listen to.');
+  }
+  const stream = new MediaStream(audioTracks);
+  // startRecorder() listens for the audio track's "ended" event; firing it here on natural
+  // end-of-file reuses that exact "source went away" path for auto-stop.
+  el.addEventListener('ended', () => stream.getAudioTracks().forEach((track) => track.stop()));
+
+  return {
+    stream,
+    release: () => {
+      el.pause();
+      stream.getTracks().forEach((track) => track.stop());
+      URL.revokeObjectURL(url);
+    },
+  };
 }
 
 export interface Recorder {
