@@ -8,45 +8,35 @@ const FALLBACK_NOW: Record<Language, string> = {
   en: 'This was just mentioned in the hearing.',
 };
 
-export interface CardResult {
-  card: Card;
-  aiError?: unknown;
-}
-
-/** Meaning and example from the glossary, "Right now" from the AI. Never fails: without the AI it uses a plain line. */
-export async function checkedCard(args: {
-  id: string;
-  t: number;
-  entry: GlossaryEntry;
-  before: string[];
-  line: string;
-  preferences: Preferences;
-  ai: OllamaClient;
-}): Promise<CardResult> {
+/** Meaning and example from the glossary, ready at once. A plain "Right now" line stands in until the AI writes one. */
+export function checkedCard(args: { id: string; t: number; entry: GlossaryEntry; preferences: Preferences }): Card {
   const { entry } = args;
   // With no English entry the whole card stays in Tagalog, so `language` describes all of it.
   const english = args.preferences.language === 'en' ? entry.en : undefined;
   const language: Language = english ? 'en' : 'tl';
   const text = english ?? entry.tl;
-
-  let now = FALLBACK_NOW[language];
-  let aiError: unknown;
-  try {
-    ({ now } = await args.ai.json(rightNow({ term: entry.term, meaning: text.meaning, before: args.before, line: args.line, language }), 'card'));
-  } catch (err) {
-    aiError = err;
-  }
   return {
-    card: { id: args.id, term: entry.term, kind: 'checked', meaning: text.meaning, example: text.example, now, t: args.t, language },
-    aiError,
+    id: args.id,
+    term: entry.term,
+    kind: 'checked',
+    meaning: text.meaning,
+    example: text.example,
+    now: FALLBACK_NOW[language],
+    t: args.t,
+    language,
   };
 }
 
-/** The same card in easier words. The AI rewrote it, so it is no longer Checked. */
-export async function simplerCard(card: Card, ai: OllamaClient): Promise<Card> {
-  const { meaning, example } = await ai.json(
-    simpler({ term: card.term, meaning: card.meaning, example: card.example, language: card.language }),
-    'user',
+/** What the term means at this moment of the hearing. */
+export async function nowLine(card: Card, before: string[], line: string, ai: OllamaClient): Promise<string> {
+  const { now } = await ai.json(
+    rightNow({ term: card.term, meaning: card.meaning, before, line, language: card.language }),
+    'card',
   );
-  return { ...card, kind: 'ai', meaning, example };
+  return now;
+}
+
+/** The card's meaning and example in easier words. The AI rewrote them, so the card is no longer Checked. */
+export function simplerText(card: Card, ai: OllamaClient): Promise<Pick<Card, 'meaning' | 'example'>> {
+  return ai.json(simpler({ term: card.term, meaning: card.meaning, example: card.example, language: card.language }), 'user');
 }

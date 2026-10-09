@@ -2,7 +2,7 @@ import type { Card, ClientMessage, Preferences, TermRef } from '@linaw/contract'
 import { PauseCutter, type Utterance } from './audio/cutter';
 import { FfmpegDecoder, SAMPLE_RATE } from './audio/decoder';
 import { toWav } from './audio/wav';
-import { checkedCard, simplerCard } from './cards';
+import { checkedCard, nowLine, simplerText } from './cards';
 import { AiUnavailableError } from './llm/ollama';
 import type { Services } from './services';
 import type { Outgoing } from './wire';
@@ -211,21 +211,24 @@ export class Session {
   private explain(entryId: string, line: Line): void {
     const entry = this.services.glossary.get(entryId);
     if (!entry) return;
-    const id = this.cardId(entryId);
-    const { epoch } = this;
-    const { t } = line;
-    this.send({ type: 'card.pending', id, term: entry.term, t });
+    const card = checkedCard({ id: this.cardId(entryId), t: line.t, entry, preferences: this.preferences });
+    this.cards.set(card.id, card);
+    this.send({ type: 'card', card });
 
+    const { epoch } = this;
     const startedAt = Date.now();
-    const job = checkedCard({ id, t, entry, before: this.linesBefore(line), line: line.text, preferences: this.preferences, ai: this.services.ai }).then(
-      ({ card, aiError }) => {
-        if (aiError !== undefined) this.aiProblem(aiError);
-        if (this.disposed || epoch !== this.epoch) return;
-        this.cards.set(card.id, card);
-        this.send({ type: 'card', card });
-        console.log(`[backend] card "${card.term}" (${card.kind}, ${((Date.now() - startedAt) / 1000).toFixed(1)} s): ${card.now}`);
-      },
-    );
+    const job = nowLine(card, this.linesBefore(line), line.text, this.services.ai)
+      .then((now) => {
+        this.aiFailing = false;
+        // "Simpler" may have rewritten the card meanwhile; keep its text.
+        const latest = this.cards.get(card.id);
+        if (this.disposed || epoch !== this.epoch || !latest) return;
+        const updated = { ...latest, now };
+        this.cards.set(updated.id, updated);
+        this.send({ type: 'card', card: updated });
+        console.log(`[backend] "${card.term}" right now (${((Date.now() - startedAt) / 1000).toFixed(1)} s): ${now}`);
+      })
+      .catch((err: unknown) => this.aiProblem(err));
     this.track(job);
   }
 
@@ -236,9 +239,12 @@ export class Session {
       return;
     }
     const { epoch } = this;
-    const job = simplerCard(card, this.services.ai)
-      .then((simple) => {
-        if (this.disposed || epoch !== this.epoch) return;
+    const job = simplerText(card, this.services.ai)
+      .then((text) => {
+        // The AI "Right now" line may have arrived meanwhile; keep it.
+        const latest = this.cards.get(cardId);
+        if (this.disposed || epoch !== this.epoch || !latest) return;
+        const simple: Card = { ...latest, ...text, kind: 'ai' };
         this.cards.set(simple.id, simple);
         this.send({ type: 'card', card: simple, requestId });
       })

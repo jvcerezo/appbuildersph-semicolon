@@ -37,6 +37,7 @@ console.log(`Replaying ${file}: ${durationSec.toFixed(1)} s at ${speed}x, ${chun
 
 const startedAt = Date.now();
 const counts = new Map<string, number>();
+const cardsSeen = new Set<string>();
 const services = createServices(config);
 await services.ai.warmUp().catch((err: unknown) => console.warn(`AI model not loaded: ${err instanceof Error ? err.message : String(err)}`));
 const session = new Session(services, print);
@@ -75,7 +76,12 @@ function print(message: Outgoing): void {
       console.log(`${at} explaining "${message.term}"…`);
       break;
     case 'card':
-      console.log(`${at} card (${message.card.kind}) ${message.card.term}\n           meaning: ${message.card.meaning}\n           example: ${message.card.example}\n           now:     ${message.card.now}`);
+      if (cardsSeen.has(message.card.id)) {
+        console.log(`${at} card update ${message.card.term}\n           now:     ${message.card.now}`);
+      } else {
+        cardsSeen.add(message.card.id);
+        console.log(`${at} card (${message.card.kind}) ${message.card.term}\n           meaning: ${message.card.meaning}\n           example: ${message.card.example}\n           now:     ${message.card.now}`);
+      }
       break;
     default:
       console.log(`${at} ${JSON.stringify(message)}`);

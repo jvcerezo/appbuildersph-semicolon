@@ -27,8 +27,8 @@ Order follows the team's task list: "What did they say?" matters most for the de
 | 1 | Skeleton backend | UI connects | must | done |
 | 2 | Ears | live transcript | must | done |
 | 3 | Checked cards from the glossary, and Simpler | underlined terms, Checked cards | must | done (5 seed terms; glossary pending) |
-| 4 | Instant cards: the glossary card shows at once, "Right now" fills in a moment later | cards with no wait | must | next |
-| 5 | What did they say? | help panel answers | must | |
+| 4 | Instant cards: the glossary card shows at once, "Right now" fills in a moment later | cards with no wait | must | done |
+| 5 | What did they say? | help panel answers | must | next |
 | 6 | Summary, including the final one saved after Stop | Summary panel, library | must | |
 | 7 | Ask, with RAG over the rules | Ask panel answers | should | needs the rules text |
 | 8 | Fuzzy term matching | terms found even when misheard | should | after the real clips |
@@ -37,7 +37,7 @@ Order follows the team's task list: "What did they say?" matters most for the de
 
 `pnpm conformance --audio ../../backend/fixtures/mock-hearing-tts.webm --fast`: 10 passed, 0 failed; the warnings are the help requests not built yet.
 
-Replay of the test hearing: "articles of impeachment" is said at 0:06, its line and placeholder card show 2.8 s later, and the full card 2.0 s after that.
+Replay of the test hearing: "articles of impeachment" is said at 0:06, its line and full Checked card show 2.8 s later, and the AI's "Right now" line replaces the plain one about 2 s after that.
 
 ## Teammates' work
 
