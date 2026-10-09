@@ -149,6 +149,15 @@ class DemoSession {
         );
         break;
       }
+      case 'ask.audio':
+        // The scripted demo can't hear; say so instead of pretending.
+        this.send({
+          type: 'error',
+          code: 'model_unavailable',
+          message: 'Voice questions need the real backend. Type your question instead.',
+          requestId: message.requestId,
+        });
+        break;
       case 'card.simplify': {
         const card = this.cards.get(message.cardId);
         if (!card) {
