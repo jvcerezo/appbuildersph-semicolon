@@ -48,7 +48,9 @@ export class BackendSocket {
   }
 
   private connect(): void {
-    this.onState('connecting');
+    // Report "connecting" only on a fresh attempt; while retrying stay "closed",
+    // so the UI keeps explaining why it can't listen yet.
+    if (this.retries === 0) this.onState('connecting');
     const socket = new WebSocket(this.url);
     this.socket = socket;
 
