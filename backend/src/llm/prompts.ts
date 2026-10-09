@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Language } from '@linaw/contract';
+import type { ExplanationLevel, Language } from '@linaw/contract';
 import type { ChatMessage, JsonRequest } from './ollama';
 
 const RULES: Record<Language, string[]> = {
@@ -215,6 +215,149 @@ export function ask(args: {
     },
     schema: z.object({ onTopic: z.boolean(), answer: z.string().trim().min(5), lines: z.array(z.number().int()) }),
     maxTokens: 220,
+  };
+}
+
+const CARD_EXAMPLE = {
+  term: 'Subpoena',
+  line: 'The committee will issue a subpoena to the former secretary.',
+  card: {
+    tl: {
+      simple: {
+        meaning: 'Utos ng korte o ng komite na humarap ang isang tao o magdala ng dokumento.',
+        example: 'Parang opisyal na imbitasyon na hindi puwedeng tanggihan nang walang dahilan.',
+      },
+      detailed: {
+        meaning:
+          'Utos ng korte o ng komite na humarap ang isang tao o magdala ng dokumento. Ginagamit ito para makuha ang testimonya o ebidensiyang kailangan. Kapag hindi sumunod nang walang sapat na dahilan, puwede itong humantong sa parusa.',
+        example: 'Parang opisyal na imbitasyon na may pirma ng awtoridad, kaya hindi ito puwedeng balewalain.',
+      },
+      now: 'Uutusan ng komite ang dating kalihim na humarap sa pagdinig.',
+    },
+    en: {
+      simple: {
+        meaning: 'An order from a court or committee to appear or to bring documents.',
+        example: 'Like an official invitation you can’t turn down without a good reason.',
+      },
+      detailed: {
+        meaning:
+          'An order from a court or committee to appear or to bring documents. It is used to get testimony or evidence the hearing needs. Ignoring it without a good reason can lead to a penalty.',
+        example: 'Like an official invitation signed by an authority, so it can’t simply be ignored.',
+      },
+      now: 'The committee will order the former secretary to appear at the hearing.',
+    },
+  },
+};
+
+export interface AiCardText {
+  /** Whether the term is legal or procedural jargon at all; spotted terms that aren't get no card. */
+  jargon: boolean;
+  english: string;
+  meaning: string;
+  example: string;
+  now: string;
+}
+
+/** A whole AI-explained card. The English meaning comes first because small models explain more accurately that way. */
+export function aiCard(args: {
+  term: string;
+  before: string[];
+  line: string;
+  language: Language;
+  level: ExplanationLevel;
+}): JsonRequest<AiCardText> {
+  const { term, before, line, language, level } = args;
+  const tl = language === 'tl';
+  const meaningRule =
+    level === 'detailed'
+      ? tl
+        ? '- meaning: 2 hanggang 3 maiikling pangungusap sa simpleng Tagalog: ano ito, para saan, at ano ang karaniwang kasunod nito.'
+        : '- meaning: 2 to 3 short sentences in plain English: what it is, what it is for, and what usually follows.'
+      : tl
+        ? '- meaning: ISANG maikling pangungusap sa simpleng Tagalog.'
+        : '- meaning: ONE short sentence in plain English.';
+  const task = tl
+    ? [
+        'Ipaliwanag ang termino. Isulat:',
+        '- jargon: true kung legal o pamprosesong termino na maaaring hindi alam ng karaniwang tao; false kung pangkaraniwang salita, pangalan o lugar.',
+        '- english: ang legal na kahulugan nito sa Ingles, isang pangungusap.',
+        meaningRule,
+        '- example: isang pang-araw-araw na paghahambing na nagsisimula sa "Parang".',
+        '- now: ISANG maikling pangungusap kung ano ang ibig sabihin nito sa pangungusap kung saan ito nabanggit.',
+      ]
+    : [
+        'Explain the term. Write:',
+        '- jargon: true if it is a legal or procedural term an ordinary person may not know; false if it is an everyday word, a name or a place.',
+        '- english: its legal meaning in English, one sentence.',
+        meaningRule,
+        '- example: an everyday comparison starting with "Like".',
+        '- now: ONE short sentence on what it means in the sentence where it was said.',
+      ];
+  const ask = (t: string, b: string[], l: string): string =>
+    tl
+      ? [`Termino: ${t}`, b.length > 0 ? `Bago nito: ${b.join(' ')}` : '', `Pangungusap na may termino: ${l}`].filter(Boolean).join('\n')
+      : [`Term: ${t}`, b.length > 0 ? `Just before: ${b.join(' ')}` : '', `Sentence with the term: ${l}`].filter(Boolean).join('\n');
+  const shot = CARD_EXAMPLE.card[language];
+  const text = { type: 'string', minLength: 5, maxLength: level === 'detailed' ? 450 : 250 };
+  return {
+    messages: [
+      { role: 'system', content: [...RULES[language], ...task].join('\n') },
+      { role: 'user', content: ask(CARD_EXAMPLE.term, [], CARD_EXAMPLE.line) },
+      {
+        role: 'assistant',
+        content: JSON.stringify({
+          jargon: true,
+          english: 'A legal order requiring a person to appear or to produce documents.',
+          ...shot[level],
+          now: shot.now,
+        }),
+      },
+      { role: 'user', content: ask(term, before, line) },
+    ],
+    format: {
+      type: 'object',
+      properties: { jargon: { type: 'boolean' }, english: text, meaning: text, example: text, now: text },
+      required: ['jargon', 'english', 'meaning', 'example', 'now'],
+    },
+    schema: z.object({
+      jargon: z.boolean(),
+      english: z.string().trim(),
+      meaning: z.string().trim().min(5),
+      example: z.string().trim().min(5),
+      now: z.string().trim().min(5),
+    }),
+    maxTokens: level === 'detailed' ? 360 : 240,
+  };
+}
+
+/** Finds jargon the glossary and watch list missed. Tested at ~1 s per line; about half its picks need filtering. */
+export function spot(args: { line: string }): JsonRequest<{ terms: string[] }> {
+  const shots: [string, string[]][] = [
+    ['The court finds probable cause and issues a warrant of arrest.', ['probable cause', 'warrant of arrest']],
+    ['Good morning, everyone. Please be seated.', []],
+  ];
+  const messages: ChatMessage[] = [
+    {
+      role: 'system',
+      content: [
+        'You read one line from a Philippine Senate hearing or court trial.',
+        'List the legal or procedural terms in it that an ordinary Filipino might not understand.',
+        'Copy each term EXACTLY as written in the line. A term can be a phrase.',
+        'Skip names, places, agencies, numbers, everyday words, and forms of address like "Your Honor" or "Mr. President".',
+        'At most 2 terms. If there are none, return an empty list.',
+      ].join('\n'),
+    },
+  ];
+  for (const [line, terms] of shots) {
+    messages.push({ role: 'user', content: line });
+    messages.push({ role: 'assistant', content: JSON.stringify({ terms }) });
+  }
+  messages.push({ role: 'user', content: args.line });
+  return {
+    messages,
+    format: { type: 'object', properties: { terms: { type: 'array', items: { type: 'string' }, maxItems: 2 } }, required: ['terms'] },
+    schema: z.object({ terms: z.array(z.string().trim()) }),
+    maxTokens: 60,
   };
 }
 

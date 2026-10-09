@@ -51,6 +51,7 @@ export interface Summary {
 /** One timeline event per stretch of lines. Finished stretches are kept, so each summary only reads what is new. */
 export class Summarizer {
   private readonly events = new Map<string, Promise<SummaryEvent>>();
+  private readonly done = new Map<string, SummaryEvent>();
 
   constructor(private readonly ai: OllamaClient) {}
 
@@ -66,25 +67,29 @@ export class Summarizer {
 
   /** Writes a finished stretch's event in the background, so the summary is quick later. */
   prepare(stretch: Line[], language: Language): void {
-    void this.event(stretch, language, 'card').catch(() => undefined);
+    void this.event(stretch, language, 'background').catch(() => undefined);
   }
 
   clear(): void {
     this.events.clear();
+    this.done.clear();
   }
 
   private event(stretch: Line[], language: Language, priority: Priority): Promise<SummaryEvent> {
     const first = stretch[0];
     if (!first) return Promise.reject(new Error('empty stretch'));
     const key = `${language}:${first.id}:${stretch.length}`;
+    const ready = this.done.get(key);
+    if (ready) return Promise.resolve(ready);
     const known = this.events.get(key);
-    if (known) return known;
+    // A background job may sit behind every card in the queue; a person waiting gets a fresh one instead.
+    if (known && priority === 'background') return known;
     const job = this.ai
       .json(summaryEvent({ lines: stretch.map((line) => line.text), language }), priority)
       .then(({ title, detail }): SummaryEvent => ({ t: first.t, title, detail, sources: [longest(stretch).id] }));
     if (stretch.length === LINES_PER_EVENT) {
       this.events.set(key, job);
-      job.catch(() => this.events.delete(key));
+      job.then((event) => this.done.set(key, event)).catch(() => this.events.delete(key));
     }
     return job;
   }

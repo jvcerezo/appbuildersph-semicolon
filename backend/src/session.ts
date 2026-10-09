@@ -2,7 +2,9 @@ import type { Card, ClientMessage, Preferences, Status, TermRef } from '@linaw/c
 import { PauseCutter, type Utterance } from './audio/cutter';
 import { FfmpegDecoder, SAMPLE_RATE } from './audio/decoder';
 import { toWav } from './audio/wav';
-import { checkedCard, nowLine, simplerText } from './cards';
+import { aiCard, checkedCard, nowLine, simplerText } from './cards';
+import { spot } from './llm/prompts';
+import { TermFinder, type FoundTerm } from './terms/finder';
 import { answerQuestion, LINES_PER_EVENT, Summarizer, whatWasSaid } from './help';
 import { AiUnavailableError } from './llm/ollama';
 import type { Services } from './services';
@@ -53,6 +55,9 @@ export class Session {
   private lineCount = 0;
   private readonly explained = new Set<string>();
   private readonly cards = new Map<string, Card>();
+  private readonly lineTerms = new Map<string, FoundTerm[]>();
+  private readonly spotted = new Map<string, string>();
+  private spottedFinder: TermFinder | null = null;
   private readonly work = new Set<Promise<unknown>>();
   private disposed = false;
   private sttFailing = false;
@@ -169,6 +174,9 @@ export class Session {
     this.lineCount = 0;
     this.explained.clear();
     this.cards.clear();
+    this.lineTerms.clear();
+    this.spotted.clear();
+    this.spottedFinder = null;
     this.summarizer.clear();
   }
 
@@ -212,15 +220,103 @@ export class Session {
     if (this.lines.length % LINES_PER_EVENT === 0) {
       this.summarizer.prepare(this.lines.slice(-LINES_PER_EVENT), this.preferences.language);
     }
-    const found = this.services.finder.find(line.text);
-    const terms: TermRef[] = found.map((term) => ({ text: term.text, cardId: this.cardId(term.entryId) }));
-    this.send({ type: 'transcript.segment', id: line.id, t: line.t, speaker: SPEAKER, text: line.text, terms, final: true });
+    const found = this.findTerms(line.text);
+    this.sendLine(line, found);
 
-    for (const { entryId } of found) {
+    for (const { entryId, text } of found) {
       if (this.explained.has(entryId)) continue;
       this.explained.add(entryId);
-      this.explain(entryId, line);
+      if (this.services.glossary.has(entryId)) this.explain(entryId, line);
+      else this.explainWithAi(entryId, this.services.watchlist.get(entryId)?.term ?? text, line);
     }
+    this.spot(line, found);
+  }
+
+  private findTerms(text: string): FoundTerm[] {
+    const found = this.services.finder.find(text);
+    for (const term of this.spottedFinder?.find(text) ?? []) {
+      const end = term.index + term.text.length;
+      if (!found.some((f) => term.index < f.index + f.text.length && end > f.index)) found.push(term);
+    }
+    return found.sort((a, b) => a.index - b.index);
+  }
+
+  private sendLine(line: Line, found: FoundTerm[]): void {
+    this.lineTerms.set(line.id, found);
+    const terms: TermRef[] = found.map((term) => ({ text: term.text, cardId: this.cardId(term.entryId) }));
+    this.send({ type: 'transcript.segment', id: line.id, t: line.t, speaker: SPEAKER, text: line.text, terms, final: true });
+  }
+
+  /** Watch-list terms: "Explaining…" at once, then the AI's card, or card.failed. */
+  private explainWithAi(entryId: string, term: string, line: Line): void {
+    const id = this.cardId(entryId);
+    this.send({ type: 'card.pending', id, term, t: line.t });
+    const { epoch } = this;
+    const startedAt = Date.now();
+    const job = aiCard({ id, term, t: line.t, before: this.linesBefore(line), line: line.text, preferences: this.preferences, ai: this.services.ai })
+      .then(({ card }) => {
+        this.aiFailing = false;
+        if (this.disposed || epoch !== this.epoch) return;
+        this.cards.set(card.id, card);
+        this.send({ type: 'card', card });
+        console.log(`[backend] AI card "${term}" (${((Date.now() - startedAt) / 1000).toFixed(1)} s): ${card.meaning}`);
+      })
+      .catch((err: unknown) => {
+        this.aiProblem(err);
+        if (this.disposed || epoch !== this.epoch) return;
+        this.explained.delete(entryId);
+        this.send({ type: 'card.failed', id });
+      });
+    this.track(job);
+  }
+
+  /**
+   * Jargon the lists missed. Nothing shows until its card is ready, because about half of
+   * what the spotter picks turns out not to be jargon; the line is then sent again with the term.
+   */
+  private spot(line: Line, found: FoundTerm[]): void {
+    if (this.services.ai.backlog > 1) return;
+    const { epoch } = this;
+    const lower = line.text.toLowerCase();
+    const job = this.services.ai
+      .json(spot({ line: line.text }), 'background')
+      .then(async ({ terms }) => {
+        const pick = terms
+          .map((term) => ({ term, index: lower.indexOf(term.toLowerCase()) }))
+          .find(({ term, index }) => {
+            const end = index + term.length;
+            return (
+              index !== -1 &&
+              (term.match(/\p{L}/gu)?.length ?? 0) >= 4 &&
+              !NOT_JARGON.has(term.toLowerCase()) &&
+              !this.explained.has(spottedId(term)) &&
+              !found.some((f) => index < f.index + f.text.length && end > f.index)
+            );
+          });
+        if (!pick || this.disposed || epoch !== this.epoch) return;
+        const text = line.text.slice(pick.index, pick.index + pick.term.length);
+        const entryId = spottedId(text);
+        const { card, jargon } = await aiCard({
+          id: this.cardId(entryId),
+          term: text.charAt(0).toUpperCase() + text.slice(1),
+          t: line.t,
+          before: this.linesBefore(line),
+          line: line.text,
+          preferences: this.preferences,
+          ai: this.services.ai,
+        });
+        console.log(`[backend] spotted "${text}"${jargon ? '' : ' (not jargon, dropped)'}`);
+        if (!jargon || this.disposed || epoch !== this.epoch || this.explained.has(entryId)) return;
+        this.explained.add(entryId);
+        this.spotted.set(entryId, text);
+        this.spottedFinder = new TermFinder([...this.spotted].map(([id, phrase]) => ({ id, phrases: [phrase] })));
+        this.cards.set(card.id, card);
+        const current = this.lineTerms.get(line.id) ?? found;
+        this.sendLine(line, [...current, { entryId, text, index: pick.index }].sort((a, b) => a.index - b.index));
+        this.send({ type: 'card', card });
+      })
+      .catch((err: unknown) => console.warn(`[backend] spotter skipped a line: ${describe(err)}`));
+    this.track(job);
   }
 
   private explain(entryId: string, line: Line): void {
@@ -363,6 +459,16 @@ export class Session {
   private describePreferences(): string {
     return `${this.preferences.language}, ${this.preferences.level}`;
   }
+}
+
+/** Hearing words the spotter tends to pick that need no card. */
+const NOT_JARGON = new Set([
+  'senate', 'senator', 'chair', 'chairman', 'court', 'witness', 'counsel', 'record', 'records', 'registered',
+  'session', 'hearing', 'trial', 'government', 'office', 'officer', 'official records', 'your honor', 'mr. president',
+]);
+
+function spottedId(term: string): string {
+  return `s-${term.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '')}`;
 }
 
 function describe(err: unknown): string {

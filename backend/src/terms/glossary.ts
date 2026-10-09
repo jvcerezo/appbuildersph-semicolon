@@ -49,6 +49,38 @@ export function loadGlossary(file = GLOSSARY_FILE): GlossaryEntry[] {
   return result.data.terms;
 }
 
+export const WatchEntrySchema = z.object({
+  term: z.string().min(1),
+  aliases: z.array(z.string().min(1)).default([]),
+});
+export type WatchEntry = z.infer<typeof WatchEntrySchema> & { id: string };
+
+/** Terms with no checked explanation: the AI explains them (AI-explained cards). Glossary entries win. */
+export const WATCHLIST_FILE = fileURLToPath(new URL('../../glossary/watchlist.json', import.meta.url));
+
+export function loadWatchlist(glossary: readonly GlossaryEntry[], file = WATCHLIST_FILE): WatchEntry[] {
+  const raw: unknown = JSON.parse(readFileSync(file, 'utf8'));
+  const result = z.object({ terms: z.array(WatchEntrySchema) }).safeParse(raw);
+  if (!result.success) {
+    const problems = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('\n  ');
+    throw new Error(`The watch list (${file}) has problems:\n  ${problems}`);
+  }
+  const owners = new Map<string, string>();
+  for (const entry of glossary) for (const phrase of phrasesOf(entry)) owners.set(normalize(phrase), `glossary "${entry.id}"`);
+  const problems: string[] = [];
+  const entries = result.data.terms.map((entry) => {
+    const id = `w-${normalize(entry.term).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+    for (const phrase of phrasesOf(entry)) {
+      const owner = owners.get(normalize(phrase));
+      if (owner) problems.push(`"${phrase}" is already in the ${owner}`);
+      owners.set(normalize(phrase), `watch list "${entry.term}"`);
+    }
+    return { ...entry, id };
+  });
+  if (problems.length > 0) throw new Error(`The watch list (${file}) has problems:\n  ${problems.join('\n  ')}`);
+  return entries;
+}
+
 export function phrasesOf(entry: Pick<GlossaryEntry, 'term' | 'aliases'>): string[] {
   return [entry.term, ...entry.aliases];
 }

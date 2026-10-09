@@ -31,4 +31,6 @@ pnpm validate                                                              # inc
 
 ## Glossary
 
-`glossary/terms.json`: every entry becomes a **Checked** card, so only add explanations someone has checked. The AI writes only the "Right now" line. Terms outside the glossary aren't explained yet (Phase 9 in the plan).
+`glossary/terms.json`: every entry becomes a **Checked** card, so only add explanations someone has checked. The AI writes only the "Right now" line.
+
+`glossary/watchlist.json`: legal terms with no checked explanation. When one is said, the AI writes an **AI-explained** card. Add a term here when it should get a card but nobody has checked Tagalog for it yet; move it to `terms.json` once someone has.

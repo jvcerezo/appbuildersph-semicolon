@@ -32,10 +32,10 @@ Order follows the team's task list: "What did they say?" matters most for the de
 | 6 | Summary, including the final one saved after Stop | Summary panel, library | must | done (~6.5 s; events for every 6 lines are written in the background) |
 | 7 | Ask, with RAG over the rules | Ask panel answers | should | done from the transcript and glossary; rules search waits for the rules text |
 | 8 | Fuzzy term matching | terms found even when misheard | should | done (re-check on the real clips) |
-| 9 | AI-explained cards for terms not in the glossary | more cards | could | next |
+| 9 | AI-explained cards for terms not in the glossary | more cards | could | done (watch list ~5–9 s per card; spotter when the AI is idle) |
 | 10 | Demo prep: real clips, D7 test, glossary from the clips, disclosures, two clean rehearsals, backup video | ready to present | must | |
 
-`pnpm conformance --audio ../../backend/fixtures/mock-hearing-tts.webm --fast`: 14 passed, 0 failed, 0 warnings.
+`pnpm conformance --audio ../../backend/fixtures/mock-hearing-tts.webm --fast`: 14 passed, 0 failed. With `--fast` (audio ~10× real time) the last AI cards can still be writing when the checker hangs up, so it may warn about unresolved `card.pending`; at real speed they all arrive.
 
 Every prompt says an objection is not a ruling, because gemma3:4b kept reading "Objection" as the court rejecting a motion. That and Ask's mistakes led to switching to gemma4:e4b (D6).
 
@@ -54,13 +54,13 @@ Replay of the test hearing: "articles of impeachment" is said at 0:06, its line 
 | D1 | Backend language and location | TypeScript in `backend/` (moved from `apps/backend` to match `docs/backend.md`), inside the pnpm workspace | 2026-10-09 |
 | D2 | How the demo plays the hearing | Desktop overlay listening to system audio while a saved hearing video plays (works with Wi-Fi off). Team picks 2 clips with many legal terms. | 2026-10-09 |
 | D3 | Who writes the glossary | A teammate writes the Tagalog entries (format below) | 2026-10-09 |
-| D4 | AI fails after "Explaining…" shows | Add a `card.failed` contract message and the UI change; Gabb's side writes it, UI teammate reviews. Lands with Phase 9: from Phase 4 on, Checked cards never wait on the AI. | 2026-10-09 |
+| D4 | AI fails after "Explaining…" shows | Add a `card.failed` contract message and the UI change; Gabb's side writes it, UI teammate reviews. Done with Phase 9 (contract, UI and conformance; jvcerezo to review). | 2026-10-09 |
 | D5 | Speech-to-text model | Whisper `small` on the CPU, with a legal-term hint (~2.5 s per sentence, transcribed the test hearing perfectly) | 2026-10-09 |
 | D6 | AI model | `gemma4:e4b` (switched from `gemma3:4b` the same night). gemma3:4b was faster but kept inventing rulings (an objected motion reported as rejected); gemma4:e4b got them right. Costs on this PC: "Right now" ~3 s, What did they say? ~11 s, Summary ~6.5 s. Swappable with `OLLAMA_MODEL`; re-check on the demo laptop if it isn't this PC. | 2026-10-09 |
 | D7 | Whisper language | open — test `auto` vs `en` on a real demo clip | |
 | D8 | AI-written "Right now" on Checked cards | Keep the Checked badge; the UI teammate is told the AI writes that one line | 2026-10-09 |
-| D9 | Terms not in the glossary | open (Phase 9) | |
-| D10 | Simple vs Detailed | open (Phase 9) | |
+| D9 | Terms not in the glossary | Watch list (`glossary/watchlist.json`, terms with no explanation) plus an AI spotter. Watch-list terms show "Explaining…" at once, then an AI card or `card.failed`. The spotter runs only when the AI is idle, and a spotted term shows nothing until its card is ready and the AI confirms it is jargon; then the line is re-sent with the term. | 2026-10-10 |
+| D10 | Simple vs Detailed | Detailed makes the AI-written meaning 2–3 sentences; "Right now" stays one sentence; Checked cards keep their glossary text. New cards only. | 2026-10-10 |
 | D11 | Legal-advice or off-topic questions in Ask | Explain, then redirect: a keyword check (Tagalog and English) catches advice and predictions, and the answer always starts with a fixed "no legal advice, see a lawyer or the PAO" line before the AI explains the related term or step. Off-topic questions get a fixed line. | 2026-10-09 |
 | D12 | Top-bar title | The AI writes a short title with each summary (button or final), sent with `status`. Until then the UI's date-based name stays. | 2026-10-09 |
 | D13 | "Offline mode" pill | open (Phase 10) | |

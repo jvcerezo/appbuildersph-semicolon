@@ -1,6 +1,6 @@
 import type { Card, Language, Preferences } from '@linaw/contract';
 import type { OllamaClient } from './llm/ollama';
-import { rightNow, simpler } from './llm/prompts';
+import { aiCard as aiCardPrompt, rightNow, simpler } from './llm/prompts';
 import type { GlossaryEntry } from './terms/glossary';
 
 const FALLBACK_NOW: Record<Language, string> = {
@@ -27,11 +27,32 @@ export function checkedCard(args: { id: string; t: number; entry: GlossaryEntry;
   };
 }
 
+/** A card the AI wrote whole, and whether the AI thinks the term is jargon at all. */
+export async function aiCard(args: {
+  id: string;
+  term: string;
+  t: number;
+  before: string[];
+  line: string;
+  preferences: Preferences;
+  ai: OllamaClient;
+}): Promise<{ card: Card; jargon: boolean }> {
+  const { language, level } = args.preferences;
+  const text = await args.ai.json(
+    aiCardPrompt({ term: args.term, before: args.before, line: args.line, language, level }),
+    'card',
+  );
+  return {
+    card: { id: args.id, term: args.term, kind: 'ai', meaning: text.meaning, example: text.example, now: text.now, t: args.t, language },
+    jargon: text.jargon,
+  };
+}
+
 /** What the term means at this moment of the hearing. */
 export async function nowLine(card: Card, before: string[], line: string, ai: OllamaClient): Promise<string> {
   const { now } = await ai.json(
     rightNow({ term: card.term, meaning: card.meaning, before, line, language: card.language }),
-    'card',
+    'background',
   );
   return now;
 }
