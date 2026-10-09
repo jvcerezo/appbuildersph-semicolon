@@ -9,7 +9,8 @@ interface JargonCardProps {
   simplifying: boolean;
   highlighted: boolean;
   onReadAloud: (card: Card) => void;
-  onSimplify: (card: Card) => void;
+  /** Omit where the backend can't be asked (past sessions); hides "Simpler". */
+  onSimplify?: (card: Card) => void;
   onToggleSaved: (card: Card) => void;
 }
 
@@ -66,10 +67,12 @@ export const JargonCard = forwardRef<HTMLElement, JargonCardProps>(function Jarg
           <Volume2 size={20} aria-hidden="true" />
           Read aloud
         </button>
-        <button type="button" className="ghost-button" onClick={() => onSimplify(card)} disabled={simplifying}>
-          {simplifying ? <AudioLines size={20} aria-hidden="true" /> : <Text size={20} aria-hidden="true" />}
-          {simplifying ? 'Making it simpler…' : 'Simpler'}
-        </button>
+        {onSimplify && (
+          <button type="button" className="ghost-button" onClick={() => onSimplify(card)} disabled={simplifying}>
+            {simplifying ? <AudioLines size={20} aria-hidden="true" /> : <Text size={20} aria-hidden="true" />}
+            {simplifying ? 'Making it simpler…' : 'Simpler'}
+          </button>
+        )}
         <button type="button" className="ghost-button" aria-pressed={saved} onClick={() => onToggleSaved(card)}>
           {saved ? <BookmarkCheck size={20} aria-hidden="true" /> : <Bookmark size={20} aria-hidden="true" />}
           {saved ? 'Saved' : 'Save'}

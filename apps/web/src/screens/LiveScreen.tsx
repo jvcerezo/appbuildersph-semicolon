@@ -26,6 +26,7 @@ interface LiveScreenProps {
   onSimplify: (card: Card) => void;
   onToggleSaved: (card: Card) => void;
   onReconnect: () => void;
+  onFinish: () => void;
 }
 
 export function LiveScreen(props: LiveScreenProps) {
@@ -117,8 +118,11 @@ export function LiveScreen(props: LiveScreenProps) {
                   </div>
                   <div className="alert__text">
                     <div className="alert__title">Audio sharing stopped</div>
-                    <div className="alert__hint">Your cards are kept. Reconnect to keep listening.</div>
+                    <div className="alert__hint">Your cards are kept. Reconnect to keep listening, or finish to save this session.</div>
                   </div>
+                  <button type="button" className="outline-button outline-button--tall" onClick={props.onFinish}>
+                    Finish session
+                  </button>
                   <button type="button" className="solid-button solid-button--tall" onClick={props.onReconnect}>
                     <RefreshCw size={22} aria-hidden="true" />
                     Reconnect

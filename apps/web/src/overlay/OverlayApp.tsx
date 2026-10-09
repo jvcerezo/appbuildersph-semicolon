@@ -4,11 +4,9 @@ import {
   ChevronDown,
   ChevronUp,
   Cpu,
-  FileAudio,
   Ghost,
   Headphones,
   Minus,
-  MonitorPlay,
   PlugZap,
   RefreshCw,
   Settings as SettingsIcon,
@@ -23,6 +21,7 @@ import { ActionBar } from '../components/ActionBar';
 import { HelpPanel } from '../components/HelpPanel';
 import { JargonCard } from '../components/JargonCard';
 import { ListeningAnimation } from '../components/ListeningAnimation';
+import { NotesPanel } from '../components/NotesPanel';
 import { SettingsDialog } from '../components/SettingsDialog';
 import { highlightTerms } from '../components/SegmentLine';
 import { TranscriptList } from '../components/TranscriptPanel';
@@ -71,7 +70,7 @@ export function OverlayApp({ linaw }: { linaw: Linaw }) {
         </div>
       )}
 
-      {session.phase === 'live' ? <OverlayLive linaw={linaw} /> : <OverlayStart linaw={linaw} />}
+      <OverlayLive linaw={linaw} />
 
       <SettingsDialog
         open={settingsOpen}
@@ -111,73 +110,35 @@ function OverlayBar({ linaw, ghost, onOpenSettings }: { linaw: Linaw; ghost: boo
         <button type="button" className="ov-icon" aria-label="Settings" title="Settings" onClick={onOpenSettings}>
           <SettingsIcon size={18} aria-hidden="true" />
         </button>
-        {desktop && (
+        {desktop ? (
           <>
             <button type="button" className="ov-icon" aria-label="Minimize" title="Minimize" onClick={desktop.minimize}>
               <Minus size={18} aria-hidden="true" />
             </button>
-            <button type="button" className="ov-icon" aria-label="Close Linaw" title="Close" onClick={desktop.close}>
+            <button
+              type="button"
+              className="ov-icon"
+              aria-label="End session and go back to the library"
+              title="End session"
+              onClick={() => void linaw.finishSession()}
+            >
               <X size={18} aria-hidden="true" />
             </button>
           </>
+        ) : (
+          <button type="button" className="ov-icon" aria-label="End session" title="End session" onClick={() => void linaw.finishSession()}>
+            <X size={18} aria-hidden="true" />
+          </button>
         )}
       </div>
     </header>
   );
 }
 
-function OverlayStart({ linaw }: { linaw: Linaw }) {
-  const fileInput = useRef<HTMLInputElement>(null);
-  const ready = linaw.session.connection === 'open';
-
-  return (
-    <main className="ov-start">
-      <div>
-        <h1 className="ov-start__title">Understand what’s being said.</h1>
-        <p className="ov-start__lede">
-          Keep Linaw next to the hearing. It explains the hard words in simple Tagalog as they are said.
-        </p>
-      </div>
-
-      <button
-        type="button"
-        className="solid-button solid-button--tall ov-start__primary"
-        disabled={!ready}
-        onClick={() => void linaw.startListening(desktop ? { kind: 'system' } : { kind: 'tab' })}
-      >
-        {desktop ? <Headphones size={22} aria-hidden="true" /> : <MonitorPlay size={22} aria-hidden="true" />}
-        {desktop ? 'Start listening' : 'Listen to a browser tab'}
-      </button>
-      <p className="ov-start__hint">
-        {desktop
-          ? 'Linaw listens to whatever is playing on this computer — YouTube, Facebook, a news site, or a video call.'
-          : 'Pick the tab with the hearing and turn on “Share tab audio”.'}
-      </p>
-
-      <button type="button" className="outline-button" disabled={!ready} onClick={() => fileInput.current?.click()}>
-        <FileAudio size={18} aria-hidden="true" />
-        Use a video or audio file instead
-      </button>
-      <input
-        ref={fileInput}
-        type="file"
-        accept="audio/*,video/*"
-        className="visually-hidden"
-        tabIndex={-1}
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          e.target.value = '';
-          if (file) void linaw.startListening({ kind: 'file', file });
-        }}
-      />
-    </main>
-  );
-}
-
 function OverlayLive({ linaw }: { linaw: Linaw }) {
   const { session, settings } = linaw;
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [view, setView] = useState<'cards' | 'transcript'>('cards');
+  const [view, setView] = useState<'cards' | 'transcript' | 'notes'>('cards');
   const rowRefs = useRef(new Map<string, HTMLElement>());
 
   // Tapping a source quote focuses a transcript line: switch to the transcript to show it.
@@ -281,9 +242,22 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
         >
           Transcript{session.segments.length > 0 && <span className="ov-tab__count">{session.segments.length}</span>}
         </button>
+        <button type="button" role="tab" aria-selected={view === 'notes'} className="ov-tab" onClick={() => setView('notes')}>
+          Notes{session.notes.length > 0 && <span className="ov-tab__count">{session.notes.length}</span>}
+        </button>
       </div>
 
-      {view === 'transcript' ? (
+      {view === 'notes' ? (
+        <div className="ov-notes" role="tabpanel" aria-label="Notes">
+          <NotesPanel
+            notes={session.notes}
+            onAdd={linaw.addNote}
+            onUpdate={linaw.updateNote}
+            onDelete={linaw.deleteNote}
+            hint="Notes get the hearing time and are saved with this session."
+          />
+        </div>
+      ) : view === 'transcript' ? (
         <div className="ov-transcript" role="tabpanel" aria-label="Transcript">
           <TranscriptList
             segments={session.segments}
@@ -304,6 +278,9 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
                 <strong>Audio stopped</strong>
                 <span>Your cards are kept.</span>
               </div>
+              <button type="button" className="outline-button" onClick={() => void linaw.finishSession()}>
+                Finish
+              </button>
               <button type="button" className="solid-button" onClick={linaw.reconnect}>
                 <RefreshCw size={18} aria-hidden="true" />
                 Reconnect

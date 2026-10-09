@@ -1,4 +1,4 @@
-import { AudioLines, Clock, Headphones, Settings, VolumeX, WifiOff } from 'lucide-react';
+import { AudioLines, CircleStop, Clock, Headphones, Settings, VolumeX, WifiOff } from 'lucide-react';
 import type { Status } from '@linaw/contract';
 import { formatClock } from '../lib/format';
 
@@ -14,9 +14,11 @@ interface TopBarProps {
   elapsedSec: number | null;
   status: Status | null;
   onOpenSettings: () => void;
+  /** End the session, save it and go back to the library. */
+  onFinish?: () => void;
 }
 
-export function TopBar({ title, elapsedSec, status, onOpenSettings }: TopBarProps) {
+export function TopBar({ title, elapsedSec, status, onOpenSettings, onFinish }: TopBarProps) {
   const pill = status ? STATUS_PILL[status] : null;
   return (
     <header className="topbar">
@@ -34,6 +36,12 @@ export function TopBar({ title, elapsedSec, status, onOpenSettings }: TopBarProp
           <pill.icon size={18} aria-hidden="true" />
           {pill.label}
         </div>
+      )}
+      {onFinish && (
+        <button type="button" className="outline-button" onClick={onFinish}>
+          <CircleStop size={18} aria-hidden="true" />
+          End session
+        </button>
       )}
       <button type="button" className="icon-button" aria-label="Settings" title="Settings" onClick={onOpenSettings}>
         <Settings size={22} aria-hidden="true" />

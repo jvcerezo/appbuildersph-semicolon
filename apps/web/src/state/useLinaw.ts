@@ -2,13 +2,18 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import type { Card } from '@linaw/contract';
 import { captureFile, captureScreenAudio, startRecorder, type AudioSource, type Recorder } from '../lib/audio';
 import { newRequestId } from '../lib/format';
+import { historyStore, newId, type SessionRecord } from '../lib/history';
 import { loadSettings, saveSettings, SPEECH_RATE, TEXT_SCALE, toPreferences, type Settings } from '../lib/settings';
 import { BackendSocket } from '../lib/socket';
 import { readAloud, stopReading } from '../lib/speech';
-import { initialSession, sessionReducer, type HelpKind, type Phase } from './session';
+import { initialSession, sessionReducer, type HelpKind, type SessionState } from './session';
 
 const WHAT_SAID_WINDOW_SEC = 120;
 const FOCUS_MS = 6000;
+const AUTOSAVE_MS = 800;
+
+/** What the library shows when no session is live. */
+export type LibraryView = { page: 'home' } | { page: 'session'; id: string };
 
 export type SourceRequest = { kind: 'tab' } | { kind: 'system' } | { kind: 'file'; file: File };
 type SourceKind = SourceRequest['kind'];
@@ -27,13 +32,27 @@ export function useLinaw() {
   const capture = useRef<{ source: AudioSource; recorder: Recorder; kind: SourceKind } | null>(null);
   const lastSource = useRef<SourceRequest>({ kind: 'tab' });
   const focusTimer = useRef<number | undefined>(undefined);
+  /** The final summary requested when a session is finished, to store when it arrives. */
+  const pendingSummary = useRef<{ recordId: string; requestId: string } | null>(null);
+  const [libraryView, setLibraryView] = useState<LibraryView>({ page: 'home' });
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
   // ---- backend connection
   useEffect(() => {
     const backend = new BackendSocket(
-      (message) => dispatch({ type: 'server', message }),
+      (message) => {
+        const pending = pendingSummary.current;
+        if (pending && 'requestId' in message && message.requestId === pending.requestId) {
+          pendingSummary.current = null;
+          if (message.type === 'summary.result') {
+            const { overview, events, openIssue } = message;
+            void historyStore.update(pending.recordId, (r) => ({ ...r, summary: { overview, events, openIssue, at: Date.now() } }));
+          }
+          return;
+        }
+        dispatch({ type: 'server', message });
+      },
       (state) => {
         dispatch({ type: 'connection', state });
         // The backend forgets the session when the socket drops; announce it again.
@@ -115,7 +134,7 @@ export function useLinaw() {
         mimeType: recorder.mimeType,
         preferences: toPreferences(settingsRef.current),
       });
-      dispatch({ type: 'listening.started' });
+      dispatch({ type: 'listening.started', recordId: newId('session') });
     },
     [session.connection, stopCapture],
   );
@@ -127,11 +146,63 @@ export function useLinaw() {
     dispatch({ type: 'listening.stopped' });
   };
 
-  /** Tab and system audio can restart in place; a file has to be picked again. */
+  /** Tab and system audio restart in place; a file has to be picked again from the library. */
   const reconnect = () => {
     const last = lastSource.current;
-    if (last.kind === 'file') dispatch({ type: 'phase', phase: 'start' });
+    if (last.kind === 'file') void finishSession();
     else void startListening(last);
+  };
+
+  // ---- saving: the live session is written to the library as it goes
+  const { startedAt, stoppedAt } = session;
+  const elapsedSec = startedAt === null ? null : ((stoppedAt ?? now) - startedAt) / 1000;
+  const toRecord = (s: SessionState, endedAt: number | null): SessionRecord | null =>
+    s.recordId === null || s.startedAt === null
+      ? null
+      : {
+          id: s.recordId,
+          title: s.title === initialSession.title ? defaultTitle(s.startedAt) : s.title,
+          startedAt: s.startedAt,
+          endedAt,
+          durationSec: Math.round(((s.stoppedAt ?? endedAt ?? Date.now()) - s.startedAt) / 1000),
+          source: lastSource.current.kind,
+          segments: s.segments,
+          cards: s.cards,
+          saved: s.saved,
+          summary: s.summary.state === 'done' ? { ...s.summary.value, at: Date.now() } : undefined,
+          notes: s.notes,
+        };
+
+  useEffect(() => {
+    if (session.phase !== 'live') return;
+    const timer = window.setTimeout(() => {
+      const record = toRecord(session, null);
+      if (record) historyStore.put(record).catch((err) => console.warn('[linaw] autosave failed:', err));
+    }, AUTOSAVE_MS);
+    return () => window.clearTimeout(timer);
+    // Save when content changes, not on every clock tick.
+  }, [session.phase, session.recordId, session.title, session.segments, session.cards, session.saved, session.notes, session.summary, session.status]);
+
+  /** End the live session: save it, ask for a final summary, and open it in the library. */
+  const finishSession = async () => {
+    if (capture.current) {
+      stopCapture();
+      socket.current?.send({ type: 'session.stop' });
+    }
+    const record = toRecord(session, Date.now());
+    if (record) {
+      try {
+        await historyStore.put(record);
+      } catch (err) {
+        console.warn('[linaw] could not save the session:', err);
+      }
+      const requestId = newRequestId();
+      if (record.segments.length > 0 && socket.current?.send({ type: 'summary.request', requestId })) {
+        pendingSummary.current = { recordId: record.id, requestId };
+      }
+      setLibraryView({ page: 'session', id: record.id });
+    }
+    dispatch({ type: 'session.reset' });
   };
 
   // ---- help and cards
@@ -165,16 +236,26 @@ export function useLinaw() {
     readAloud(`${card.term}. ${card.meaning} ${card.example}`, card.language, SPEECH_RATE[settings.readSpeed]);
   };
 
-  const { startedAt, stoppedAt } = session;
   return {
     session,
     settings,
     setSettings,
-    elapsedSec: startedAt === null ? null : ((stoppedAt ?? now) - startedAt) / 1000,
+    elapsedSec,
     stoppedAtSec: startedAt !== null && stoppedAt !== null ? (stoppedAt - startedAt) / 1000 : null,
     startListening,
     stopListening,
     reconnect,
+    finishSession,
+    libraryView,
+    setLibraryView,
+    addNote: (text: string) =>
+      dispatch({
+        type: 'note.add',
+        note: { id: newId('note'), text, createdAt: Date.now(), t: elapsedSec === null ? undefined : Math.round(elapsedSec) },
+      }),
+    updateNote: (id: string, text: string) => dispatch({ type: 'note.update', id, text }),
+    deleteNote: (id: string) => dispatch({ type: 'note.delete', id }),
+    clearError: () => dispatch({ type: 'error', message: null }),
     openHelp,
     ask,
     simplify,
@@ -189,8 +270,12 @@ export function useLinaw() {
       // Keep the highlight long enough to find the line, then resume following new lines.
       focusTimer.current = window.setTimeout(() => dispatch({ type: 'segment.focus', segmentId: null }), FOCUS_MS);
     },
-    goTo: (phase: Phase) => dispatch({ type: 'phase', phase }),
   };
+}
+
+function defaultTitle(startedAt: number): string {
+  const when = new Date(startedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return `Hearing — ${when}`;
 }
 
 export type Linaw = ReturnType<typeof useLinaw>;

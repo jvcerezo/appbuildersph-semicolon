@@ -1,7 +1,9 @@
 import type { Card, ServerMessage, Status, SummaryEvent, TermRef, Translation } from '@linaw/contract';
+import type { Note } from '../lib/history';
 import type { ConnectionState } from '../lib/socket';
 
-export type Phase = 'start' | 'share-helper' | 'live';
+/** `home`: the library (start a session, browse past ones). `live`: listening. */
+export type Phase = 'home' | 'live';
 export type HelpKind = 'what_said' | 'summary' | 'ask';
 
 export interface Segment {
@@ -32,6 +34,8 @@ export interface QA {
 export interface SessionState {
   connection: ConnectionState;
   phase: Phase;
+  /** Id of the saved record this live session writes to (see lib/history). */
+  recordId: string | null;
   status: Status;
   title: string;
   /** Local clock: when listening started, for the top-bar timer. */
@@ -48,6 +52,8 @@ export interface SessionState {
   whatSaid: Loadable<{ windowSec: number; points: string[]; sources?: string[] }>;
   summary: Loadable<{ overview: string; events: SummaryEvent[]; openIssue?: string }>;
   questions: QA[];
+  /** Notes the user takes while listening; saved with the session. */
+  notes: Note[];
   /** Transcript line to scroll to and highlight, e.g. after tapping a source. */
   focusedSegment: string | null;
   error: string | null;
@@ -55,7 +61,8 @@ export interface SessionState {
 
 export const initialSession: SessionState = {
   connection: 'connecting',
-  phase: 'start',
+  phase: 'home',
+  recordId: null,
   status: 'waiting',
   title: 'New session',
   startedAt: null,
@@ -69,6 +76,7 @@ export const initialSession: SessionState = {
   whatSaid: { state: 'idle' },
   summary: { state: 'idle' },
   questions: [],
+  notes: [],
   focusedSegment: null,
   error: null,
 };
@@ -77,7 +85,7 @@ export type SessionAction =
   | { type: 'connection'; state: ConnectionState }
   | { type: 'server'; message: ServerMessage }
   | { type: 'phase'; phase: Phase }
-  | { type: 'listening.started' }
+  | { type: 'listening.started'; recordId: string }
   | { type: 'listening.stopped' }
   | { type: 'help.open'; kind: HelpKind | null }
   | { type: 'segment.focus'; segmentId: string | null }
@@ -86,6 +94,11 @@ export type SessionAction =
   | { type: 'ask.requested'; requestId: string; question: string }
   | { type: 'simplify.requested'; cardId: string; requestId: string }
   | { type: 'card.toggleSaved'; cardId: string }
+  | { type: 'note.add'; note: Note }
+  | { type: 'note.update'; id: string; text: string }
+  | { type: 'note.delete'; id: string }
+  /** Back to an empty session (after it was finished and saved). */
+  | { type: 'session.reset' }
   | { type: 'error'; message: string | null };
 
 const without = (list: string[], id: string) => list.filter((x) => x !== id);
@@ -100,6 +113,8 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
       return {
         ...state,
         phase: 'live',
+        // Reconnecting keeps writing to the same record.
+        recordId: state.recordId ?? action.recordId,
         status: 'waiting',
         startedAt: state.startedAt ?? Date.now(),
         stoppedAt: null,
@@ -132,6 +147,14 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
           ? without(state.saved, action.cardId)
           : [...state.saved, action.cardId],
       };
+    case 'note.add':
+      return { ...state, notes: [...state.notes, action.note] };
+    case 'note.update':
+      return { ...state, notes: state.notes.map((n) => (n.id === action.id ? { ...n, text: action.text } : n)) };
+    case 'note.delete':
+      return { ...state, notes: state.notes.filter((n) => n.id !== action.id) };
+    case 'session.reset':
+      return { ...initialSession, connection: state.connection };
     case 'error':
       return { ...state, error: action.message };
     case 'server':
