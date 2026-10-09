@@ -1,9 +1,9 @@
 # Linaw — guide for Claude Code
 
-Linaw is a **standalone desktop app**. When idle it is a library of past sessions (summary, transcript, terms, notes). While listening it becomes an **overlay that floats over the hearing** and explains legal jargon in simple Tagalog as it is said. Two halves meet at one WebSocket:
+Linaw is a **standalone desktop app**. When idle it is a library of past sessions (summary, transcript, terms). While listening it becomes an **overlay that floats over the hearing** and explains legal jargon in simple Tagalog as it is said. Two halves meet at one WebSocket:
 
 - **UI** (`apps/web`) — this repo's main work. Vite + React + TypeScript; all behavior lives in one hook (`state/useLinaw.ts`):
-  - **Library** (`src/library/`) — the app when nothing is live: start a session, past sessions, notes. Sessions are stored locally in IndexedDB (`lib/history.ts`) and never sent anywhere.
+  - **Library** (`src/library/`) — the app when nothing is live: start a session and browse past sessions. Sessions are stored locally in IndexedDB (`lib/history.ts`) and never sent anywhere.
   - **Overlay** (`src/overlay/`) — the live layout: a narrow, always-on-top panel. Used in the desktop shell, or in a browser at `?overlay`.
   - **Full window** (`screens/LiveScreen`) — the original design's live layout, for a normal browser tab.
 - **Desktop shell** (`apps/desktop`) — Electron. One frameless window with two modes the UI switches: `app` (normal window, library) and `overlay` (always on top while listening). Captures system audio (Windows loopback, no picker) and has ghost mode (see-through + click-through, Ctrl+Shift+L) in overlay mode.
@@ -41,7 +41,7 @@ apps/web/src/
   App.tsx              library when idle; overlay or full-window layout while live
   state/useLinaw.ts    all behavior: socket, audio capture, settings, actions
   library/             LibraryApp + library.css (sidebar, home, session pages)
-  lib/history.ts       past sessions + notes in IndexedDB
+  lib/history.ts       past sessions in IndexedDB
   overlay/             OverlayApp + overlay.css (compact layout)
   lib/desktop.ts       typed bridge to the Electron shell (window.linawDesktop)
   lib/socket.ts        the only backend connection (validates with the contract)

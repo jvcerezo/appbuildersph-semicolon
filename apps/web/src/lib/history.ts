@@ -4,16 +4,8 @@ import type { Segment } from '../state/session';
 
 /**
  * Past sessions, kept on this computer in IndexedDB. Nothing here is sent to
- * the backend: it is the user's own library of hearings and notes.
+ * the backend: it is the user's own library of hearings.
  */
-
-export interface Note {
-  id: string;
-  text: string;
-  createdAt: number;
-  /** Seconds into the session, when the note was taken while listening. */
-  t?: number;
-}
 
 export interface SavedSummary {
   overview: string;
@@ -36,7 +28,6 @@ export interface SessionRecord {
   cards: Card[];
   saved: string[];
   summary?: SavedSummary;
-  notes: Note[];
 }
 
 const DB_NAME = 'linaw';

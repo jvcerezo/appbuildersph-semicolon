@@ -2,10 +2,9 @@
 
 **Understand what's being said.** Linaw sits next to a hearing or trial you're watching and explains the hard words in simple Tagalog, as they are said.
 
-- **A desktop app with a library.** Start a session, and browse past sessions with their summary, transcript, terms and your notes.
+- **A desktop app with a library.** Start a session, and browse past sessions with their summary, transcript and terms.
 
 - **A floating overlay while listening.** The app shrinks to a small window on top of YouTube, Facebook, a news site or a video call, and listens to what's playing on your computer. When you finish, it saves the session and comes back.
-- **Notes.** Jot notes while listening (stamped with the hearing time) or later on any past session.
 - **A card for each legal term**, with its meaning, an everyday example, and what it means right now in the hearing.
 - **Translations.** Lines spoken in English get a Tagalog translation underneath.
 - **Help on demand.** Ask "What did they say?", get a summary, or ask your own question. Each answer cites the transcript lines it is based on.
@@ -33,9 +32,8 @@ The Linaw app opens with a **scripted demo backend** behind it. Click **Start li
 - Live captions with **Tagalog translations**, and the full transcript in the **Transcript** tab.
 - Jargon cards as legal terms come up.
 - **Summary**, **What did they say?** and **Ask a question**, each citing the transcript lines it is based on. Tap a source to jump to it.
-- A **Notes** tab for notes while listening.
 
-Click **×** on the overlay (or **Finish** once the audio stops) to end the session. Linaw saves it, writes a final summary, and opens it in the library. Sessions and notes are stored on this computer and are still there next time you open the app.
+Click **×** on the overlay (or **Finish** once the audio stops) to end the session. Linaw saves it, writes a final summary, and opens it in the library. Sessions are stored on this computer and are still there next time you open the app.
 
 For a faster run, start the demo backend at 3x speed (`pnpm demo --speed 3`) and run `pnpm dev:overlay` alongside it.
 

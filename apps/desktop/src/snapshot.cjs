@@ -6,7 +6,7 @@
  *   LINAW_SNAPSHOT=out.png        where the final screenshot goes
  *   LINAW_SNAPSHOT_DELAY=4000     ms to wait before the final screenshot
  *   LINAW_SNAPSHOT_STEP=1500      ms to wait before each step
- *   LINAW_SNAPSHOT_CLICK="Start listening>>wait:20000>>Notes>>fill:Write a note…=Ask about SALN>>Add note>>shot:notes.png"
+ *   LINAW_SNAPSHOT_CLICK="Start listening>>wait:20000>>Transcript>>shot:transcript.png>>Ask a question>>fill:Type your question=Bakit may objection?>>Ask"
  *
  * Steps, separated by >>:
  *   <text>               click the first button whose text or aria-label contains <text>

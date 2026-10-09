@@ -1,5 +1,4 @@
 import type { Card, ServerMessage, Status, SummaryEvent, TermRef, Translation } from '@linaw/contract';
-import type { Note } from '../lib/history';
 import type { ConnectionState } from '../lib/socket';
 
 /** `home`: the library (start a session, browse past ones). `live`: listening. */
@@ -52,8 +51,6 @@ export interface SessionState {
   whatSaid: Loadable<{ windowSec: number; points: string[]; sources?: string[] }>;
   summary: Loadable<{ overview: string; events: SummaryEvent[]; openIssue?: string }>;
   questions: QA[];
-  /** Notes the user takes while listening; saved with the session. */
-  notes: Note[];
   /** Transcript line to scroll to and highlight, e.g. after tapping a source. */
   focusedSegment: string | null;
   error: string | null;
@@ -76,7 +73,6 @@ export const initialSession: SessionState = {
   whatSaid: { state: 'idle' },
   summary: { state: 'idle' },
   questions: [],
-  notes: [],
   focusedSegment: null,
   error: null,
 };
@@ -94,9 +90,6 @@ export type SessionAction =
   | { type: 'ask.requested'; requestId: string; question: string }
   | { type: 'simplify.requested'; cardId: string; requestId: string }
   | { type: 'card.toggleSaved'; cardId: string }
-  | { type: 'note.add'; note: Note }
-  | { type: 'note.update'; id: string; text: string }
-  | { type: 'note.delete'; id: string }
   /** Back to an empty session (after it was finished and saved). */
   | { type: 'session.reset' }
   | { type: 'error'; message: string | null };
@@ -147,12 +140,6 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
           ? without(state.saved, action.cardId)
           : [...state.saved, action.cardId],
       };
-    case 'note.add':
-      return { ...state, notes: [...state.notes, action.note] };
-    case 'note.update':
-      return { ...state, notes: state.notes.map((n) => (n.id === action.id ? { ...n, text: action.text } : n)) };
-    case 'note.delete':
-      return { ...state, notes: state.notes.filter((n) => n.id !== action.id) };
     case 'session.reset':
       return { ...initialSession, connection: state.connection };
     case 'error':

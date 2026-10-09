@@ -21,7 +21,6 @@ import { ActionBar } from '../components/ActionBar';
 import { HelpPanel } from '../components/HelpPanel';
 import { JargonCard } from '../components/JargonCard';
 import { ListeningAnimation } from '../components/ListeningAnimation';
-import { NotesPanel } from '../components/NotesPanel';
 import { SettingsDialog } from '../components/SettingsDialog';
 import { highlightTerms } from '../components/SegmentLine';
 import { TranscriptList } from '../components/TranscriptPanel';
@@ -138,7 +137,7 @@ function OverlayBar({ linaw, ghost, onOpenSettings }: { linaw: Linaw; ghost: boo
 function OverlayLive({ linaw }: { linaw: Linaw }) {
   const { session, settings } = linaw;
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [view, setView] = useState<'cards' | 'transcript' | 'notes'>('cards');
+  const [view, setView] = useState<'cards' | 'transcript'>('cards');
   const rowRefs = useRef(new Map<string, HTMLElement>());
 
   // Tapping a source quote focuses a transcript line: switch to the transcript to show it.
@@ -242,22 +241,9 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
         >
           Transcript{session.segments.length > 0 && <span className="ov-tab__count">{session.segments.length}</span>}
         </button>
-        <button type="button" role="tab" aria-selected={view === 'notes'} className="ov-tab" onClick={() => setView('notes')}>
-          Notes{session.notes.length > 0 && <span className="ov-tab__count">{session.notes.length}</span>}
-        </button>
       </div>
 
-      {view === 'notes' ? (
-        <div className="ov-notes" role="tabpanel" aria-label="Notes">
-          <NotesPanel
-            notes={session.notes}
-            onAdd={linaw.addNote}
-            onUpdate={linaw.updateNote}
-            onDelete={linaw.deleteNote}
-            hint="Notes get the hearing time and are saved with this session."
-          />
-        </div>
-      ) : view === 'transcript' ? (
+      {view === 'transcript' ? (
         <div className="ov-transcript" role="tabpanel" aria-label="Transcript">
           <TranscriptList
             segments={session.segments}

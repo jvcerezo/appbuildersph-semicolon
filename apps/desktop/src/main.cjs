@@ -1,7 +1,7 @@
 // @ts-check
 /**
  * Linaw desktop app. One frameless window with two modes:
- *   - app:     a normal window with the library (start, past sessions, notes)
+ *   - app:     a normal window with the library (start, past sessions)
  *   - overlay: while listening, a narrow always-on-top panel beside the video
  * It loads the web UI (apps/web), which switches the mode, and answers the
  * UI's getDisplayMedia() call with all system audio, so no share picker is

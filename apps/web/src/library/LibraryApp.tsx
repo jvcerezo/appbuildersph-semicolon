@@ -15,18 +15,16 @@ import {
   Search,
   Settings as SettingsIcon,
   Square,
-  StickyNote,
   Trash2,
   X,
 } from 'lucide-react';
 import { JargonCard } from '../components/JargonCard';
-import { NotesPanel } from '../components/NotesPanel';
 import { SegmentLine } from '../components/SegmentLine';
 import { SettingsDialog } from '../components/SettingsDialog';
 import { Sources } from '../components/Sources';
 import { desktop } from '../lib/desktop';
 import { formatClock } from '../lib/format';
-import { historyStore, newId, useSessionHistory, type SessionRecord } from '../lib/history';
+import { historyStore, useSessionHistory, type SessionRecord } from '../lib/history';
 import type { Linaw } from '../state/useLinaw';
 import './library.css';
 
@@ -47,8 +45,7 @@ export function LibraryApp({ linaw }: { linaw: Linaw }) {
     return sessions.filter(
       (s) =>
         s.title.toLowerCase().includes(q) ||
-        s.cards.some((c) => c.term.toLowerCase().includes(q)) ||
-        s.notes.some((n) => n.text.toLowerCase().includes(q)),
+        s.cards.some((c) => c.term.toLowerCase().includes(q)),
     );
   }, [sessions, query]);
 
@@ -100,7 +97,7 @@ export function LibraryApp({ linaw }: { linaw: Linaw }) {
             <span className="visually-hidden">Search sessions</span>
             <input
               type="search"
-              placeholder="Search sessions, terms, notes"
+              placeholder="Search sessions and terms"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -126,7 +123,6 @@ export function LibraryApp({ linaw }: { linaw: Linaw }) {
                       <span className="lib-item__title">{s.title}</span>
                       <span className="lib-item__meta">
                         {timeOfDay(s.startedAt)} · {formatDuration(s.durationSec)} · {plural(s.cards.length, 'term')}
-                        {s.notes.length > 0 && ` · ${plural(s.notes.length, 'note')}`}
                       </span>
                     </button>
                   ))}
@@ -156,7 +152,6 @@ function Home({ linaw, sessions }: { linaw: Linaw; sessions: SessionRecord[] }) 
   const fileInput = useRef<HTMLInputElement>(null);
   const ready = linaw.session.connection === 'open';
   const terms = sessions.reduce((sum, s) => sum + s.cards.length, 0);
-  const notes = sessions.reduce((sum, s) => sum + s.notes.length, 0);
 
   return (
     <div className="lib-home">
@@ -219,10 +214,6 @@ function Home({ linaw, sessions }: { linaw: Linaw; sessions: SessionRecord[] }) 
             <dt>Terms explained</dt>
             <dd>{terms}</dd>
           </div>
-          <div>
-            <dt>Notes</dt>
-            <dd>{notes}</dd>
-          </div>
         </dl>
       )}
 
@@ -239,7 +230,7 @@ function Home({ linaw, sessions }: { linaw: Linaw; sessions: SessionRecord[] }) 
 
 // ------------------------------------------------------------------ one past session
 
-type Tab = 'summary' | 'transcript' | 'terms' | 'notes';
+type Tab = 'summary' | 'transcript' | 'terms';
 const SUMMARY_WAIT_MS = 30_000;
 
 function SessionView({ record, linaw, onDeleted }: { record: SessionRecord; linaw: Linaw; onDeleted: () => void }) {
@@ -280,7 +271,6 @@ function SessionView({ record, linaw, onDeleted }: { record: SessionRecord; lina
     { id: 'summary', label: 'Summary', icon: FileText },
     { id: 'transcript', label: 'Transcript', icon: ListOrdered, count: record.segments.length },
     { id: 'terms', label: 'Terms', icon: Layers, count: record.cards.length },
-    { id: 'notes', label: 'Notes', icon: StickyNote, count: record.notes.length },
   ];
 
   return (
@@ -310,7 +300,7 @@ function SessionView({ record, linaw, onDeleted }: { record: SessionRecord; lina
             </button>
           ) : (
             <span className="lib-session__confirm" role="alert">
-              Delete this session, its transcript and notes?
+              Delete this session and its transcript?
               <button type="button" className="outline-button" onClick={() => setConfirmDelete(false)}>
                 Keep
               </button>
@@ -446,16 +436,6 @@ function SessionView({ record, linaw, onDeleted }: { record: SessionRecord; lina
           </div>
         )}
 
-        {tab === 'notes' && (
-          <div className="lib-notes">
-            <NotesPanel
-              notes={record.notes}
-              onAdd={(text) => update((r) => ({ ...r, notes: [...r.notes, { id: newId('note'), text, createdAt: Date.now() }] }))}
-              onUpdate={(id, text) => update((r) => ({ ...r, notes: r.notes.map((n) => (n.id === id ? { ...n, text } : n)) }))}
-              onDelete={(id) => update((r) => ({ ...r, notes: r.notes.filter((n) => n.id !== id) }))}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

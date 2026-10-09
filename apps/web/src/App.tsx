@@ -9,7 +9,7 @@ import { LiveScreen } from './screens/LiveScreen';
 import { useLinaw, type Linaw } from './state/useLinaw';
 
 /**
- * Not listening: the library (start a session, past sessions, notes).
+ * Not listening: the library (start a session, past sessions).
  * Listening: the overlay beside the video (desktop shell, or `?overlay`), or
  * the full-window live layout in a browser tab.
  */

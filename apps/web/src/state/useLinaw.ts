@@ -170,7 +170,6 @@ export function useLinaw() {
           cards: s.cards,
           saved: s.saved,
           summary: s.summary.state === 'done' ? { ...s.summary.value, at: Date.now() } : undefined,
-          notes: s.notes,
         };
 
   useEffect(() => {
@@ -181,7 +180,7 @@ export function useLinaw() {
     }, AUTOSAVE_MS);
     return () => window.clearTimeout(timer);
     // Save when content changes, not on every clock tick.
-  }, [session.phase, session.recordId, session.title, session.segments, session.cards, session.saved, session.notes, session.summary, session.status]);
+  }, [session.phase, session.recordId, session.title, session.segments, session.cards, session.saved, session.summary, session.status]);
 
   /** End the live session: save it, ask for a final summary, and open it in the library. */
   const finishSession = async () => {
@@ -248,13 +247,6 @@ export function useLinaw() {
     finishSession,
     libraryView,
     setLibraryView,
-    addNote: (text: string) =>
-      dispatch({
-        type: 'note.add',
-        note: { id: newId('note'), text, createdAt: Date.now(), t: elapsedSec === null ? undefined : Math.round(elapsedSec) },
-      }),
-    updateNote: (id: string, text: string) => dispatch({ type: 'note.update', id, text }),
-    deleteNote: (id: string) => dispatch({ type: 'note.delete', id }),
     clearError: () => dispatch({ type: 'error', message: null }),
     openHelp,
     ask,

@@ -55,8 +55,8 @@ Waiting (listening animation plus "Play the hearing in your shared tab"), listen
 
 The app when nothing is live (desktop `app` window mode, about 1180×780):
 
-- Title bar with brand, settings and window buttons. The sidebar has "New session", search (titles, terms, notes) and past sessions grouped by day. The main area is Home (start options, stats, tip) or a session page.
-- Session page: an editable title, meta (date, duration, source), delete with an inline confirm, and tabs for **Summary** (with sources), **Transcript**, **Terms** (saved filter) and **Notes**.
+- Title bar with brand, settings and window buttons. The sidebar has "New session", search (titles and terms) and past sessions grouped by day. The main area is Home (start options, stats, tip) or a session page.
+- Session page: an editable title, meta (date, duration, source), delete with an inline confirm, and tabs for **Summary** (with sources), **Transcript**, and **Terms** (saved filter).
 - Data comes from `lib/history.ts` (IndexedDB). Write through `historyStore.update`; every view refreshes via `useSessionHistory`.
 - Finishing a session (`linaw.finishSession`) saves it, asks the backend for a final summary, and opens the session page. Summary shows "Writing the summary…" until the summary arrives.
 - No browser `confirm()`. Destructive actions confirm inline.
@@ -69,7 +69,7 @@ The overlay is the main way people use Linaw: a ~420px-wide panel beside the vid
 - **Caption strip**: speaker, status pill and timer, then the latest transcript line (3-line clamp) with term underlines.
 - **Cards**: the newest card in full, then "Earlier terms" as one-line rows that expand in place. Pending terms show as a dashed "Explaining…" row.
 - **Action bar**: three equal buttons, icon above label.
-- **Tabs**: Explanations, Transcript and Notes (live notes are stamped with the hearing time).
+- **Tabs**: Explanations and Transcript.
 - **Help**: the sheet replaces the cards and caption until it is closed.
 - **×** ends the session (saved to the library); it does not quit the app.
 - **Ghost mode** (`.overlay--ghost`): the shell makes the window 55% opaque and click-through. Hide the controls there, because nothing can be clicked.
