@@ -63,10 +63,12 @@ function FullApp({ linaw }: { linaw: Linaw }) {
           session={session}
           language={settings.language}
           showTranscript={settings.showTranscript}
+          showTranslation={settings.showTranslation}
           stoppedAtSec={linaw.stoppedAtSec}
           onShowTranscript={(show) => linaw.setSettings((s) => ({ ...s, showTranscript: show }))}
           onOpenHelp={linaw.openHelp}
           onAsk={linaw.ask}
+          onShowSegment={linaw.showSegment}
           onReadAloud={linaw.speak}
           onSimplify={linaw.simplify}
           onToggleSaved={linaw.toggleSaved}

@@ -1,24 +1,88 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef } from 'react';
 import { AudioLines, PanelRightClose, VolumeX } from 'lucide-react';
 import type { Status } from '@linaw/contract';
 import { formatClock } from '../lib/format';
 import type { Segment } from '../state/session';
+import { SegmentLine } from './SegmentLine';
 
-interface TranscriptPanelProps {
+interface TranscriptListProps {
   segments: Segment[];
   explainedIds: ReadonlySet<string>;
   status: Status;
   stoppedAtSec: number | null;
-  onHide: () => void;
+  showTranslation: boolean;
+  focusedSegment: string | null;
   onTermClick: (cardId: string) => void;
 }
 
-export function TranscriptPanel({ segments, explainedIds, status, stoppedAtSec, onHide, onTermClick }: TranscriptPanelProps) {
+/**
+ * The full transcript. Follows new lines as they arrive, unless a line is
+ * focused (e.g. from a source quote), which it scrolls to and highlights.
+ */
+export function TranscriptList({
+  segments,
+  explainedIds,
+  status,
+  stoppedAtSec,
+  showTranslation,
+  focusedSegment,
+  onTermClick,
+}: TranscriptListProps) {
   const endRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'end' });
-  }, [segments]);
+  const lineRefs = useRef(new Map<string, HTMLDivElement>());
 
+  useEffect(() => {
+    if (focusedSegment) return;
+    endRef.current?.scrollIntoView({ block: 'end' });
+  }, [segments, focusedSegment]);
+
+  useEffect(() => {
+    if (focusedSegment) lineRefs.current.get(focusedSegment)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [focusedSegment]);
+
+  return (
+    <div className="transcript__body">
+      {segments.length === 0 ? (
+        <p className="muted">Words will show here as they are spoken.</p>
+      ) : (
+        segments.map((segment) => (
+          <SegmentLine
+            key={segment.id}
+            ref={(el) => {
+              if (el) lineRefs.current.set(segment.id, el);
+              else lineRefs.current.delete(segment.id);
+            }}
+            segment={segment}
+            explainedIds={explainedIds}
+            showTranslation={showTranslation}
+            highlighted={segment.id === focusedSegment}
+            onTermClick={onTermClick}
+          />
+        ))
+      )}
+      {status === 'stopped' && stoppedAtSec !== null ? (
+        <div className="transcript__stopped">
+          <VolumeX size={18} aria-hidden="true" />
+          Stopped at {formatClock(stoppedAtSec)}
+        </div>
+      ) : (
+        (status === 'listening' || status === 'offline') && (
+          <div className="transcript__listening">
+            <AudioLines size={18} aria-hidden="true" />
+            Listening…
+          </div>
+        )
+      )}
+      <div ref={endRef} />
+    </div>
+  );
+}
+
+interface TranscriptPanelProps extends TranscriptListProps {
+  onHide: () => void;
+}
+
+export function TranscriptPanel({ onHide, ...list }: TranscriptPanelProps) {
   return (
     <aside className="transcript" aria-label="Live transcript">
       <div className="panel-header">
@@ -28,63 +92,7 @@ export function TranscriptPanel({ segments, explainedIds, status, stoppedAtSec, 
           Hide transcript
         </button>
       </div>
-      <div className="transcript__body">
-        {segments.length === 0 ? (
-          <p className="muted">Words will show here as they are spoken.</p>
-        ) : (
-          segments.map((segment) => (
-            <div key={segment.id} className={segment.final ? 'segment' : 'segment segment--partial'}>
-              <div className="segment__meta">
-                {formatClock(segment.t)} · {segment.speaker}
-              </div>
-              <div>{highlightTerms(segment, explainedIds, onTermClick)}</div>
-            </div>
-          ))
-        )}
-        {status === 'stopped' && stoppedAtSec !== null ? (
-          <div className="transcript__stopped">
-            <VolumeX size={18} aria-hidden="true" />
-            Stopped at {formatClock(stoppedAtSec)}
-          </div>
-        ) : (
-          (status === 'listening' || status === 'offline') && (
-            <div className="transcript__listening">
-              <AudioLines size={18} aria-hidden="true" />
-              Listening…
-            </div>
-          )
-        )}
-        <div ref={endRef} />
-      </div>
+      <TranscriptList {...list} />
     </aside>
   );
-}
-
-/** Underlines each flagged term: solid once its card exists, dotted while pending. */
-export function highlightTerms(segment: Segment, explainedIds: ReadonlySet<string>, onTermClick: (cardId: string) => void) {
-  const parts: ReactNode[] = [];
-  let rest = segment.text;
-  let key = 0;
-
-  for (const term of segment.terms) {
-    const at = rest.toLowerCase().indexOf(term.text.toLowerCase());
-    if (at === -1) continue;
-    parts.push(rest.slice(0, at));
-    const text = rest.slice(at, at + term.text.length);
-    const cardId = term.cardId !== undefined && explainedIds.has(term.cardId) ? term.cardId : null;
-    parts.push(
-      cardId ? (
-        <button key={key++} type="button" className="term term--explained" onClick={() => onTermClick(cardId)}>
-          {text}
-        </button>
-      ) : (
-        <span key={key++} className="term term--pending" title="Explaining…">
-          {text}
-        </span>
-      ),
-    );
-    rest = rest.slice(at + term.text.length);
-  }
-  parts.push(rest);
-  return parts;
 }

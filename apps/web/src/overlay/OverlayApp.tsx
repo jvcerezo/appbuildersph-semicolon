@@ -24,7 +24,8 @@ import { HelpPanel } from '../components/HelpPanel';
 import { JargonCard } from '../components/JargonCard';
 import { ListeningAnimation } from '../components/ListeningAnimation';
 import { SettingsDialog } from '../components/SettingsDialog';
-import { highlightTerms } from '../components/TranscriptPanel';
+import { highlightTerms } from '../components/SegmentLine';
+import { TranscriptList } from '../components/TranscriptPanel';
 import { desktop } from '../lib/desktop';
 import { formatClock } from '../lib/format';
 import type { Linaw } from '../state/useLinaw';
@@ -176,7 +177,13 @@ function OverlayStart({ linaw }: { linaw: Linaw }) {
 function OverlayLive({ linaw }: { linaw: Linaw }) {
   const { session, settings } = linaw;
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [view, setView] = useState<'cards' | 'transcript'>('cards');
   const rowRefs = useRef(new Map<string, HTMLElement>());
+
+  // Tapping a source quote focuses a transcript line: switch to the transcript to show it.
+  useEffect(() => {
+    if (session.focusedSegment) setView('transcript');
+  }, [session.focusedSegment]);
 
   const explainedIds = useMemo(() => new Set(session.cards.map((c) => c.id)), [session.cards]);
   const [latest, ...earlier] = session.cards;
@@ -205,6 +212,7 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
           session={session}
           language={settings.language}
           onAsk={linaw.ask}
+          onShowSegment={linaw.showSegment}
           onClose={() => linaw.openHelp(null)}
         />
       </div>
@@ -212,6 +220,7 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
   }
 
   const showCard = (cardId: string) => {
+    setView('cards');
     if (cardId !== latest?.id) setExpanded(cardId);
     requestAnimationFrame(() => rowRefs.current.get(cardId)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
   };
@@ -245,6 +254,11 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
             <p className={caption.final ? 'ov-caption__text' : 'ov-caption__text ov-caption__text--partial'}>
               {highlightTerms(caption, explainedIds, showCard)}
             </p>
+            {settings.showTranslation && caption.translation && (
+              <p className="ov-caption__translation" lang={caption.translation.language}>
+                {caption.translation.text}
+              </p>
+            )}
           </>
         ) : (
           <div className="ov-caption__head">
@@ -254,75 +268,104 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
         )}
       </section>
 
-      <div className="ov-scroll">
-        {stopped && (
-          <div className="ov-stopped" role="alert">
-            <VolumeX size={22} aria-hidden="true" />
-            <div className="ov-stopped__text">
-              <strong>Audio stopped</strong>
-              <span>Your cards are kept.</span>
-            </div>
-            <button type="button" className="solid-button" onClick={linaw.reconnect}>
-              <RefreshCw size={18} aria-hidden="true" />
-              Reconnect
-            </button>
-          </div>
-        )}
-
-        {session.pending.map((p) => (
-          <div key={p.id} className="ov-pending" aria-busy="true">
-            <AudioLines size={18} aria-hidden="true" />
-            Explaining “{p.term}”…
-          </div>
-        ))}
-
-        {latest ? (
-          <div ref={register(latest.id)} className={stopped ? 'ov-latest ov-dimmed' : 'ov-latest'}>
-            {fullCard(latest)}
-          </div>
-        ) : (
-          session.pending.length === 0 &&
-          !stopped && (
-            <div className="ov-waiting">
-              <ListeningAnimation />
-              <p>
-                {session.status === 'waiting'
-                  ? 'Waiting for audio… Play the hearing and explanations will appear here.'
-                  : 'Listening. Explanations appear when a hard word comes up.'}
-              </p>
-            </div>
-          )
-        )}
-
-        {earlier.length > 0 && (
-          <div className={stopped ? 'ov-earlier ov-dimmed' : 'ov-earlier'}>
-            <h2 className="eyebrow">Earlier terms ({earlier.length})</h2>
-            {earlier.map((card) => {
-              const open = expanded === card.id;
-              return (
-                <div key={card.id} ref={register(card.id)} className="ov-row-wrap">
-                  <button
-                    type="button"
-                    className="ov-row"
-                    aria-expanded={open}
-                    onClick={() => setExpanded(open ? null : card.id)}
-                  >
-                    {card.kind === 'ai' ? (
-                      <Cpu size={18} aria-label="AI-explained" />
-                    ) : (
-                      <ShieldCheck size={18} aria-label="Checked" />
-                    )}
-                    <span className="ov-row__term">{card.term}</span>
-                    <span className="ov-row__time">{formatClock(card.t)}</span>
-                    {open ? <ChevronUp size={18} aria-hidden="true" /> : <ChevronDown size={18} aria-hidden="true" />}
-                  </button>
-                  {open && fullCard(card)}
-                </div>
-              );
-            })}
-          </div>
-        )}
+      <div className="ov-tabs" role="tablist" aria-label="View">
+        <button type="button" role="tab" aria-selected={view === 'cards'} className="ov-tab" onClick={() => setView('cards')}>
+          Explanations{session.cards.length > 0 && <span className="ov-tab__count">{session.cards.length}</span>}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'transcript'}
+          className="ov-tab"
+          onClick={() => setView('transcript')}
+        >
+          Transcript{session.segments.length > 0 && <span className="ov-tab__count">{session.segments.length}</span>}
+        </button>
       </div>
+
+      {view === 'transcript' ? (
+        <div className="ov-transcript" role="tabpanel" aria-label="Transcript">
+          <TranscriptList
+            segments={session.segments}
+            explainedIds={explainedIds}
+            status={session.status}
+            stoppedAtSec={linaw.stoppedAtSec}
+            showTranslation={settings.showTranslation}
+            focusedSegment={session.focusedSegment}
+            onTermClick={showCard}
+          />
+        </div>
+      ) : (
+        <div className="ov-scroll" role="tabpanel" aria-label="Explanations">
+          {stopped && (
+            <div className="ov-stopped" role="alert">
+              <VolumeX size={22} aria-hidden="true" />
+              <div className="ov-stopped__text">
+                <strong>Audio stopped</strong>
+                <span>Your cards are kept.</span>
+              </div>
+              <button type="button" className="solid-button" onClick={linaw.reconnect}>
+                <RefreshCw size={18} aria-hidden="true" />
+                Reconnect
+              </button>
+            </div>
+          )}
+
+          {session.pending.map((p) => (
+            <div key={p.id} className="ov-pending" aria-busy="true">
+              <AudioLines size={18} aria-hidden="true" />
+              Explaining “{p.term}”…
+            </div>
+          ))}
+
+          {latest ? (
+            <div ref={register(latest.id)} className={stopped ? 'ov-latest ov-dimmed' : 'ov-latest'}>
+              {fullCard(latest)}
+            </div>
+          ) : (
+            session.pending.length === 0 &&
+            !stopped && (
+              <div className="ov-waiting">
+                <ListeningAnimation />
+                <p>
+                  {session.status === 'waiting'
+                    ? 'Waiting for audio… Play the hearing and explanations will appear here.'
+                    : 'Listening. Explanations appear when a hard word comes up.'}
+                </p>
+              </div>
+            )
+          )}
+
+          {earlier.length > 0 && (
+            <div className={stopped ? 'ov-earlier ov-dimmed' : 'ov-earlier'}>
+              <h2 className="eyebrow">Earlier terms ({earlier.length})</h2>
+              {earlier.map((card) => {
+                const open = expanded === card.id;
+                return (
+                  <div key={card.id} ref={register(card.id)} className="ov-row-wrap">
+                    <button
+                      type="button"
+                      className="ov-row"
+                      aria-expanded={open}
+                      onClick={() => setExpanded(open ? null : card.id)}
+                    >
+                      {card.kind === 'ai' ? (
+                        <Cpu size={18} aria-label="AI-explained" />
+                      ) : (
+                        <ShieldCheck size={18} aria-label="Checked" />
+                      )}
+                      <span className="ov-row__term">{card.term}</span>
+                      <span className="ov-row__time">{formatClock(card.t)}</span>
+                      {open ? <ChevronUp size={18} aria-hidden="true" /> : <ChevronDown size={18} aria-hidden="true" />}
+                    </button>
+                    {open && fullCard(card)}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       <ActionBar onOpen={linaw.openHelp} disabled={session.connection !== 'open'} />
 

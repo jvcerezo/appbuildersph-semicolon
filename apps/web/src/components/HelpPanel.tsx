@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { AudioLines, Send, X } from 'lucide-react';
 import type { Language } from '@linaw/contract';
 import { formatClock } from '../lib/format';
-import type { HelpKind, SessionState } from '../state/session';
+import type { HelpKind, Segment, SessionState } from '../state/session';
+import { Sources } from './Sources';
 
 const TITLES: Record<HelpKind, string> = {
   what_said: 'What did they say?',
@@ -22,10 +23,21 @@ interface HelpPanelProps {
   session: SessionState;
   language: Language;
   onAsk: (question: string) => void;
+  onShowSegment: (segmentId: string) => void;
   onClose: () => void;
 }
 
-export function HelpPanel({ kind, session, language, onAsk, onClose }: HelpPanelProps) {
+/** What each view needs to quote its sources. */
+interface SourceProps {
+  session: SessionState;
+  language: Language;
+  segments: ReadonlyMap<string, Segment>;
+  onShowSegment: (segmentId: string) => void;
+}
+
+export function HelpPanel({ kind, session, language, onAsk, onShowSegment, onClose }: HelpPanelProps) {
+  const segments = useMemo(() => new Map(session.segments.map((s) => [s.id, s])), [session.segments]);
+  const shared = { session, language, segments, onShowSegment };
   return (
     <aside className="help" aria-labelledby="help-title">
       <div className="panel-header">
@@ -37,9 +49,9 @@ export function HelpPanel({ kind, session, language, onAsk, onClose }: HelpPanel
           Close
         </button>
       </div>
-      {kind === 'what_said' && <WhatSaid session={session} language={language} />}
-      {kind === 'summary' && <Summary session={session} language={language} />}
-      {kind === 'ask' && <Ask session={session} language={language} onAsk={onAsk} />}
+      {kind === 'what_said' && <WhatSaid {...shared} />}
+      {kind === 'summary' && <Summary {...shared} />}
+      {kind === 'ask' && <Ask {...shared} onAsk={onAsk} />}
     </aside>
   );
 }
@@ -53,7 +65,7 @@ function Loading({ label }: { label: string }) {
   );
 }
 
-function WhatSaid({ session, language }: { session: SessionState; language: Language }) {
+function WhatSaid({ session, language, segments, onShowSegment }: SourceProps) {
   const { whatSaid } = session;
   if (whatSaid.state !== 'done') return <Loading label="Looking back at what was said…" />;
   const minutes = Math.round(whatSaid.value.windowSec / 60);
@@ -65,11 +77,12 @@ function WhatSaid({ session, language }: { session: SessionState; language: Lang
           <li key={i}>{point}</li>
         ))}
       </ol>
+      <Sources ids={whatSaid.value.sources} segments={segments} onShow={onShowSegment} preferTranslation />
     </div>
   );
 }
 
-function Summary({ session, language }: { session: SessionState; language: Language }) {
+function Summary({ session, language, segments, onShowSegment }: SourceProps) {
   const { summary } = session;
   if (summary.state !== 'done') return <Loading label="Writing a summary…" />;
   const { overview, events, openIssue } = summary.value;
@@ -86,6 +99,7 @@ function Summary({ session, language }: { session: SessionState; language: Langu
             <div>
               <div className="timeline__title">{event.title}</div>
               <div className="timeline__detail">{event.detail}</div>
+              <Sources ids={event.sources} segments={segments} onShow={onShowSegment} preferTranslation />
             </div>
           </li>
         ))}
@@ -100,7 +114,7 @@ function Summary({ session, language }: { session: SessionState; language: Langu
   );
 }
 
-function Ask({ session, language, onAsk }: { session: SessionState; language: Language; onAsk: (q: string) => void }) {
+function Ask({ session, language, segments, onShowSegment, onAsk }: SourceProps & { onAsk: (q: string) => void }) {
   const [draft, setDraft] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
   const waiting = session.questions.some((q) => q.answer === undefined);
@@ -139,9 +153,12 @@ function Ask({ session, language, onAsk }: { session: SessionState; language: La
             <div key={q.requestId} className="qa">
               <div className="qa__question">{q.question}</div>
               {q.answer ? (
-                <p className="qa__answer" lang={language}>
-                  {q.answer}
-                </p>
+                <>
+                  <p className="qa__answer" lang={language}>
+                    {q.answer}
+                  </p>
+                  <Sources ids={q.sources} segments={segments} onShow={onShowSegment} preferTranslation />
+                </>
               ) : (
                 <Loading label="Thinking…" />
               )}

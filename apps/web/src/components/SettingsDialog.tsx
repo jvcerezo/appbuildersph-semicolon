@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Check, Contrast, Gauge, Globe, Info, Layers, PanelRightOpen, Type } from 'lucide-react';
+import { Check, Contrast, Gauge, Globe, Info, Languages, Layers, PanelRightOpen, Type } from 'lucide-react';
 import type { Settings } from '../lib/settings';
 
 interface SettingsDialogProps {
@@ -72,6 +72,9 @@ export function SettingsDialog({ open, settings, onChange, onClose }: SettingsDi
         </Row>
         <Row icon={<PanelRightOpen size={24} />} label="Show transcript">
           <Switch label="Show transcript" checked={settings.showTranscript} onChange={(v) => set('showTranscript', v)} />
+        </Row>
+        <Row icon={<Languages size={24} />} label="Show translation" hint="Your language under lines spoken in English">
+          <Switch label="Show translation" checked={settings.showTranslation} onChange={(v) => set('showTranslation', v)} />
         </Row>
         <Row icon={<Globe size={24} />} label="Explanation language" last>
           <Segmented

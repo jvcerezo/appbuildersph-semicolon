@@ -9,6 +9,8 @@ export interface Settings {
   readSpeed: ReadSpeed;
   level: ExplanationLevel;
   showTranscript: boolean;
+  /** Show the translation under lines spoken in another language. */
+  showTranslation: boolean;
   language: Language;
 }
 
@@ -18,6 +20,7 @@ export const DEFAULT_SETTINGS: Settings = {
   readSpeed: 'slower',
   level: 'simple',
   showTranscript: true,
+  showTranslation: true,
   language: 'tl',
 };
 

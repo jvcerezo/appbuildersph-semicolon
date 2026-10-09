@@ -8,6 +8,7 @@ import { readAloud, stopReading } from '../lib/speech';
 import { initialSession, sessionReducer, type HelpKind, type Phase } from './session';
 
 const WHAT_SAID_WINDOW_SEC = 120;
+const FOCUS_MS = 6000;
 
 export type SourceRequest = { kind: 'tab' } | { kind: 'system' } | { kind: 'file'; file: File };
 type SourceKind = SourceRequest['kind'];
@@ -25,6 +26,7 @@ export function useLinaw() {
   const socket = useRef<BackendSocket | null>(null);
   const capture = useRef<{ source: AudioSource; recorder: Recorder; kind: SourceKind } | null>(null);
   const lastSource = useRef<SourceRequest>({ kind: 'tab' });
+  const focusTimer = useRef<number | undefined>(undefined);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
@@ -178,6 +180,15 @@ export function useLinaw() {
     simplify,
     speak,
     toggleSaved: (card: Card) => dispatch({ type: 'card.toggleSaved', cardId: card.id }),
+    /** Close any help sheet and show this transcript line (used by source quotes). */
+    showSegment: (segmentId: string | null) => {
+      window.clearTimeout(focusTimer.current);
+      dispatch({ type: 'segment.focus', segmentId });
+      if (!segmentId) return;
+      setSettings((s) => (s.showTranscript ? s : { ...s, showTranscript: true }));
+      // Keep the highlight long enough to find the line, then resume following new lines.
+      focusTimer.current = window.setTimeout(() => dispatch({ type: 'segment.focus', segmentId: null }), FOCUS_MS);
+    },
     goTo: (phase: Phase) => dispatch({ type: 'phase', phase }),
   };
 }

@@ -1,4 +1,4 @@
-import type { Card, ServerMessage, Status, SummaryEvent, TermRef } from '@linaw/contract';
+import type { Card, ServerMessage, Status, SummaryEvent, TermRef, Translation } from '@linaw/contract';
 import type { ConnectionState } from '../lib/socket';
 
 export type Phase = 'start' | 'share-helper' | 'live';
@@ -11,6 +11,7 @@ export interface Segment {
   text: string;
   terms: TermRef[];
   final: boolean;
+  translation?: Translation;
 }
 
 export interface PendingCard {
@@ -25,6 +26,7 @@ export interface QA {
   requestId: string;
   question: string;
   answer?: string;
+  sources?: string[];
 }
 
 export interface SessionState {
@@ -43,9 +45,11 @@ export interface SessionState {
   /** Cards waiting for a simpler rewrite. */
   simplifying: { cardId: string; requestId: string }[];
   help: HelpKind | null;
-  whatSaid: Loadable<{ windowSec: number; points: string[] }>;
+  whatSaid: Loadable<{ windowSec: number; points: string[]; sources?: string[] }>;
   summary: Loadable<{ overview: string; events: SummaryEvent[]; openIssue?: string }>;
   questions: QA[];
+  /** Transcript line to scroll to and highlight, e.g. after tapping a source. */
+  focusedSegment: string | null;
   error: string | null;
 }
 
@@ -65,6 +69,7 @@ export const initialSession: SessionState = {
   whatSaid: { state: 'idle' },
   summary: { state: 'idle' },
   questions: [],
+  focusedSegment: null,
   error: null,
 };
 
@@ -75,6 +80,7 @@ export type SessionAction =
   | { type: 'listening.started' }
   | { type: 'listening.stopped' }
   | { type: 'help.open'; kind: HelpKind | null }
+  | { type: 'segment.focus'; segmentId: string | null }
   | { type: 'what_said.requested'; requestId: string }
   | { type: 'summary.requested'; requestId: string }
   | { type: 'ask.requested'; requestId: string; question: string }
@@ -103,6 +109,8 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
       return { ...state, status: 'stopped', stoppedAt: Date.now() };
     case 'help.open':
       return { ...state, help: action.kind };
+    case 'segment.focus':
+      return { ...state, focusedSegment: action.segmentId, help: action.segmentId ? null : state.help };
     case 'what_said.requested':
       return { ...state, whatSaid: { state: 'loading', requestId: action.requestId } };
     case 'summary.requested':
@@ -169,7 +177,7 @@ function applyServerMessage(state: SessionState, message: ServerMessage): Sessio
 
     case 'what_said.result':
       if (state.whatSaid.state !== 'loading' || state.whatSaid.requestId !== message.requestId) return state;
-      return { ...state, whatSaid: { state: 'done', value: { windowSec: message.windowSec, points: message.points } } };
+      return { ...state, whatSaid: { state: 'done', value: { windowSec: message.windowSec, points: message.points, sources: message.sources } } };
 
     case 'summary.result':
       if (state.summary.state !== 'loading' || state.summary.requestId !== message.requestId) return state;
@@ -185,7 +193,7 @@ function applyServerMessage(state: SessionState, message: ServerMessage): Sessio
       return {
         ...state,
         questions: state.questions.map((q) =>
-          q.requestId === message.requestId ? { ...q, answer: message.text } : q,
+          q.requestId === message.requestId ? { ...q, answer: message.text, sources: message.sources } : q,
         ),
       };
 

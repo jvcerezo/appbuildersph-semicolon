@@ -16,10 +16,12 @@ interface LiveScreenProps {
   session: SessionState;
   language: Language;
   showTranscript: boolean;
+  showTranslation: boolean;
   stoppedAtSec: number | null;
   onShowTranscript: (show: boolean) => void;
   onOpenHelp: (kind: HelpKind | null) => void;
   onAsk: (question: string) => void;
+  onShowSegment: (segmentId: string) => void;
   onReadAloud: (card: Card) => void;
   onSimplify: (card: Card) => void;
   onToggleSaved: (card: Card) => void;
@@ -74,6 +76,7 @@ export function LiveScreen(props: LiveScreenProps) {
       session={session}
       language={language}
       onAsk={props.onAsk}
+      onShowSegment={props.onShowSegment}
       onClose={() => props.onOpenHelp(null)}
     />
   ) : showTranscript ? (
@@ -82,6 +85,8 @@ export function LiveScreen(props: LiveScreenProps) {
       explainedIds={explainedIds}
       status={session.status}
       stoppedAtSec={stoppedAtSec}
+      showTranslation={props.showTranslation}
+      focusedSegment={session.focusedSegment}
       onHide={() => props.onShowTranscript(false)}
       onTermClick={focusCard}
     />
