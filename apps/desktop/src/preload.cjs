@@ -13,6 +13,9 @@ contextBridge.exposeInMainWorld('linawDesktop', {
     ipcRenderer.on('ghost:changed', handler);
     return () => ipcRenderer.removeListener('ghost:changed', handler);
   },
+  /** @param {'app' | 'overlay'} mode */
+  setMode: (mode) => ipcRenderer.send('window:mode', mode),
   minimize: () => ipcRenderer.send('window:minimize'),
+  toggleMaximize: () => ipcRenderer.send('window:toggleMaximize'),
   close: () => ipcRenderer.send('window:close'),
 });

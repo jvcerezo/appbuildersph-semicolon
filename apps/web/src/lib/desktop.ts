@@ -7,7 +7,10 @@ export interface LinawDesktop {
   /** Ghost mode: see-through and click-through, so the video underneath stays usable. */
   setGhost: (on: boolean) => void;
   onGhostChange: (listener: (on: boolean) => void) => () => void;
+  /** `app`: normal window for the library. `overlay`: narrow, always on top, while listening. */
+  setMode: (mode: 'app' | 'overlay') => void;
   minimize: () => void;
+  toggleMaximize: () => void;
   close: () => void;
 }
 
@@ -19,5 +22,5 @@ declare global {
 
 export const desktop: LinawDesktop | undefined = window.linawDesktop;
 
-/** The compact overlay layout: always in the desktop shell, or `?overlay` in a browser. */
+/** The compact overlay layout while listening: always in the desktop shell, or `?overlay` in a browser. */
 export const isOverlay = desktop !== undefined || new URLSearchParams(window.location.search).has('overlay');

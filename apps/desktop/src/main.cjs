@@ -1,7 +1,9 @@
 // @ts-check
 /**
- * Linaw desktop overlay: a small frameless window that stays on top of the
- * video the user is watching. It loads the web UI (apps/web) and answers the
+ * Linaw desktop app. One frameless window with two modes:
+ *   - app:     a normal window with the library (start, past sessions, notes)
+ *   - overlay: while listening, a narrow always-on-top panel beside the video
+ * It loads the web UI (apps/web), which switches the mode, and answers the
  * UI's getDisplayMedia() call with all system audio, so no share picker is
  * needed.
  *
@@ -20,7 +22,7 @@ const {
   shell,
 } = require('electron');
 
-const DEV_URL = process.env.LINAW_URL ?? 'http://127.0.0.1:5173/?overlay';
+const DEV_URL = process.env.LINAW_URL ?? 'http://127.0.0.1:5173/';
 const PROD_FILE = path.join(__dirname, '..', '..', 'web', 'dist', 'index.html');
 const useBuild = process.argv.includes('--prod') || app.isPackaged;
 
@@ -31,22 +33,57 @@ const RETRY_MS = 1000;
 /** @type {BrowserWindow | null} */
 let win = null;
 let ghost = false;
+/** @type {'app' | 'overlay'} */
+let mode = 'app';
+/** Where the user last put each mode's window, so switching back restores it. */
+/** @type {Record<'app' | 'overlay', Electron.Rectangle | null>} */
+const lastBounds = { app: null, overlay: null };
 
-function createWindow() {
+/** @param {'app' | 'overlay'} target */
+function defaultBounds(target) {
   const { workArea } = screen.getPrimaryDisplay();
-  const width = 420;
-  const height = Math.min(720, workArea.height - 48);
-
-  win = new BrowserWindow({
+  if (target === 'overlay') {
+    const width = 420;
+    const height = Math.min(720, workArea.height - 48);
+    // Top-right corner, where it covers the least of a typical video.
+    return { x: workArea.x + workArea.width - width - 24, y: workArea.y + 24, width, height };
+  }
+  const width = Math.min(1180, workArea.width - 80);
+  const height = Math.min(780, workArea.height - 80);
+  return {
+    x: workArea.x + Math.round((workArea.width - width) / 2),
+    y: workArea.y + Math.round((workArea.height - height) / 2),
     width,
     height,
-    minWidth: 340,
-    minHeight: 320,
-    // Top-right corner, where it covers the least of a typical video.
-    x: workArea.x + workArea.width - width - 24,
-    y: workArea.y + 24,
+  };
+}
+
+/** @param {'app' | 'overlay'} next */
+function setMode(next) {
+  if (!win || next === mode) return;
+  if (win.isMaximized()) win.unmaximize();
+  lastBounds[mode] = win.getBounds();
+  mode = next;
+  if (next === 'app' && ghost) setGhost(false);
+  if (next === 'overlay') {
+    win.setMinimumSize(340, 320);
+    // 'screen-saver' keeps the panel above full-screen video players too.
+    win.setAlwaysOnTop(true, 'screen-saver');
+    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  } else {
+    win.setAlwaysOnTop(false);
+    win.setVisibleOnAllWorkspaces(false);
+    win.setMinimumSize(720, 520);
+  }
+  win.setBounds(lastBounds[next] ?? defaultBounds(next));
+}
+
+function createWindow() {
+  win = new BrowserWindow({
+    ...defaultBounds('app'),
+    minWidth: 720,
+    minHeight: 520,
     frame: false,
-    alwaysOnTop: true,
     backgroundColor: '#ffffff',
     title: 'Linaw',
     show: false,
@@ -58,9 +95,6 @@ function createWindow() {
     },
   });
 
-  // 'screen-saver' keeps the panel above full-screen video players too.
-  win.setAlwaysOnTop(true, 'screen-saver');
-  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   win.once('ready-to-show', () => win?.show());
   win.on('closed', () => {
     win = null;
@@ -76,7 +110,7 @@ function createWindow() {
  */
 function load(target) {
   if (useBuild) {
-    void target.loadFile(PROD_FILE, { query: { overlay: '1' } });
+    void target.loadFile(PROD_FILE);
     return;
   }
   target.webContents.on('did-fail-load', (_event, _code, _desc, url) => {
@@ -101,6 +135,8 @@ function lockDown(target) {
 
 /** @param {boolean} on */
 function setGhost(on) {
+  // Ghost mode only makes sense over a video, i.e. in overlay mode.
+  if (on && mode !== 'overlay') return;
   ghost = on;
   if (!win) return;
   // Click-through: mouse events go to the video underneath.
@@ -140,7 +176,13 @@ app.whenReady().then(() => {
   handleDisplayMedia();
 
   ipcMain.on('ghost:set', (_event, on) => setGhost(Boolean(on)));
+  ipcMain.on('window:mode', (_event, next) => setMode(next === 'overlay' ? 'overlay' : 'app'));
   ipcMain.on('window:minimize', () => win?.minimize());
+  ipcMain.on('window:toggleMaximize', () => {
+    if (!win || mode !== 'app') return;
+    if (win.isMaximized()) win.unmaximize();
+    else win.maximize();
+  });
   ipcMain.on('window:close', () => win?.close());
 
   // A global shortcut is the only way back from ghost mode, since the window ignores clicks.
