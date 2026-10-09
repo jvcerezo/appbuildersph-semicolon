@@ -30,6 +30,8 @@ UI                                    Backend
  |  <-- what_said.result / summary.result / answer / card (with requestId)
  |  -- session.stop ----------------> |
  |  <-- status: stopped -------------- |
+ |  -- summary.request --------------> |   final summary, saved with the session
+ |  <-- summary.result --------------- |
 ```
 
 ## Backend → UI
@@ -61,7 +63,7 @@ Notes:
 | `session.stop` | Sharing stopped, or the file ended | – |
 | `preferences.update` | The user changed the level or language | `preferences` |
 | `what_said.request` | "What did they say?" button | `requestId`, `windowSec` (120) |
-| `summary.request` | "Summary" button | `requestId` |
+| `summary.request` | "Summary" button, and once more right after `session.stop` when the user finishes a session | `requestId` |
 | `ask` | The user asked a question | `requestId`, `question` (≤ 500 chars, Tagalog or English) |
 | `card.simplify` | "Simpler" on a card | `requestId`, `cardId`; reply with `card` using the same id and the `requestId` |
 

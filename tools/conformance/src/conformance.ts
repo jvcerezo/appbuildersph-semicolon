@@ -217,6 +217,22 @@ async function main(): Promise<void> {
     report(stopped ? 'pass' : 'fail', 'Replies to `session.stop` with `status: stopped`');
   }
 
+  // 7b. the final summary the UI asks for when a session is finished
+  {
+    const since = received.length;
+    send({ type: 'summary.request', requestId: 'conf-final-summary' });
+    const reply = await waitFor(
+      (m): m is ServerMessage => 'requestId' in m && m.requestId === 'conf-final-summary',
+      timeoutMs,
+      since,
+    );
+    report(
+      reply?.type === 'summary.result' ? 'pass' : 'warn',
+      'Answers `summary.request` after `session.stop` (the final summary saved with the session)',
+      reply?.type === 'summary.result' ? undefined : reply ? `replied with ${reply.type}` : 'no reply',
+    );
+  }
+
   // 8. whole-session rules
   report(
     invalid.length === 0 ? 'pass' : 'fail',

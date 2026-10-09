@@ -56,7 +56,7 @@ The minimum loop:
    | `card.simplify` | `card` with the same id |
 
    If something fails, reply with `error` and the `requestId`.
-6. **On `session.stop`**, reply with `status: stopped`.
+6. **On `session.stop`**, reply with `status: stopped`. Keep that session's transcript in memory: when the user finishes a session, the UI sends one more `summary.request` right after `session.stop`, and saves the reply with the session in its library.
 7. **On `preferences.update`**, use the new `level` and `language` for anything you write from then on.
 
 Rules the UI depends on:
