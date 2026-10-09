@@ -88,6 +88,27 @@
             },
             "final": {
               "type": "boolean"
+            },
+            "translation": {
+              "type": "object",
+              "properties": {
+                "language": {
+                  "type": "string",
+                  "enum": [
+                    "tl",
+                    "en"
+                  ]
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "language",
+                "text"
+              ],
+              "additionalProperties": false
             }
           },
           "required": [
@@ -239,6 +260,13 @@
                 "minLength": 1
               },
               "minItems": 1
+            },
+            "sources": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           },
           "required": [
@@ -285,6 +313,13 @@
                   "detail": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "sources": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
                   }
                 },
                 "required": [
@@ -330,6 +365,13 @@
             "text": {
               "type": "string",
               "minLength": 1
+            },
+            "sources": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           },
           "required": [

@@ -17,12 +17,19 @@
     {
       "t": 2400,
       "title": "Unang testigo",
-      "detail": "Tinanong ng prosekusyon ang testigo tungkol sa mga dokumento."
+      "detail": "Tinanong ng prosekusyon ang testigo tungkol sa mga dokumento.",
+      "sources": [
+        "seg-0301"
+      ]
     },
     {
       "t": 5045,
       "title": "Hiling na ibasura ang subpoena",
-      "detail": "Humiling ang depensa; tumutol ang prosekusyon."
+      "detail": "Humiling ang depensa; tumutol ang prosekusyon.",
+      "sources": [
+        "seg-0412",
+        "seg-0415"
+      ]
     }
   ],
   "openIssue": "Ayon sa depensa, hindi dapat tawagin ang testigo. Ayon naman sa prosekusyon, kailangan ang testigo para sa ikalawang paratang. Ang namumuno ang magpapasya."

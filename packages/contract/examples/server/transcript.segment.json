@@ -14,5 +14,9 @@
       "text": "subpoena"
     }
   ],
-  "final": true
+  "final": true,
+  "translation": {
+    "language": "tl",
+    "text": "…magalang naming inihahain ang mosyon para ibasura ang subpoena na ibinigay sa testigo."
+  }
 }

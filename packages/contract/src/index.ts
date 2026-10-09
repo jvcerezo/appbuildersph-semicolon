@@ -59,10 +59,23 @@ export const CardSchema = z.object({
 });
 export type Card = z.infer<typeof CardSchema>;
 
+/**
+ * Transcript segment ids that back a claim. The UI shows them as quotes
+ * the user can jump to, so summaries and answers can be checked.
+ */
+export const SourcesSchema = z.array(id);
+
+export const TranslationSchema = z.object({
+  language: LanguageSchema,
+  text: z.string().min(1),
+});
+export type Translation = z.infer<typeof TranslationSchema>;
+
 export const SummaryEventSchema = z.object({
   t: seconds,
   title: z.string().min(1),
   detail: z.string().min(1),
+  sources: SourcesSchema.optional(),
 });
 export type SummaryEvent = z.infer<typeof SummaryEventSchema>;
 
@@ -86,6 +99,8 @@ export const TranscriptSegmentMessageSchema = z.object({
   terms: z.array(TermRefSchema),
   /** `false` while the segment is still being spoken; re-sent with the same id. */
   final: z.boolean(),
+  /** `text` translated into the user's `preferences.language`, when it was spoken in another language. */
+  translation: TranslationSchema.optional(),
 });
 
 export const CardPendingMessageSchema = z.object({
@@ -111,6 +126,7 @@ export const WhatSaidResultMessageSchema = z.object({
   requestId: id,
   windowSec: z.number().positive(),
   points: z.array(z.string().min(1)).min(1),
+  sources: SourcesSchema.optional(),
 });
 
 export const SummaryResultMessageSchema = z.object({
@@ -129,6 +145,7 @@ export const AnswerMessageSchema = z.object({
   requestId: id,
   question: z.string().min(1),
   text: z.string().min(1),
+  sources: SourcesSchema.optional(),
 });
 
 export const ErrorMessageSchema = z.object({
