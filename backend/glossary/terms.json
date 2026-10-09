@@ -3,12 +3,15 @@
     {
       "id": "articles-of-impeachment",
       "term": "Articles of Impeachment",
-      "aliases": ["Article of Impeachment"],
+      "aliases": [
+        "Article of Impeachment"
+      ],
       "tl": {
         "meaning": "Ang listahan ng mga paratang laban sa opisyal na nililitis.",
         "example": "Parang listahan ng mga reklamo na binabasa bago magsimula ang paglilitis."
       },
-      "source": "jvcerezo (mock scenario)"
+      "source": "Team-written; matches 1987 Constitution, Art. XI, Sec. 3. Needs a teammate's legal review.",
+      "basis": "1987 Constitution, Art. XI, Sec. 3"
     },
     {
       "id": "presiding-officer",
@@ -18,27 +21,36 @@
         "meaning": "Ang namumuno sa paglilitis. Siya ang nagpapasya sa takbo ng sesyon.",
         "example": "Parang referee sa laro na nagsasabi kung sino ang puwedeng magsalita."
       },
-      "source": "jvcerezo (mock scenario)"
+      "source": "Team-written; matches Senate Impeachment Rules, Rule IV. Needs a teammate's legal review.",
+      "basis": "Senate Impeachment Rules, Rule IV"
     },
     {
       "id": "subpoena",
       "term": "Subpoena",
-      "aliases": ["subpoenas", "subpoenaed", "subpena"],
+      "aliases": [
+        "subpoenas",
+        "subpoenaed",
+        "subpena"
+      ],
       "tl": {
         "meaning": "Utos ng korte na humarap ang isang tao o magdala ng dokumento.",
         "example": "Parang opisyal na imbitasyon na hindi puwedeng tanggihan nang walang dahilan."
       },
-      "source": "jvcerezo (mock scenario)"
+      "source": "Team-written; matches Rules of Court, Rule 21, Sec. 1. Needs a teammate's legal review.",
+      "basis": "Rules of Court, Rule 21, Sec. 1"
     },
     {
       "id": "objection",
       "term": "Objection",
-      "aliases": ["objections"],
+      "aliases": [
+        "objections"
+      ],
       "tl": {
         "meaning": "Pagtutol sa sinabi o hiniling ng kabilang panig.",
         "example": "Parang pagtaas ng kamay para sabihing, “Hindi po kami sang-ayon diyan.”"
       },
-      "source": "jvcerezo (mock scenario)"
+      "source": "Team-written; matches Rules on Evidence, Rule 132, Sec. 36. Needs a teammate's legal review.",
+      "basis": "Rules on Evidence, Rule 132, Sec. 36"
     },
     {
       "id": "sine-die",
@@ -48,7 +60,7 @@
         "meaning": "Itinigil ang sesyon nang walang takdang petsa ng pagbabalik.",
         "example": "Parang “Saka na lang ulit tayo magkita,” pero walang petsang napag-usapan."
       },
-      "source": "jvcerezo (mock scenario)"
+      "source": "Team-written; no statute defines it (parliamentary Latin). Needs a teammate's legal review."
     }
   ]
 }
