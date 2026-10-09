@@ -1,12 +1,14 @@
 # Linaw: speech pipeline
 
-Speech-to-text for Linaw, which explains live legal and political broadcasts (for example a Philippine impeachment trial) in plain Tagalog. This repo covers **only** the STT pipeline and a temporary HTML test page. The LLM/RAG and the real frontend live elsewhere.
+Speech-to-text for Linaw, which explains live legal and political broadcasts (for example a Philippine impeachment trial) in plain Tagalog. This folder is the STT service and its HTML test page. Linaw's backend ([`backend/`](../backend/README.md)) streams each session's audio here over `/ws/stream` and turns the lines it gets back into transcript segments and cards for the UI.
 
-- **Online:** Soniox real-time (`stt-rt-v5`), streamed from the browser with a short-lived key. Secondary component.
+- **Online:** Soniox real-time (`stt-rt-v5`). For Linaw's backend the service streams to Soniox itself, so the key never leaves this folder; the test page streams from the browser with a short-lived key.
 - **Offline (core):** a local engine that runs with no internet at all:
   - **WhisperLiveKit** (default): real-time grey partial text that settles into black finals, like Soniox.
   - **chunked**: the original engine. faster-whisper on 5 s windows, finals only.
-- Every engine produces **the same output format** on one WebSocket bus (`/ws/session`).
+- Every engine produces **the same output format**, on `/ws/stream` (per stream, for backends) and on one WebSocket bus (`/ws/session`).
+
+From the repo root: `pnpm stt:setup` once, then `pnpm stt` (both use uv).
 
 ## Quick start (clone and run)
 
@@ -85,7 +87,9 @@ How the pieces fit together (read this first if you are changing anything).
 | Chunked engine | `app/local_stt.py`, `app/local_stream.py` | The original windowed faster-whisper engine, unchanged behind the new interface |
 | Test page | `static/index.html` | Capture, Soniox client, mode switching and fallback, transcript, cloud meter, debug |
 
-**Mode switching** lives in the page, because the Soniox socket lives there:
+**Mode switching for backends** (`/ws/stream`, `app/stream.py`) runs on the server with the same rules as the page below: Soniox at start when allowed and reachable; on any Soniox error, close or 5 s of silence, commit its finals, replay up to 6 s from a 20 s ring buffer into the local engine; probe every 5–60 s and hand back, replaying from the last final. The Soniox client is `app/soniox_stream.py`.
+
+**Mode switching on the test page** lives in the page, because the Soniox socket lives there:
 - At Start, the page picks an engine from the mode select:
   - **Auto** uses Soniox if the browser is online, `/api/connectivity` succeeds and a key exists. Otherwise it uses the local engine.
   - **Soniox** and **Local** force that engine.
@@ -226,6 +230,7 @@ Connect to `ws://HOST:PORT/ws/session` and you receive:
 | `GET /api/session/transcript` | Final segments of the current session |
 | `GET /api/session/metrics` | Latest cloud-meter metrics |
 | `WS /ws/session` | Unified transcript, status and metrics bus |
+| `WS /ws/stream` | For backends: text `{"type":"start","offset_seconds":X}`, then binary PCM s16le mono 16 kHz, then `{"type":"stop"}`. Replies on the same socket with `transcript` and `status` messages (same format as `/ws/session`) and `done`. Picks Soniox or the local engine from `STT_MODE`, falls back mid-stream and hands back when online. `{"type":"simulate_offline","on":true}` demos the fallback |
 | `WS /ws/stt-local` | Text `{"type":"start","offset_seconds":X}`, then binary PCM s16le mono 16 kHz, then `{"type":"stop"}`. Replies with `stats` and `done`. A socket may stay idle (standby) before `start` |
 
 ## Configuration

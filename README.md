@@ -87,7 +87,8 @@ pnpm conformance --audio sample.webm --fast   # also stream a recording
 | `packages/contract/schema` | Generated JSON Schema, for backends in any language |
 | `tools/conformance` | Checks a running backend against the contract |
 | `tools/demo-backend` | Scripted demo backend, also a reference implementation |
-| `backend/` | The backend team’s code |
+| `backend/` | The real backend: contract, audio, glossary, cards |
+| `stt/` | Speech service: Soniox online, local Whisper offline |
 | `docs/backend.md` | How to wire a backend in |
 | `docs/contract.md` | The contract in plain words |
 
