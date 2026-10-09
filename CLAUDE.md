@@ -20,7 +20,9 @@ Linaw is an **overlay that floats over the hearing a user is watching** and expl
 
 ```sh
 pnpm install
+pnpm dev:demo     # overlay window + UI + scripted demo backend (for demos and UI work)
 pnpm dev:overlay  # overlay window + UI (start the backend separately)
+pnpm demo         # demo backend only: --speed 3, --offline
 pnpm dev          # UI only, in the browser
 pnpm conformance  # check a running backend: add --audio clip.webm --fast to test speech too
 pnpm typecheck    # all packages
@@ -56,6 +58,7 @@ packages/contract/
   examples/            one JSON example per message type (validated)
   schema/              generated JSON Schema (pnpm --filter @linaw/contract schema)
 tools/conformance/     backend conformance checker
+tools/demo-backend/    scripted demo backend (passes conformance; reference for the backend team)
 backend/               the backend team’s code (any language)
 docs/contract.md       human-readable contract
 docs/backend.md        how to wire a backend in
@@ -74,4 +77,5 @@ docs/backend.md        how to wire a backend in
 - `linaw-ui` — design system, accessibility and states
 - `linaw-overlay` — the Electron shell, overlay layout, ghost mode, and screenshot checks
 - `linaw-backend` — building or debugging the backend against the contract
+- `linaw-demo` — the scripted demo backend and writing demo scenarios
 - `commit-conventions` — commit message format

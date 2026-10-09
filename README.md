@@ -4,7 +4,8 @@
 
 - **A floating overlay.** A small window stays on top of YouTube, Facebook, a news site or a video call, and listens to what's playing on your computer.
 - **A card for each legal term**, with its meaning, an everyday example, and what it means right now in the hearing.
-- **Help on demand.** Ask "What did they say?", get a summary, or ask your own question.
+- **Translations.** Lines spoken in English get a Tagalog translation underneath.
+- **Help on demand.** Ask "What did they say?", get a summary, or ask your own question. Each answer cites the transcript lines it is based on.
 - **Ghost mode** makes the overlay see-through and click-through, so it never blocks the video.
 - **Large text, a high-contrast theme and read-aloud.**
 - **Everything runs on your computer.** Linaw makes no cloud calls.
@@ -15,8 +16,24 @@
 
 You need Node 20+ and pnpm (`npm i -g pnpm`).
 
+### See the demo
+
 ```sh
 pnpm install
+pnpm dev:demo
+```
+
+The overlay opens with a **scripted demo backend** behind it. Click **Start listening** to play a 2½-minute Senate impeachment hearing in English. You'll see:
+
+- Live captions with **Tagalog translations**, and the full transcript in the **Transcript** tab.
+- Jargon cards as legal terms come up.
+- **Summary**, **What did they say?** and **Ask a question**, each citing the transcript lines it is based on. Tap a source to jump to it.
+
+For a faster run, start the demo backend at 3x speed (`pnpm demo --speed 3`) and run `pnpm dev:overlay` alongside it.
+
+### With the real backend
+
+```sh
 pnpm dev:overlay
 ```
 
@@ -63,6 +80,7 @@ pnpm conformance --audio sample.webm --fast   # also stream a recording
 | `packages/contract` | Message schemas (zod), types and example payloads |
 | `packages/contract/schema` | Generated JSON Schema, for backends in any language |
 | `tools/conformance` | Checks a running backend against the contract |
+| `tools/demo-backend` | Scripted demo backend, also a reference implementation |
 | `backend/` | The backend team’s code |
 | `docs/backend.md` | How to wire a backend in |
 | `docs/contract.md` | The contract in plain words |
@@ -71,7 +89,9 @@ pnpm conformance --audio sample.webm --fast   # also stream a recording
 
 | Command | Does |
 |---|---|
-| `pnpm dev:overlay` | Overlay window and UI |
+| `pnpm dev:demo` | Overlay window, UI and the scripted demo backend |
+| `pnpm dev:overlay` | Overlay window and UI (real backend runs separately) |
+| `pnpm demo` | Demo backend only (`--speed 3`, `--offline`) |
 | `pnpm dev` | UI in the browser |
 | `pnpm conformance` | Check a running backend against the contract |
 | `pnpm typecheck` | Type-check every package |
@@ -83,4 +103,4 @@ Set `VITE_BACKEND_URL` to point the UI at a backend on a different port.
 
 ## Working with coding agents
 
-`CLAUDE.md` holds the project rules, and `.claude/skills/` has guides for the contract, the UI design system, the overlay shell, the backend and commit messages.
+`CLAUDE.md` holds the project rules, and `.claude/skills/` has guides for the contract, the UI design system, the overlay shell, the backend, the demo and commit messages.

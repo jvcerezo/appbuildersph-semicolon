@@ -10,6 +10,7 @@ The UI is done and waiting. Your backend only has to do one thing: **run a WebSo
 | **JSON Schema** of every message | [`packages/contract/schema/linaw-contract.schema.json`](../packages/contract/schema/linaw-contract.schema.json) | Validating messages, or generating types in your language |
 | Example of every message | [`packages/contract/examples/`](../packages/contract/examples) | Copy-paste fixtures and unit tests |
 | **Conformance checker** | `pnpm conformance` | Proving your backend works before you open the UI |
+| **Demo backend** | [`tools/demo-backend/src/server.ts`](../tools/demo-backend/src/server.ts) | A small working reference: it passes conformance, sends translations and sources, and answers every request |
 
 ## Steps
 

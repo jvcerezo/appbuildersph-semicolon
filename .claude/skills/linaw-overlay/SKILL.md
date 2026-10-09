@@ -33,13 +33,15 @@ If `electron` fails with "Electron failed to install correctly", its binary down
 
 ## Verifying visually (do this after UI changes)
 
-`snapshot.cjs` saves a PNG of the overlay and quits. Run it with Vite (`pnpm dev`) running. To see cards and captions, a backend must be running on :8765 too; without one you get the start screen with the "Can’t reach Linaw’s helper" banner:
+`snapshot.cjs` saves a PNG of the overlay and quits. Run it with Vite (`pnpm dev`) and a backend running. For UI work, use `pnpm demo --speed 3` so cards, translations and sources arrive quickly. Without a backend you get the start screen with the "Can’t reach Linaw’s helper" banner. Give the first click a `LINAW_SNAPSHOT_STEP` of 3000 or more so the socket has connected (the button is disabled until then):
 
 ```sh
 cd apps/desktop
 LINAW_SNAPSHOT=/tmp/ov.png LINAW_SNAPSHOT_DELAY=2500 npx electron .
 # Drive it: click buttons by their text, separated by >>
-LINAW_SNAPSHOT=/tmp/ov.png LINAW_SNAPSHOT_CLICK="Start listening>>Summary" LINAW_SNAPSHOT_STEP=2000 npx electron .
+LINAW_SNAPSHOT=/tmp/ov.png LINAW_SNAPSHOT_CLICK="Start listening>>Transcript" LINAW_SNAPSHOT_STEP=3000 LINAW_SNAPSHOT_DELAY=30000 npx electron .
+# Summary after ~30 s of demo, then tap a source quote by its text
+LINAW_SNAPSHOT=/tmp/ov.png LINAW_SNAPSHOT_CLICK="Start listening>>Summary>>Itutuloy natin" LINAW_SNAPSHOT_STEP=14000 npx electron .
 # Mid-session: wait long enough for the backend to send a few cards
 LINAW_SNAPSHOT=/tmp/ov.png LINAW_SNAPSHOT_CLICK="Start listening" LINAW_SNAPSHOT_DELAY=36000 npx electron .
 ```
