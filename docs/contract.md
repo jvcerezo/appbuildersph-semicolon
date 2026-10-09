@@ -41,7 +41,7 @@ UI                                    Backend
 | `status` | On connect, and whenever the state changes | `status`: `waiting` \| `listening` \| `stopped` \| `offline`; optional `title` |
 | `transcript.segment` | Speech recognized | `id`, `t`, `speaker`, `text`, `terms[]` (`text`, optional `cardId`), `final`, optional `translation` {`language`, `text`} |
 | `card.pending` | A term was spotted and an explanation is coming | `id` (the future card id), `term`, `t` |
-| `card` | An explanation is ready, or a simpler rewrite | `card` {`id`, `term`, `kind`: `checked` \| `ai`, `meaning`, `example`, `now`, `t`, `language`}; optional `requestId` |
+| `card` | An explanation is ready, or a simpler rewrite | `card` {`id`, `term`, `kind`: `checked` \| `ai`, `meaning`, `example`, `now`, `t`, `language`, optional `basis`: the law or rule the meaning rests on, e.g. "Rules on Evidence, Rule 130, Sec. 37"}; optional `requestId` |
 | `card.failed` | The explanation promised by a `card.pending` won't come | `id` (the pending card's id) |
 | `what_said.result` | Reply to `what_said.request` | `requestId`, `windowSec`, `points[]`, optional `sources[]` |
 | `summary.result` | Reply to `summary.request` | `requestId`, `overview`, `events[]` {`t`, `title`, `detail`, optional `sources[]`}, optional `openIssue` |

@@ -207,6 +207,11 @@
                     "tl",
                     "en"
                   ]
+                },
+                "basis": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
                 }
               },
               "required": [
@@ -749,6 +754,11 @@
             "tl",
             "en"
           ]
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
         }
       },
       "required": [

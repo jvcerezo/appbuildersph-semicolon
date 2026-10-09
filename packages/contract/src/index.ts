@@ -56,6 +56,11 @@ export const CardSchema = z.object({
   now: z.string().min(1),
   t: seconds,
   language: LanguageSchema,
+  /**
+   * The law or rule the meaning is based on, as a citation the user can look up,
+   * e.g. "Rules on Evidence, Rule 130, Sec. 37". Absent when no passage backs it.
+   */
+  basis: z.string().min(1).max(200).optional(),
 });
 export type Card = z.infer<typeof CardSchema>;
 
