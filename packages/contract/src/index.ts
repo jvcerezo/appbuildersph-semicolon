@@ -120,6 +120,16 @@ export const CardMessageSchema = z.object({
   requestId: id.optional(),
 });
 
+/**
+ * The explanation promised by a `card.pending` with this id won't come (the model failed).
+ * The UI drops the pending card and stops marking the term as being explained.
+ */
+export const CardFailedMessageSchema = z.object({
+  v,
+  type: z.literal('card.failed'),
+  id,
+});
+
 export const WhatSaidResultMessageSchema = z.object({
   v,
   type: z.literal('what_said.result'),
@@ -161,6 +171,7 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
   TranscriptSegmentMessageSchema,
   CardPendingMessageSchema,
   CardMessageSchema,
+  CardFailedMessageSchema,
   WhatSaidResultMessageSchema,
   SummaryResultMessageSchema,
   AnswerMessageSchema,

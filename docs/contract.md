@@ -25,7 +25,7 @@ UI                                    Backend
  |  <-- transcript.segment (final:false)|   partial, same id re-sent
  |  <-- transcript.segment (final:true) |   terms[] flag the jargon
  |  <-- card.pending ----------------- |   shows a skeleton card
- |  <-- card ------------------------- |   same id replaces it
+ |  <-- card (or card.failed) -------- |   same id replaces it (or drops it)
  |  -- what_said.request / summary.request / ask / card.simplify -->
  |  <-- what_said.result / summary.result / answer / card (with requestId)
  |  -- session.stop ----------------> |
@@ -42,6 +42,7 @@ UI                                    Backend
 | `transcript.segment` | Speech recognized | `id`, `t`, `speaker`, `text`, `terms[]` (`text`, optional `cardId`), `final`, optional `translation` {`language`, `text`} |
 | `card.pending` | A term was spotted and an explanation is coming | `id` (the future card id), `term`, `t` |
 | `card` | An explanation is ready, or a simpler rewrite | `card` {`id`, `term`, `kind`: `checked` \| `ai`, `meaning`, `example`, `now`, `t`, `language`}; optional `requestId` |
+| `card.failed` | The explanation promised by a `card.pending` won't come | `id` (the pending card's id) |
 | `what_said.result` | Reply to `what_said.request` | `requestId`, `windowSec`, `points[]`, optional `sources[]` |
 | `summary.result` | Reply to `summary.request` | `requestId`, `overview`, `events[]` {`t`, `title`, `detail`, optional `sources[]`}, optional `openIssue` |
 | `answer` | Reply to `ask` | `requestId`, `question`, `text`, optional `sources[]` |
@@ -50,7 +51,8 @@ UI                                    Backend
 Notes:
 - `status: offline` means "working without internet". Everything is local, so the session continues normally.
 - `kind: checked` means the explanation came from a verified glossary. `kind: ai` means the model wrote it, and the UI labels it "AI-explained".
-- A `terms[].cardId` links the transcript to a card. The UI underlines the term with a dotted line until that card arrives, then with a solid line it can click.
+- A `terms[].cardId` links the transcript to a card. The UI underlines the term with a dotted line until that card arrives, then with a solid line it can click. After `card.failed`, the UI drops the pending card and that term's underline.
+- A segment with `final: true` may be sent again with the same `id` to add `terms[]` found later (for example by the model); the UI replaces it in place.
 - **Translation**: when a line is spoken in a language other than `preferences.language` (for example English testimony for a Tagalog user), set `translation` to that line in the user's language. The UI shows it under the original.
 - **Sources** are `transcript.segment` ids that back a summary event, a "What did they say?" result or an answer. The UI quotes those lines and lets the user jump to them, so cite only segments you have already sent.
 - `meaning`, `example` and `now` should be in the language the user chose in `preferences.language`. Keep them short and plain. Linaw explains terms and never gives legal advice.
