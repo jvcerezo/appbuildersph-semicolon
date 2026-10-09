@@ -172,6 +172,8 @@ function OverlayLive({ linaw }: { linaw: Linaw }) {
           session={session}
           language={settings.language}
           onAsk={linaw.ask}
+          onAskAloud={(clip, mimeType) => void linaw.askAloud(clip, mimeType)}
+          onError={linaw.reportError}
           onShowSegment={linaw.showSegment}
           onClose={() => linaw.openHelp(null)}
         />
