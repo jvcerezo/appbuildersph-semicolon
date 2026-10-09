@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "pnpm --filter @linaw/web dev",
     "dev:overlay": "pnpm --parallel --filter @linaw/web --filter @linaw/desktop run dev",
+    "dev:demo": "pnpm --parallel --filter @linaw/web --filter @linaw/desktop --filter @linaw/demo-backend run dev",
+    "demo": "pnpm --filter @linaw/demo-backend start",
     "conformance": "pnpm --filter @linaw/conformance start",
     "validate": "pnpm -r validate",
     "typecheck": "pnpm -r typecheck",

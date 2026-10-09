@@ -1,0 +1,867 @@
+{
+  "title": "Impeachment Trial — Day 3",
+  "timeline": [
+    {
+      "at": 3,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s01",
+        "t": 0,
+        "speaker": "THE PRESIDING OFFICER",
+        "text": "The Senate, sitting as an Impeachment Court, is now in session.",
+        "terms": [
+          {
+            "text": "Impeachment Court",
+            "cardId": "card-court"
+          }
+        ],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "Nagsisimula na ang sesyon ng Senado bilang Impeachment Court."
+        }
+      }
+    },
+    {
+      "at": 4,
+      "message": {
+        "v": 1,
+        "type": "card.pending",
+        "id": "card-court",
+        "term": "Impeachment Court",
+        "t": 0
+      }
+    },
+    {
+      "at": 7,
+      "message": {
+        "v": 1,
+        "type": "card",
+        "card": {
+          "id": "card-court",
+          "t": 0,
+          "language": "tl",
+          "term": "Impeachment Court",
+          "kind": "checked",
+          "meaning": "Ang Senado kapag nililitis nito ang isang opisyal na na-impeach ng Kamara.",
+          "example": "Parang korte, pero ang mga senador ang tumatayong hukom.",
+          "now": "Nagsimula ang sesyon at hukuman na ngayon ang Senado."
+        }
+      }
+    },
+    {
+      "at": 11,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s02",
+        "t": 0,
+        "speaker": "THE PRESIDING OFFICER",
+        "text": "We will now proceed with the trial on Article Two of the Articles of Impeachment.",
+        "terms": [
+          {
+            "text": "Articles of Impeachment",
+            "cardId": "card-articles"
+          }
+        ],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "Itutuloy natin ngayon ang paglilitis sa Ikalawang Artikulo ng Articles of Impeachment."
+        }
+      }
+    },
+    {
+      "at": 12,
+      "message": {
+        "v": 1,
+        "type": "card.pending",
+        "id": "card-articles",
+        "term": "Articles of Impeachment",
+        "t": 0
+      }
+    },
+    {
+      "at": 15,
+      "message": {
+        "v": 1,
+        "type": "card",
+        "card": {
+          "id": "card-articles",
+          "t": 0,
+          "language": "tl",
+          "term": "Articles of Impeachment",
+          "kind": "checked",
+          "meaning": "Ang listahan ng mga paratang laban sa opisyal na nililitis.",
+          "example": "Parang listahan ng mga reklamo na isa-isang pinatutunayan.",
+          "now": "Ang Ikalawang Artikulo ang pinag-uusapan ngayon."
+        }
+      }
+    },
+    {
+      "at": 21,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s03",
+        "t": 0,
+        "speaker": "PROSECUTION",
+        "text": "Mr. President, the prosecution calls its next witness, the records custodian of the Land Registration Authority.",
+        "terms": [],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "G. Pangulo, tinatawag ng prosekusyon ang susunod nitong testigo, ang tagapag-ingat ng mga rekord ng Land Registration Authority."
+        }
+      }
+    },
+    {
+      "at": 28,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s04",
+        "t": 0,
+        "speaker": "PROSECUTION",
+        "text": "We served a subpoena duces tecum…",
+        "terms": [],
+        "final": false
+      }
+    },
+    {
+      "at": 31,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s04",
+        "t": 0,
+        "speaker": "PROSECUTION",
+        "text": "We served a subpoena duces tecum requiring the witness to bring the original land titles.",
+        "terms": [
+          {
+            "text": "subpoena duces tecum",
+            "cardId": "card-sdt"
+          }
+        ],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "Nagpadala kami ng subpoena duces tecum na nag-uutos sa testigo na dalhin ang orihinal na mga titulo ng lupa."
+        }
+      }
+    },
+    {
+      "at": 32,
+      "message": {
+        "v": 1,
+        "type": "card.pending",
+        "id": "card-sdt",
+        "term": "Subpoena duces tecum",
+        "t": 0
+      }
+    },
+    {
+      "at": 35,
+      "message": {
+        "v": 1,
+        "type": "card",
+        "card": {
+          "id": "card-sdt",
+          "t": 0,
+          "language": "tl",
+          "term": "Subpoena duces tecum",
+          "kind": "checked",
+          "meaning": "Utos ng hukuman na magdala ng mga dokumento o ebidensya.",
+          "example": "Parang opisyal na sulat na nagsasabing, “Dalhin mo rito ang mga papeles na ito.”",
+          "now": "Inutusan ang testigo na dalhin ang orihinal na mga titulo ng lupa."
+        }
+      }
+    },
+    {
+      "at": 39,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s05",
+        "t": 0,
+        "speaker": "DEFENSE",
+        "text": "Your Honor, the defense moves to quash…",
+        "terms": [],
+        "final": false
+      }
+    },
+    {
+      "at": 42,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s05",
+        "t": 0,
+        "speaker": "DEFENSE",
+        "text": "Your Honor, the defense moves to quash that subpoena. The request is overly broad and covers properties unrelated to the charges.",
+        "terms": [
+          {
+            "text": "moves to quash",
+            "cardId": "card-quash"
+          }
+        ],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "Kagalang-galang, hinihiling ng depensa na ibasura ang subpoena na iyon. Masyadong malawak ang hiling at sakop nito ang mga ari-ariang walang kinalaman sa mga paratang."
+        }
+      }
+    },
+    {
+      "at": 43,
+      "message": {
+        "v": 1,
+        "type": "card.pending",
+        "id": "card-quash",
+        "term": "Motion to quash",
+        "t": 0
+      }
+    },
+    {
+      "at": 46,
+      "message": {
+        "v": 1,
+        "type": "card",
+        "card": {
+          "id": "card-quash",
+          "t": 0,
+          "language": "tl",
+          "term": "Motion to quash",
+          "kind": "ai",
+          "meaning": "Pormal na hiling na ibasura o ipawalang-bisa ang isang utos, gaya ng subpoena.",
+          "example": "Parang sinabi mong, “Hindi po dapat ituloy ang utos na ito,” at hiniling sa hukom na bawiin ito.",
+          "now": "Gusto ng depensa na ibasura ang subpoena dahil masyado raw itong malawak."
+        }
+      }
+    },
+    {
+      "at": 51,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s06",
+        "t": 0,
+        "speaker": "PROSECUTION",
+        "text": "Objection, Your Honor.…",
+        "terms": [],
+        "final": false
+      }
+    },
+    {
+      "at": 54,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s06",
+        "t": 0,
+        "speaker": "PROSECUTION",
+        "text": "Objection, Your Honor. These titles are material to Article Two. They show assets not declared in the respondent's SALN.",
+        "terms": [
+          {
+            "text": "Objection",
+            "cardId": "card-objection"
+          },
+          {
+            "text": "SALN",
+            "cardId": "card-saln"
+          }
+        ],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "Tutol po, Kagalang-galang. Mahalaga ang mga titulong ito sa Ikalawang Artikulo. Ipinapakita nito ang mga ari-ariang hindi idineklara sa SALN ng respondent."
+        }
+      }
+    },
+    {
+      "at": 55,
+      "message": {
+        "v": 1,
+        "type": "card.pending",
+        "id": "card-objection",
+        "term": "Objection",
+        "t": 0
+      }
+    },
+    {
+      "at": 56,
+      "message": {
+        "v": 1,
+        "type": "card.pending",
+        "id": "card-saln",
+        "term": "SALN",
+        "t": 0
+      }
+    },
+    {
+      "at": 58,
+      "message": {
+        "v": 1,
+        "type": "card",
+        "card": {
+          "id": "card-objection",
+          "t": 0,
+          "language": "tl",
+          "term": "Objection",
+          "kind": "checked",
+          "meaning": "Pagtutol sa sinabi, tanong o hiling ng kabilang panig.",
+          "example": "Parang pagtaas ng kamay para sabihing, “Hindi po kami sang-ayon diyan.”",
+          "now": "Tumutol ang prosekusyon sa hiling ng depensa na ibasura ang subpoena."
+        }
+      }
+    },
+    {
+      "at": 60,
+      "message": {
+        "v": 1,
+        "type": "card",
+        "card": {
+          "id": "card-saln",
+          "t": 0,
+          "language": "tl",
+          "term": "SALN",
+          "kind": "checked",
+          "meaning": "Statement of Assets, Liabilities and Net Worth: taunang listahan ng ari-arian at utang ng isang opisyal ng gobyerno.",
+          "example": "Parang taunang ulat ng lahat ng pag-aari at pagkakautang mo.",
+          "now": "Sabi ng prosekusyon, may mga ari-ariang hindi nakalista sa SALN ng respondent."
+        }
+      }
+    },
+    {
+      "at": 66,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s07",
+        "t": 0,
+        "speaker": "THE PRESIDING OFFICER",
+        "text": "The Chair will take the motion to quash under advisement. Meanwhile, the witness may testify on the documents already on record.",
+        "terms": [
+          {
+            "text": "under advisement",
+            "cardId": "card-advisement"
+          }
+        ],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "Pag-aaralan muna ng namumuno ang mosyong ibasura ang subpoena. Habang hinihintay ito, puwedeng magpatotoo ang testigo tungkol sa mga dokumentong nasa rekord na."
+        }
+      }
+    },
+    {
+      "at": 67,
+      "message": {
+        "v": 1,
+        "type": "card.pending",
+        "id": "card-advisement",
+        "term": "Under advisement",
+        "t": 0
+      }
+    },
+    {
+      "at": 70,
+      "message": {
+        "v": 1,
+        "type": "card",
+        "card": {
+          "id": "card-advisement",
+          "t": 0,
+          "language": "tl",
+          "term": "Under advisement",
+          "kind": "ai",
+          "meaning": "Pinag-aaralan pa ang hiling bago magdesisyon.",
+          "example": "Parang sinabi mong, “Pag-iisipan ko muna, sasagutin kita mamaya.”",
+          "now": "Hindi pa nagpapasya ang namumuno kung ibabasura ang subpoena."
+        }
+      }
+    },
+    {
+      "at": 77,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s08",
+        "t": 0,
+        "speaker": "PROSECUTION",
+        "text": "Madam Witness, are these certified true copies of the titles registered under the respondent's name?",
+        "terms": [
+          {
+            "text": "certified true copies",
+            "cardId": "card-ctc"
+          }
+        ],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "Ginang Testigo, ito ba ay mga certified true copy ng mga titulong nakarehistro sa pangalan ng respondent?"
+        }
+      }
+    },
+    {
+      "at": 78,
+      "message": {
+        "v": 1,
+        "type": "card.pending",
+        "id": "card-ctc",
+        "term": "Certified true copy",
+        "t": 0
+      }
+    },
+    {
+      "at": 81,
+      "message": {
+        "v": 1,
+        "type": "card",
+        "card": {
+          "id": "card-ctc",
+          "t": 0,
+          "language": "tl",
+          "term": "Certified true copy",
+          "kind": "checked",
+          "meaning": "Kopya ng dokumento na pinatunayan ng opisyal na tugma sa orihinal.",
+          "example": "Parang photocopy na may pirma at tatak na nagsasabing, “Totoo ito.”",
+          "now": "Tinatanong kung opisyal na kopya ang mga titulong ipinakita."
+        }
+      }
+    },
+    {
+      "at": 85,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s09",
+        "t": 0,
+        "speaker": "WITNESS",
+        "text": "Yes, sir. I personally certified them from our registry.",
+        "terms": [],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "Opo, sir. Ako mismo ang nag-certify ng mga ito mula sa aming talaan."
+        }
+      }
+    },
+    {
+      "at": 93,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s10",
+        "t": 0,
+        "speaker": "PROSECUTION",
+        "text": "And according to your records, when were these properties acquired?",
+        "terms": [],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "At ayon sa inyong mga rekord, kailan nakuha ang mga ari-ariang ito?"
+        }
+      }
+    },
+    {
+      "at": 100,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s11",
+        "t": 0,
+        "speaker": "DEFENSE",
+        "text": "Objection. The question calls for hearsay.…",
+        "terms": [],
+        "final": false
+      }
+    },
+    {
+      "at": 103,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s11",
+        "t": 0,
+        "speaker": "DEFENSE",
+        "text": "Objection. The question calls for hearsay. The witness only keeps the records; she has no personal knowledge of the purchases.",
+        "terms": [
+          {
+            "text": "hearsay",
+            "cardId": "card-hearsay"
+          }
+        ],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "Tutol. Humihingi ang tanong ng hearsay. Tagapag-ingat lang ng rekord ang testigo; wala siyang personal na kaalaman sa mga pagbili."
+        }
+      }
+    },
+    {
+      "at": 104,
+      "message": {
+        "v": 1,
+        "type": "card.pending",
+        "id": "card-hearsay",
+        "term": "Hearsay",
+        "t": 0
+      }
+    },
+    {
+      "at": 107,
+      "message": {
+        "v": 1,
+        "type": "card",
+        "card": {
+          "id": "card-hearsay",
+          "t": 0,
+          "language": "tl",
+          "term": "Hearsay",
+          "kind": "checked",
+          "meaning": "Patotoo tungkol sa bagay na hindi mismo nakita o nalaman ng testigo; narinig lang sa iba.",
+          "example": "Parang “Sabi raw ni ganito…” na hindi mo mismo nasaksihan.",
+          "now": "Sabi ng depensa, hindi personal na alam ng testigo kung kailan binili ang mga ari-arian."
+        }
+      }
+    },
+    {
+      "at": 113,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s12",
+        "t": 0,
+        "speaker": "THE PRESIDING OFFICER",
+        "text": "Overruled. The witness may answer based on the entries in the official records.",
+        "terms": [
+          {
+            "text": "Overruled",
+            "cardId": "card-overruled"
+          }
+        ],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "Overruled. Puwedeng sumagot ang testigo batay sa mga nakatala sa opisyal na rekord."
+        }
+      }
+    },
+    {
+      "at": 114,
+      "message": {
+        "v": 1,
+        "type": "card.pending",
+        "id": "card-overruled",
+        "term": "Overruled",
+        "t": 0
+      }
+    },
+    {
+      "at": 117,
+      "message": {
+        "v": 1,
+        "type": "card",
+        "card": {
+          "id": "card-overruled",
+          "t": 0,
+          "language": "tl",
+          "term": "Overruled",
+          "kind": "checked",
+          "meaning": "Hindi tinanggap ng hukom ang pagtutol; tuloy ang tanong.",
+          "example": "Parang referee na nagsabing, “Walang foul, tuloy ang laro.”",
+          "now": "Ibinasura ang tutol ng depensa, kaya puwedeng sumagot ang testigo."
+        }
+      }
+    },
+    {
+      "at": 122,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s13",
+        "t": 0,
+        "speaker": "WITNESS",
+        "text": "The records show the properties were registered between 2019 and 2021.",
+        "terms": [],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "Ipinapakita ng rekord na nairehistro ang mga ari-arian mula 2019 hanggang 2021."
+        }
+      }
+    },
+    {
+      "at": 132,
+      "message": {
+        "v": 1,
+        "type": "transcript.segment",
+        "id": "s14",
+        "t": 0,
+        "speaker": "THE PRESIDING OFFICER",
+        "text": "There being no further questions, the trial is adjourned until Monday at two in the afternoon.",
+        "terms": [
+          {
+            "text": "adjourned",
+            "cardId": "card-adjourned"
+          }
+        ],
+        "final": true,
+        "translation": {
+          "language": "tl",
+          "text": "Dahil wala nang ibang tanong, ipinagpapaliban ang paglilitis hanggang Lunes, alas-dos ng hapon."
+        }
+      }
+    },
+    {
+      "at": 133,
+      "message": {
+        "v": 1,
+        "type": "card.pending",
+        "id": "card-adjourned",
+        "term": "Adjourned",
+        "t": 0
+      }
+    },
+    {
+      "at": 136,
+      "message": {
+        "v": 1,
+        "type": "card",
+        "card": {
+          "id": "card-adjourned",
+          "t": 0,
+          "language": "tl",
+          "term": "Adjourned",
+          "kind": "checked",
+          "meaning": "Itinigil muna ang sesyon at itutuloy sa ibang araw.",
+          "example": "Parang “Hanggang dito na lang muna tayo, ituloy natin sa Lunes.”",
+          "now": "Tapos na ang paglilitis ngayong araw; babalik sa Lunes ng hapon."
+        }
+      }
+    }
+  ],
+  "replies": {
+    "whatSaid": [
+      {
+        "after": "s04",
+        "points": [
+          "Tinawag ng prosekusyon ang tagapag-ingat ng rekord ng Land Registration Authority bilang testigo.",
+          "Inutusan siyang magdala ng orihinal na mga titulo ng lupa."
+        ],
+        "sources": [
+          "s03",
+          "s04"
+        ]
+      },
+      {
+        "after": "s07",
+        "points": [
+          "Hiniling ng depensa na ibasura ang subpoena dahil masyado raw itong malawak.",
+          "Tumutol ang prosekusyon: mahalaga raw ang mga titulo dahil may mga ari-ariang wala sa SALN.",
+          "Pag-aaralan pa ito ng namumuno. Habang hinihintay, puwedeng magpatotoo ang testigo."
+        ],
+        "sources": [
+          "s05",
+          "s06",
+          "s07"
+        ]
+      },
+      {
+        "after": "s12",
+        "points": [
+          "Kinumpirma ng testigo na certified true copy ang mga titulo.",
+          "Tumutol ang depensa na hearsay ang tanong kung kailan nakuha ang mga ari-arian.",
+          "Overruled ang tutol, kaya puwedeng sumagot ang testigo batay sa rekord."
+        ],
+        "sources": [
+          "s08",
+          "s09",
+          "s11",
+          "s12"
+        ]
+      },
+      {
+        "after": "s14",
+        "points": [
+          "Ayon sa rekord, nairehistro ang mga ari-arian mula 2019 hanggang 2021.",
+          "Ipinagpaliban ang paglilitis hanggang Lunes, alas-dos ng hapon."
+        ],
+        "sources": [
+          "s13",
+          "s14"
+        ]
+      }
+    ],
+    "summary": {
+      "overviews": [
+        {
+          "after": "s01",
+          "text": "Nagsimula ang ikatlong araw ng paglilitis sa Senado."
+        },
+        {
+          "after": "s04",
+          "text": "Itinuloy ng Senado ang paglilitis sa Ikalawang Artikulo. Tinawag ng prosekusyon ang tagapag-ingat ng rekord ng mga titulo ng lupa."
+        },
+        {
+          "after": "s07",
+          "text": "Sa Ikalawang Artikulo, tinawag ng prosekusyon ang tagapag-ingat ng rekord ng mga titulo ng lupa. Hiniling ng depensa na ibasura ang subpoena para sa mga titulo; tumutol ang prosekusyon. Pinag-aaralan pa ito ng namumuno."
+        },
+        {
+          "after": "s14",
+          "text": "Sa Ikalawang Artikulo, ipinakita ng prosekusyon ang mga titulo ng lupa na nakarehistro sa pangalan ng respondent mula 2019 hanggang 2021, na sinasabi nilang wala sa SALN. Tumutol ang depensa sa subpoena at sa ilang tanong; pinag-aaralan pa ang subpoena, pero pinayagang sumagot ang testigo. Itutuloy ang paglilitis sa Lunes."
+        }
+      ],
+      "events": [
+        {
+          "title": "Binuksan ang paglilitis",
+          "detail": "Itinuloy ng Senado, bilang Impeachment Court, ang paglilitis sa Ikalawang Artikulo.",
+          "sources": [
+            "s01",
+            "s02"
+          ]
+        },
+        {
+          "title": "Tinawag ang testigo ng prosekusyon",
+          "detail": "Ang tagapag-ingat ng rekord ng Land Registration Authority, na inutusang magdala ng mga titulo ng lupa.",
+          "sources": [
+            "s03",
+            "s04"
+          ]
+        },
+        {
+          "title": "Hiniling na ibasura ang subpoena",
+          "detail": "Masyado raw malawak ayon sa depensa. Tumutol ang prosekusyon dahil may kinalaman daw ito sa SALN.",
+          "sources": [
+            "s05",
+            "s06"
+          ]
+        },
+        {
+          "title": "Pinag-aaralan pa ng namumuno",
+          "detail": "Wala pang desisyon sa mosyon; puwedeng magpatotoo ang testigo sa mga dokumentong nasa rekord.",
+          "sources": [
+            "s07"
+          ]
+        },
+        {
+          "title": "Kinumpirma ang mga titulo",
+          "detail": "Sinabi ng testigo na siya mismo ang nag-certify ng mga kopya.",
+          "sources": [
+            "s08",
+            "s09"
+          ]
+        },
+        {
+          "title": "Tutol na hearsay, ibinasura",
+          "detail": "Overruled ang tutol ng depensa. Ayon sa rekord, nairehistro ang mga ari-arian mula 2019 hanggang 2021.",
+          "sources": [
+            "s11",
+            "s12",
+            "s13"
+          ]
+        },
+        {
+          "title": "Ipinagpaliban ang paglilitis",
+          "detail": "Babalik ang paglilitis sa Lunes, alas-dos ng hapon.",
+          "sources": [
+            "s14"
+          ]
+        }
+      ],
+      "openIssues": [
+        {
+          "after": "s07",
+          "until": "s14",
+          "text": "Hindi pa napagpapasyahan kung ibabasura ang subpoena duces tecum para sa mga titulo ng lupa."
+        }
+      ]
+    },
+    "answers": [
+      {
+        "match": [
+          "objection",
+          "tutol"
+        ],
+        "text": "Dalawang beses may tumutol. Una, tumutol ang prosekusyon sa hiling na ibasura ang subpoena, dahil mahalaga raw ang mga titulo. Ikalawa, tumutol ang depensa na hearsay ang tanong sa testigo — pero overruled ito, kaya tuloy ang sagot.",
+        "sources": [
+          "s06",
+          "s11",
+          "s12"
+        ]
+      },
+      {
+        "match": [
+          "quash",
+          "ibasura",
+          "subpoena"
+        ],
+        "text": "Gusto ng depensa na ibasura ang subpoena duces tecum dahil masyado raw itong malawak. Hindi pa ito napagpapasyahan; pinag-aaralan pa ng namumuno.",
+        "sources": [
+          "s05",
+          "s07"
+        ]
+      },
+      {
+        "match": [
+          "saln"
+        ],
+        "text": "Ang SALN ay taunang listahan ng ari-arian at utang ng isang opisyal. Sabi ng prosekusyon, may mga titulo ng lupa na hindi nakalista rito.",
+        "sources": [
+          "s06"
+        ]
+      },
+      {
+        "match": [
+          "pagkatapos",
+          "susunod",
+          "next",
+          "mangyayari"
+        ],
+        "text": "Itutuloy ang paglilitis sa Lunes, alas-dos ng hapon. Hinihintay pa rin ang desisyon ng namumuno sa hiling na ibasura ang subpoena.",
+        "sources": [
+          "s14",
+          "s07"
+        ]
+      },
+      {
+        "match": [
+          "sino",
+          "nagsasalita",
+          "who"
+        ],
+        "text": "Ang namumuno (Presiding Officer) ang nagpapasya kung sino ang magsasalita. Ang testigo ay ang tagapag-ingat ng rekord ng Land Registration Authority.",
+        "sources": [
+          "s03",
+          "s12"
+        ]
+      },
+      {
+        "match": [
+          "impeachment"
+        ],
+        "text": "Ang impeachment ay proseso para litisin ang isang mataas na opisyal. Ang Senado ang nagsisilbing hukuman, at isa-isang pinatutunayan ang mga paratang sa Articles of Impeachment.",
+        "sources": [
+          "s01",
+          "s02"
+        ]
+      }
+    ],
+    "fallbackAnswer": "Wala pa akong sapat na narinig para sagutin iyan. Subukang itanong ulit gamit ang ibang salita."
+  },
+  "simplified": {
+    "card-quash": {
+      "meaning": "Hiling na huwag ituloy ang isang utos ng hukuman.",
+      "example": "Parang pagsabi ng, “Huwag na po natin ituloy ito.”"
+    },
+    "card-hearsay": {
+      "meaning": "Narinig lang sa iba, hindi mismo nakita.",
+      "example": "Parang chismis na hindi mo mismo nasaksihan."
+    },
+    "card-advisement": {
+      "meaning": "Pag-iisipan pa ng namumuno."
+    }
+  }
+}
