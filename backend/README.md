@@ -40,6 +40,10 @@ Ask answers questions about the law from `law/passages.json`: 610 short, cited p
 
 The texts are Philippine government works, which carry no copyright (IP Code, Sec. 176); they are taken from LawPhil. To add a source or refresh the texts, edit `scripts/build-law.ts` and run `pnpm --filter @linaw/backend build-law` (needs internet; the result is committed so Linaw stays offline).
 
+## Case brief
+
+The AI gets a short background paragraph about the hearing with every Summary, "What did they say?", Ask and "Right now" request, from `briefs/`. `CASE_BRIEF` in `.env` lists which ones (default `impeachment-trial`, how a Senate impeachment trial works, taken from the law library's sources). For a demo clip, copy `briefs/example-hearing.json` to e.g. `briefs/day-3.json`, fill in who is on trial, the charges and who speaks, and set `CASE_BRIEF=impeachment-trial,day-3`. The brief is background only: summaries still say only what the transcript says. The backend refuses to start if a brief still has `[placeholders]`.
+
 ## Check it
 
 ```sh

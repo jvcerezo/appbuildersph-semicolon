@@ -32,11 +32,11 @@ export interface WhatSaid {
   sources: string[];
 }
 
-export async function whatWasSaid(lines: Line[], language: Language, ai: OllamaClient): Promise<WhatSaid> {
+export async function whatWasSaid(lines: Line[], language: Language, ai: OllamaClient, context = ''): Promise<WhatSaid> {
   if (lines.length === 0) return { points: [NOTHING_SAID[language]], sources: [] };
   const parts = split(lines, Math.min(MAX_POINTS, Math.ceil(lines.length / LINES_PER_POINT)));
   const answers = await Promise.all(
-    parts.map((part) => ai.json(whatSaid({ lines: part.map((line) => line.text), language }), 'user')),
+    parts.map((part) => ai.json(whatSaid({ lines: part.map((line) => line.text), language, context }), 'user')),
   );
   return { points: answers.map((answer) => answer.point), sources: parts.map((part) => longest(part).id) };
 }
@@ -54,13 +54,17 @@ export class Summarizer {
   private readonly events = new Map<string, Promise<SummaryEvent>>();
   private readonly done = new Map<string, SummaryEvent>();
 
-  constructor(private readonly ai: OllamaClient) {}
+  constructor(
+    private readonly ai: OllamaClient,
+    /** The case brief in each language (backend/briefs/), or "". */
+    private readonly context: (language: Language) => string = () => '',
+  ) {}
 
   async summarize(lines: Line[], language: Language): Promise<Summary> {
     if (lines.length === 0) return { overview: NOTHING_YET[language], events: [] };
     const events = await Promise.all(chunk(lines, LINES_PER_EVENT).map((stretch) => this.event(stretch, language, 'user')));
     const { overview, openIssue, title } = await this.ai.json(
-      summaryOverview({ events: events.slice(-MAX_OVERVIEW_EVENTS), language }),
+      summaryOverview({ events: events.slice(-MAX_OVERVIEW_EVENTS), language, context: this.context(language) }),
       'user',
     );
     return { overview, events, openIssue: NOTHING_OPEN.test(openIssue) ? undefined : openIssue, title };
@@ -86,7 +90,7 @@ export class Summarizer {
     // A background job may sit behind every card in the queue; a person waiting gets a fresh one instead.
     if (known && priority === 'background') return known;
     const job = this.ai
-      .json(summaryEvent({ lines: stretch.map((line) => line.text), language }), priority)
+      .json(summaryEvent({ lines: stretch.map((line) => line.text), language, context: this.context(language) }), priority)
       .then(({ title, detail }): SummaryEvent => ({ t: first.t, title, detail, sources: [longest(stretch).id] }));
     if (stretch.length === LINES_PER_EVENT) {
       this.events.set(key, job);
@@ -137,6 +141,8 @@ export async function answerQuestion(args: {
   law: LawLibrary;
   language: Language;
   ai: OllamaClient;
+  /** The case brief (backend/briefs/), or "". */
+  context?: string;
 }): Promise<Answer> {
   const { meanings, language, ai } = args;
   const advice = ADVICE.test(args.question);
@@ -146,7 +152,7 @@ export async function answerQuestion(args: {
     .search([question, ...meanings.map((m) => m.term)].join(' '), LAW_PASSAGES)
     .map(({ passage }) => ({ cite: language === 'tl' ? passage.citeTl : passage.cite, text: clip(passage.text, LAW_CHARS) }));
   const reply = await ai.json(
-    ask({ question, lines: lines.map((line) => line.text), meanings, laws, advice, language }),
+    ask({ question, lines: lines.map((line) => line.text), meanings, laws, advice, language, context: args.context }),
     'user',
   );
   const sources = [...new Set(reply.lines.map((n) => lines[n - 1]?.id).filter((id): id is string => id !== undefined))];

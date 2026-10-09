@@ -1,0 +1,8 @@
+{
+  "title": "Example: facts of one hearing (copy this file for each demo clip)",
+  "basis": "Write where each fact comes from, e.g. the Senate journal or a news report, and check it before the demo",
+  "context": {
+    "en": "On trial: [name], [position]. The articles of impeachment charge [short list, e.g. betrayal of public trust over unliquidated funds]. Lead prosecutor: [name]. Lead defense counsel: [name]. Presiding: [Senate President name]. This session: [day number and date, what is scheduled, e.g. cross-examination of the first witness].",
+    "tl": "Nililitis: [pangalan], [posisyon]. Ang mga paratang sa articles of impeachment: [maikling listahan]. Pangunahing prosecutor: [pangalan]. Pangunahing abogado ng depensa: [pangalan]. Namumuno: [pangalan ng Senate President]. Sesyong ito: [araw at petsa, ano ang nakatakda]."
+  }
+}

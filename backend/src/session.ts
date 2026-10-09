@@ -1,4 +1,4 @@
-import type { Card, ClientMessage, Preferences, Status, TermRef } from '@linaw/contract';
+import type { Card, ClientMessage, Language, Preferences, Status, TermRef } from '@linaw/contract';
 import { PauseCutter, type Utterance } from './audio/cutter';
 import { FfmpegDecoder, SAMPLE_RATE } from './audio/decoder';
 import { toWav } from './audio/wav';
@@ -7,6 +7,7 @@ import { spot } from './llm/prompts';
 import { TermFinder, type FoundTerm } from './terms/finder';
 import { answerQuestion, LINES_PER_EVENT, Summarizer, whatWasSaid } from './help';
 import { AiUnavailableError } from './llm/ollama';
+import { briefContext } from './briefs';
 import type { Services } from './services';
 import { SttStream, type HeardLine, type SttStatus } from './stt/stream';
 import type { Outgoing } from './wire';
@@ -81,7 +82,7 @@ export class Session {
     private readonly services: Services,
     private readonly send: Send,
   ) {
-    this.summarizer = new Summarizer(services.ai);
+    this.summarizer = new Summarizer(services.ai, (language) => briefContext(services.briefs, language));
     this.setStatus('waiting');
   }
 
@@ -409,7 +410,7 @@ export class Session {
 
     const { epoch } = this;
     const startedAt = Date.now();
-    const job = nowLine(card, this.linesBefore(line), line.text, this.services.ai)
+    const job = nowLine(card, this.linesBefore(line), line.text, this.services.ai, this.brief(card.language))
       .then((now) => {
         this.aiFailing = false;
         // "Simpler" may have rewritten the card meanwhile; keep its text.
@@ -448,7 +449,7 @@ export class Session {
     const lines = this.recentLines(windowSec);
     const { language } = this.preferences;
     const startedAt = Date.now();
-    const job = whatWasSaid(lines, language, this.services.ai)
+    const job = whatWasSaid(lines, language, this.services.ai, this.brief(language))
       .then(({ points, sources }) => {
         this.aiFailing = false;
         if (this.disposed) return;
@@ -486,7 +487,7 @@ export class Session {
       return [{ term: entry.term, meaning: (language === 'en' ? entry.en : undefined)?.meaning ?? entry.tl.meaning }];
     });
     const startedAt = Date.now();
-    const job = answerQuestion({ question, lines: [...this.lines], meanings, law: this.services.law, language, ai: this.services.ai })
+    const job = answerQuestion({ question, lines: [...this.lines], meanings, law: this.services.law, language, ai: this.services.ai, context: this.brief(language) })
       .then(({ text, sources }) => {
         this.aiFailing = false;
         if (this.disposed) return;
@@ -510,6 +511,11 @@ export class Session {
     if (this.disposed) return;
     const code = err instanceof AiUnavailableError ? 'model_unavailable' : 'internal';
     this.send({ type: 'error', code, message, requestId });
+  }
+
+  /** The case brief for prompts, in `language`. */
+  private brief(language: Language): string {
+    return briefContext(this.services.briefs, language);
   }
 
   private cardId(entryId: string): string {

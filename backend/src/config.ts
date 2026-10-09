@@ -14,6 +14,8 @@ export interface Config {
   whisperLanguage: string;
   ollamaUrl: string;
   ollamaModel: string;
+  /** Briefs in backend/briefs/ to give the AI as background (CASE_BRIEF, comma-separated). */
+  caseBriefs: string[];
 }
 
 const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
@@ -46,5 +48,9 @@ export function loadConfig(): Config {
     whisperLanguage: process.env.WHISPER_LANGUAGE || 'en',
     ollamaUrl: localUrl('OLLAMA_URL', 'http://127.0.0.1:11434'),
     ollamaModel: process.env.OLLAMA_MODEL || 'gemma4:e4b',
+    caseBriefs: (process.env.CASE_BRIEF ?? 'impeachment-trial')
+      .split(',')
+      .map((name) => name.trim())
+      .filter(Boolean),
   };
 }

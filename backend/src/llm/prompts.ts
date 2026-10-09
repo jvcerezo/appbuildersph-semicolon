@@ -19,6 +19,19 @@ const RULES: Record<Language, string[]> = {
   ],
 };
 
+/**
+ * The case brief (backend/briefs/), as background only: it helps the model read the lines, but what
+ * happened must still come from the lines, so the rule against inventing details keeps holding.
+ */
+function background(context: string | undefined, language: Language): string[] {
+  if (!context) return [];
+  return [
+    language === 'tl'
+      ? `Konteksto ng pagdinig (background lang; ang nangyari ay galing LAMANG sa mga linya): ${context}`
+      : `About this hearing (background only; what happened comes ONLY from the lines): ${context}`,
+  ];
+}
+
 interface NowExample {
   term: string;
   before: string[];
@@ -70,13 +83,13 @@ const WHAT_SAID_EXAMPLE = {
  * One call per stretch, because a 4B model given the whole window summed up
  * only the start, or mixed stretches up and invented rulings.
  */
-export function whatSaid(args: { lines: string[]; language: Language }): JsonRequest<{ point: string }> {
-  const { lines, language } = args;
+export function whatSaid(args: { lines: string[]; language: Language; context?: string }): JsonRequest<{ point: string }> {
+  const { lines, language, context } = args;
   const task =
     language === 'tl'
       ? 'Para sa taong hindi nakasunod sa pagdinig, isulat ang "point": ISANG maikling pangungusap lang (hanggang 25 salita) kung ano ang sinabi sa mga linyang ito. Banggitin kung sino ang nagsalita kung malinaw (hal. ang depensa, ang prosekusyon, ang namumuno). Huwag sabihing may desisyon kung walang sinabing desisyon.'
       : 'For someone who lost track of the hearing, write "point": just ONE short sentence (up to 25 words) on what was said in these lines. Say who spoke when it is clear (e.g. the defense, the prosecution, the presiding officer). Never say something was decided unless a decision was said.';
-  const messages: ChatMessage[] = [{ role: 'system', content: [...RULES[language], task].join('\n') }];
+  const messages: ChatMessage[] = [{ role: 'system', content: [...RULES[language], ...background(context, language), task].join('\n') }];
   WHAT_SAID_EXAMPLE.parts.forEach((part, i) => {
     messages.push({ role: 'user', content: part.join('\n') });
     messages.push({ role: 'assistant', content: JSON.stringify({ point: WHAT_SAID_EXAMPLE.points[language][i] }) });
@@ -103,8 +116,12 @@ const EVENT_EXAMPLE = {
 };
 
 /** One stretch of the hearing as a Summary timeline event. */
-export function summaryEvent(args: { lines: string[]; language: Language }): JsonRequest<{ title: string; detail: string }> {
-  const { lines, language } = args;
+export function summaryEvent(args: {
+  lines: string[];
+  language: Language;
+  context?: string;
+}): JsonRequest<{ title: string; detail: string }> {
+  const { lines, language, context } = args;
   const task =
     language === 'tl'
       ? 'Isulat ang nangyari sa bahaging ito ng pagdinig: "title" (hanggang 6 na salita) at "detail" (ISANG maikling pangungusap). Banggitin kung sino ang nagsalita kung malinaw. Huwag sabihing may desisyon kung walang sinabing desisyon.'
@@ -112,7 +129,7 @@ export function summaryEvent(args: { lines: string[]; language: Language }): Jso
   const text = { type: 'string', minLength: 3, maxLength: 250 };
   return {
     messages: [
-      { role: 'system', content: [...RULES[language], task].join('\n') },
+      { role: 'system', content: [...RULES[language], ...background(context, language), task].join('\n') },
       { role: 'user', content: EVENT_EXAMPLE.lines.join('\n') },
       { role: 'assistant', content: JSON.stringify(EVENT_EXAMPLE.event[language]) },
       { role: 'user', content: lines.join('\n') },
@@ -132,15 +149,19 @@ export interface Overview {
 }
 
 /** The whole hearing so far, from its timeline events. */
-export function summaryOverview(args: { events: { title: string; detail: string }[]; language: Language }): JsonRequest<Overview> {
-  const { events, language } = args;
+export function summaryOverview(args: {
+  events: { title: string; detail: string }[];
+  language: Language;
+  context?: string;
+}): JsonRequest<Overview> {
+  const { events, language, context } = args;
   const task =
     language === 'tl'
       ? 'Mula sa mga pangyayaring ito sa pagdinig, isulat: "overview" (2 hanggang 3 maiikling pangungusap tungkol sa buong pagdinig hanggang ngayon), "openIssue" (ISANG pangungusap tungkol sa isang usaping hindi pa napagpapasyahan, o "" kung wala), at "title" (pangalan ng pagdinig, hanggang 6 na salita).'
       : 'From these events in the hearing, write: "overview" (2 to 3 short sentences about the whole hearing so far), "openIssue" (ONE sentence about an issue not yet decided, or "" if none), and "title" (a name for the hearing, up to 6 words).';
   return {
     messages: [
-      { role: 'system', content: [...RULES[language], task].join('\n') },
+      { role: 'system', content: [...RULES[language], ...background(context, language), task].join('\n') },
       { role: 'user', content: events.map((event, i) => `${i + 1}. ${event.title}: ${event.detail}`).join('\n') },
     ],
     format: {
@@ -175,8 +196,9 @@ export function ask(args: {
   laws: { cite: string; text: string }[];
   advice: boolean;
   language: Language;
+  context?: string;
 }): JsonRequest<AskAnswer> {
-  const { question, lines, meanings, laws, advice, language } = args;
+  const { question, lines, meanings, laws, advice, language, context } = args;
   const tl = language === 'tl';
   const task = tl
     ? [
@@ -209,7 +231,7 @@ export function ask(args: {
     : `Hearing lines:\n${heard}${known ? `\n\nMeanings:\n${known}` : ''}${law ? `\n\nLaw passages:\n${law}` : ''}\n\nQuestion: ${question}`;
   return {
     messages: [
-      { role: 'system', content: [...RULES[language], ...task].join('\n') },
+      { role: 'system', content: [...RULES[language], ...background(context, language), ...task].join('\n') },
       { role: 'user', content },
     ],
     format: {
@@ -410,8 +432,9 @@ export function rightNow(args: {
   before: string[];
   line: string;
   language: Language;
+  context?: string;
 }): JsonRequest<{ now: string }> {
-  const { term, meaning, before, line, language } = args;
+  const { term, meaning, before, line, language, context } = args;
   const task =
     language === 'tl'
       ? 'Isulat ang "now": ISANG maikling pangungusap (hanggang 20 salita) kung ano ang ibig sabihin ng termino sa pangungusap kung saan ito nabanggit. Tungkol lang sa sandaling iyon, hindi sa buong pagdinig.'
@@ -432,7 +455,7 @@ export function rightNow(args: {
           `Sentence with the term: "${example.line}"`,
         ].filter(Boolean).join('\n');
 
-  const messages: ChatMessage[] = [{ role: 'system', content: [...RULES[language], task].join('\n') }];
+  const messages: ChatMessage[] = [{ role: 'system', content: [...RULES[language], ...background(context, language), task].join('\n') }];
   for (const example of NOW_EXAMPLES) {
     messages.push({ role: 'user', content: ask(example) });
     messages.push({ role: 'assistant', content: JSON.stringify({ now: example.now[language] }) });
