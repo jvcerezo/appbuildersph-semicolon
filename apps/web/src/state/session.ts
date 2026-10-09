@@ -25,7 +25,10 @@ type Loadable<T> = { state: 'idle' } | { state: 'loading'; requestId: string } |
 
 export interface QA {
   requestId: string;
+  /** For a spoken question: empty until the answer brings the words the backend heard. */
   question: string;
+  /** Asked out loud (push to talk). */
+  voice?: boolean;
   answer?: string;
   sources?: string[];
 }
@@ -87,7 +90,7 @@ export type SessionAction =
   | { type: 'segment.focus'; segmentId: string | null }
   | { type: 'what_said.requested'; requestId: string }
   | { type: 'summary.requested'; requestId: string }
-  | { type: 'ask.requested'; requestId: string; question: string }
+  | { type: 'ask.requested'; requestId: string; question: string; voice?: boolean }
   | { type: 'simplify.requested'; cardId: string; requestId: string }
   | { type: 'card.toggleSaved'; cardId: string }
   /** Back to an empty session (after it was finished and saved). */
@@ -124,7 +127,10 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
     case 'summary.requested':
       return { ...state, summary: { state: 'loading', requestId: action.requestId } };
     case 'ask.requested':
-      return { ...state, questions: [...state.questions, { requestId: action.requestId, question: action.question }] };
+      return {
+        ...state,
+        questions: [...state.questions, { requestId: action.requestId, question: action.question, ...(action.voice ? { voice: true } : {}) }],
+      };
     case 'simplify.requested':
       return {
         ...state,
@@ -214,7 +220,8 @@ function applyServerMessage(state: SessionState, message: ServerMessage): Sessio
       return {
         ...state,
         questions: state.questions.map((q) =>
-          q.requestId === message.requestId ? { ...q, answer: message.text, sources: message.sources } : q,
+          // A spoken question's text is what the backend heard.
+          q.requestId === message.requestId ? { ...q, question: message.question, answer: message.text, sources: message.sources } : q,
         ),
       };
 

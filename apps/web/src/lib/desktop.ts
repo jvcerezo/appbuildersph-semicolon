@@ -12,6 +12,11 @@ export interface LinawDesktop {
   minimize: () => void;
   toggleMaximize: () => void;
   close: () => void;
+  /**
+   * Push to talk: lower the speakers while the user speaks (true), then restore them (false).
+   * The hearing transcript is unaffected. Resolves to false when the volume can't be changed.
+   */
+  duckVolume: (on: boolean) => Promise<boolean>;
 }
 
 declare global {

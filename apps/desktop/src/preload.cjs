@@ -18,4 +18,10 @@ contextBridge.exposeInMainWorld('linawDesktop', {
   minimize: () => ipcRenderer.send('window:minimize'),
   toggleMaximize: () => ipcRenderer.send('window:toggleMaximize'),
   close: () => ipcRenderer.send('window:close'),
+  /**
+   * Push to talk: lower the speakers while the user speaks (true), then restore them (false).
+   * Resolves to false when this computer's volume can't be changed.
+   * @param {boolean} on @returns {Promise<boolean>}
+   */
+  duckVolume: (on) => ipcRenderer.invoke('volume:duck', Boolean(on)),
 });

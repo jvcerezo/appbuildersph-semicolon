@@ -6,6 +6,7 @@ import { historyStore, newId, type SessionRecord } from '../lib/history';
 import { loadSettings, saveSettings, SPEECH_RATE, TEXT_SCALE, toPreferences, type Settings } from '../lib/settings';
 import { BackendSocket } from '../lib/socket';
 import { readAloud, stopReading } from '../lib/speech';
+import { toBase64 } from '../lib/voice';
 import { initialSession, sessionReducer, type HelpKind, type SessionState } from './session';
 
 const WHAT_SAID_WINDOW_SEC = 120;
@@ -221,6 +222,18 @@ export function useLinaw() {
     socket.current?.send({ type: 'ask', requestId, question });
   };
 
+  /** Push to talk: send the recorded question; the answer brings the words the backend heard. */
+  const askAloud = async (clip: Blob, mimeType: string) => {
+    const requestId = newRequestId();
+    dispatch({ type: 'ask.requested', requestId, question: '', voice: true });
+    try {
+      const audio = await toBase64(clip);
+      if (!socket.current?.send({ type: 'ask.audio', requestId, mimeType, audio })) throw new Error('not connected');
+    } catch {
+      dispatch({ type: 'server', message: { v: 1, type: 'error', code: 'internal', message: 'Linaw couldn’t send your question. Try again.', requestId } });
+    }
+  };
+
   const simplify = (card: Card) => {
     const requestId = newRequestId();
     dispatch({ type: 'simplify.requested', cardId: card.id, requestId });
@@ -247,6 +260,8 @@ export function useLinaw() {
     clearError: () => dispatch({ type: 'error', message: null }),
     openHelp,
     ask,
+    askAloud,
+    reportError: (message: string) => dispatch({ type: 'error', message }),
     simplify,
     speak,
     toggleSaved: (card: Card) => dispatch({ type: 'card.toggleSaved', cardId: card.id }),

@@ -222,6 +222,24 @@ export const AskMessageSchema = z.object({
   question: z.string().min(1).max(500),
 });
 
+/**
+ * A question asked out loud (push to talk). The backend transcribes it, then answers it like `ask`:
+ * the `answer` carries the words it heard as `question`. If it heard no question, it replies with
+ * `error` (`unsupported_audio`) and the same `requestId`.
+ */
+export const AskAudioMessageSchema = z.object({
+  v,
+  type: z.literal('ask.audio'),
+  requestId: id,
+  /** Encoding of `audio`, e.g. "audio/webm;codecs=opus". */
+  mimeType: z.string().min(1),
+  /**
+   * One short recording (up to about 30 s), base64. The one exception to "audio is binary frames":
+   * binary frames are the live hearing, and a one-off clip in its own message can't be mixed up with it.
+   */
+  audio: z.string().min(1).max(2_000_000),
+});
+
 export const CardSimplifyMessageSchema = z.object({
   v,
   type: z.literal('card.simplify'),
@@ -236,6 +254,7 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
   WhatSaidRequestMessageSchema,
   SummaryRequestMessageSchema,
   AskMessageSchema,
+  AskAudioMessageSchema,
   CardSimplifyMessageSchema,
 ]);
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
