@@ -38,8 +38,10 @@ function closeJson(text: string): string {
   return text + (inString ? '"' : '') + closers.reverse().join('');
 }
 
-/** Button presses go first: a person is waiting for them. */
-export type Priority = 'user' | 'card';
+/** Button presses go first: a person is waiting for them. Then cards showing "Explaining…", then work with a fallback. */
+export type Priority = 'user' | 'card' | 'background';
+
+const ORDER: Priority[] = ['user', 'card', 'background'];
 
 /** Maps to the contract's `model_unavailable`. */
 export class AiUnavailableError extends Error {}
@@ -58,6 +60,11 @@ export class OllamaClient {
     private readonly url: string,
     readonly model: string,
   ) {}
+
+  /** Requests waiting or running. */
+  get backlog(): number {
+    return this.waiting.length + (this.busy ? 1 : 0);
+  }
 
   json<T>(request: JsonRequest<T>, priority: Priority): Promise<T> {
     return new Promise<T>((resolve, reject) => {
@@ -79,8 +86,8 @@ export class OllamaClient {
 
   private next(): void {
     if (this.busy) return;
-    const urgent = this.waiting.findIndex((job) => job.priority === 'user');
-    const [job] = this.waiting.splice(urgent === -1 ? 0 : urgent, 1);
+    const level = ORDER.find((priority) => this.waiting.some((job) => job.priority === priority));
+    const [job] = this.waiting.splice(Math.max(0, this.waiting.findIndex((job) => job.priority === level)), 1);
     if (!job) return;
     this.busy = true;
     void job.run().finally(() => {
